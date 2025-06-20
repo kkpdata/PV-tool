@@ -5,6 +5,8 @@
 # investigation_groups = ['Klei_licht', 'Klei_zwaar']
 # my_obj.c_phi_plot(investigation_groups=investigation_groups)
 
+# WAZZUP!!
+
 from pathlib import Path
 import os
 from pv_tool.importeren import Dbase
