@@ -1,0 +1,6 @@
+# Below a list of pip packages that can be installed recursively with 'pip install -r requirements.txt'.
+# NOTE! Do not overwrite this file with the freeze-command.
+
+pandas
+matplotlib
+openpyxl
