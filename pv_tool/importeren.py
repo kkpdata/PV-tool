@@ -1,5 +1,5 @@
 # Deze file gaan we gebruiken om alle imports te doen die nodig zijn om de PV-tool te draaien.
-# Dus de stowa of een oude PV-tool (mogelijk nog andere dingen in de toekomst)
+# Dus de stowa of een oude PV-tool (mogelijk nog andere dingen in de toekomst)  -> Dbase moet ook in te laden zijn.
 # We moeten zorgen dat we ondanks de verschillende bronnen 1 eindproduct krijgen,
 # dus 1 database met allemaal dezelfde kolommen
 
@@ -28,6 +28,19 @@ class Dbase:
         return self.pv_tool
 
 
+    def create_dbase(self):
+        """Maakt de dbase-dataframe"""
+        # maakt niet uit welke bron, altijd ANA kolommen opnieuw berekenen.
+        # grensspanning moeten we nog even overnadenken.
+        pass
+
+    def import_and_validate(self):
+        # import stowa of oude pv-tool
+        # check wat het bronbestand is, als PV_NAAM niet aanwezig is dan is bron stowa
+        # maak er dbase van
+        # valideer dbase
+        # return dbase en warnings
+        pass
 
 
 
