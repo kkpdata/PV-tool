@@ -12,6 +12,8 @@ from pathlib import Path
 class Dbase:
     """Deze class bevat alle functies die te maken hebben met het bouwen de Dbase-dataframe"""
 
+    # Equivalent aan DataImport object uit pv_tool_trial. Notitie voor later.
+
     def __init__(self):
         self.stowa_df: Optional[DataFrame] = None
         self.pv_tool: Optional[DataFrame] = None
@@ -26,8 +28,3 @@ class Dbase:
         pv = pv[pv.index.notna()]  # Verwijder rijen met een NaN in de index
         self.pv_tool = pv
         return self.pv_tool
-
-
-
-
-

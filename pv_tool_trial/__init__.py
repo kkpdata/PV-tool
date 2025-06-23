@@ -21,7 +21,7 @@ class CPhi:
         pass
 
     def graph(self) -> Figure:
-        df = self.data.stowa.df
+        df = self.data.data_set.df_a
         print(df)
         return Figure()
 
@@ -35,7 +35,7 @@ class CPhi:
         pass
 
 
-class Analyser:
+class Analyses:
 
     def __init__(self, data: Data):
         self.data: Data = data
@@ -50,29 +50,45 @@ class DataGraphing:
         self.data: Data = data
 
     def s_t(self, verzameling: str) -> Figure:
-        print(self.data.stowa.df, verzameling)
+        print(self.data.data_set.df_a, verzameling)
         return Figure()
 
 
-class Stowa:
+class DataSet:
 
-    def __init__(self, df: pd.DataFrame):
-        self.df: pd.DataFrame = df
+    def __init__(
+            self,
+            df_a: pd.DataFrame,
+            df_b: pd.DataFrame,
+            dict_a: dict,
+            dict_b: dict,
+    ):
+        self.df_a: pd.DataFrame = df_a
+        self.df_b: pd.DataFrame = df_b
+        self.dict_a: dict = dict_a
+        self.dict_b: dict = dict_b
 
 
-class DataLoader:
+class ImportData:
 
     def __init__(self, data: Data):
         self.data: Data = data
 
     def excel_stowa(self):
-        self.data.stowa = Stowa(
-            df=DUMMY_DF
+        self.data.data_set = DataSet(
+            df_a=DUMMY_DF,
+            df_b=DUMMY_DF,
+            dict_a={},
+            dict_b={},
+            # And all other
         )
 
     def excel_pv_tool(self):
-        self.data.stowa = Stowa(
-            df=DUMMY_DF
+        self.data.stowa = DataSet(
+            df_a=DUMMY_DF,
+            df_b=DUMMY_DF,
+            dict_a={},
+            dict_b={},
         )
 
 
@@ -82,7 +98,7 @@ class DataFilters:
         self.data = data
 
     def s_t(self, verzameling: str) -> pd.DataFrame:
-        df = self.data.stowa.df
+        df = self.data.data_set.df_a
         return df[df["verzameling"] == verzameling][["s", "t"]]
 
 
@@ -90,10 +106,10 @@ class Data:
 
     def __init__(self):
 
-        self.stowa: Optional[Stowa] = None
+        self.data_set: Optional[DataSet] = None
 
         # Buttons
-        self.load = DataLoader(data=self)
+        self.import_data = ImportData(data=self)
         self.filters = DataFilters(data=self)
         self.graphing = DataGraphing(data=self)
 
@@ -102,7 +118,7 @@ class PVTool:
 
     def __init__(self):
         self.data = Data()
-        self.analyser = Analyser(self.data)
+        self.analyses = Analyses(self.data)
 
 
 tool = PVTool()
@@ -110,9 +126,10 @@ tool = PVTool()
 ##
 
 # Load data
-tool.data.load.excel_pv_tool()
-tool.data.load.excel_stowa()
-print(tool.data.stowa.df)
+tool.data.import_data.excel_pv_tool()
+tool.data.import_data.excel_stowa()
+print(tool.data.data_set.df_a)
+print(tool.data.data_set.dict_a)
 
 ##
 
@@ -127,7 +144,7 @@ tool.data.graphing.s_t(verzameling="klei licht AL").show()
 ##
 
 # Analysis
-c_phi = tool.analyser.c_phi(
+c_phi = tool.analyses.c_phi(
     verzameling="klei",
     # And all other parameters we discussed earlier
 )

@@ -14,7 +14,7 @@ class Validation:
         self.dbase_df = dbase_df
 
     def check_clas(self):  # waarom willen we dit?
-        """Deze functie controleerd of de classificatieproeven zijn uitgevoerd."""
+        """Deze functie controleert of de classificatieproeven zijn uitgevoerd."""
 
     def check_naam_polder_dijk(self):
         """Deze functie controleert of de naam van de dijk is opgegeven, zo niet dan geeft hij een melding terug"""
