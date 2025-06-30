@@ -5,14 +5,13 @@
 # investigation_groups = ['Klei_licht', 'Klei_zwaar']
 # my_obj.c_phi_plot(investigation_groups=investigation_groups)
 
-# WAZZUP!!
-
 from pathlib import Path
 import os
 from pv_tool.importeren import Dbase
 from pv_tool.validation import Validation
 from typing import Optional
 import git
+
 
 # Deze functie is ooit geschreven door Chris, willen we deze openbaar maken?
 def get_repo_root(root_search_dir: Optional[str] = None) -> str:
@@ -49,7 +48,8 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     return repo.working_tree_dir
 
 
-dir_pv_tool = Path(os.path.join(get_repo_root(), "example_files", "Proevenverzameling_tool_v4.2n.xlsm"))
+# dir_pv_tool = Path(os.path.join(get_repo_root(), "example_files", "Proevenverzameling_tool_v4.2n.xlsm"))
+dir_pv_tool = Path(os.path.join(get_repo_root(), "example_files", "PV-tool_platte_data.xlsx"))
 dbase = Dbase()
 dbase.import_pv_tool(pv_dir=dir_pv_tool)
 df = dbase.pv_tool
