@@ -24,8 +24,51 @@ class Validation:
         self.dbase_df = dbase_df
 
     def split_dbase(self):
-        # hier komt dus per proef een df uit.
+        """hier komt  per proef een df uit in een library van dataframes"""
+        """deze zijn later aan te roepen door bijvoorbeeld df_algemeen = dataframes['Algemene kenmerken']"""
+
+        prefix_mapping = {
+            "Algemene kenmerken": "ALG_",
+            "Kenmerken van de boring": "BORING_",
+            "Monster": "MONSTER_",
+            "Classificatie": "CLAS_",
+            "Korrelverdeling zeefproef en fractieverdeling": "KV_",
+            "Kenmerken van de sondering": "CPT_",
+            "Constant rate of strain proeven (CRS)": "CRS_",
+            "Samendrukkingsproeven": "SD_",
+            "DSS-proeven": "DSS_",
+            "Triaxiaalproeven single stage": "TXT_SS_",
+            "Triaxiaalproeven multistage": "TXT_MS",
+            "Beschrijving proefresultaten en controle berekening terreinspanning": "CEL_",
+            "Analyse": "ANA_"
+        }
+
+        # Dictionary to store resulting dataframes
+        self.dataframes = {}
+
+        # Split dataframe based on column prefixes
+        for name, prefix in prefix_mapping.items():
+            # Filter columns based on the prefix
+            filtered_columns = [col for col in self.dbase_df.columns if col.startswith(prefix)]
+
+            # Create a new dataframe with those columns
+            self.dataframes[name] = self.dbase_df[filtered_columns]
+        return self.dataframes
         pass
+
+    # Define validation functions
+    def is_not_empty(value):
+        return value != "" and not pd.isna(value)
+
+    def is_not_empty_and_string(value):
+        return isinstance(value, str) and value.strip() != "" and not pd.isna(value)
+
+    # Check welke van de ID kolommen unieke waardes bevatten
+    def is_unique(series):
+        # Filter out empty strings and NaN values
+        non_empty_values = series.dropna().loc[series != ""]
+        print(len(non_empty_values), len(non_empty_values.unique()))
+        return len(non_empty_values) == len(non_empty_values.unique())
 
     def validate_clas(self):
         pass
@@ -51,29 +94,31 @@ class Validation:
         # return warnings
 
 
-### Inladen van de data. Let op: dit gebeurt in de notebook in een aparte cel, maar moet voor het testen nu hier ook gebeuren
+### Inladen van de data. Let op: dit gebeurt in de functie import, maar moet voor het testen nu hier ook gebeuren
 
 path_to_data = r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel.xlsm"
-df = pd.read_excel(path_to_data, sheet_name="Dbase2", header=None)
-
-# Find the index of the row containing "Algemene kenmerken"
-row0_index = df.index[df.apply(lambda row: row.astype(str).str.contains("Algemene kenmerken").any(), axis=1)][0]
-
-# Define the index where actual column headers start
-headers_index = row0_index + 16
-
-# Split the DataFrame into metadata and actual data
-metadata_df = df.iloc[:headers_index]  # All rows up to and including headers_index
-data_df = df.iloc[headers_index + 1:]  # All rows from headers_index onward
-
-# Set the actual column names using the row at headers_index
-data_df.columns = df.iloc[headers_index]
-
-# Rename the first two columns
-data_df.rename(columns={data_df.columns[0]: 'ALG__BORING_MONSTERNR', data_df.columns[1]: 'ALG__REGEL'}, inplace=True)
+df = pd.read_excel(path_to_data, skiprows=47, sheet_name="Dbase2", index_col='ALG__BORING_MONSTERNR_ID')
+df = df[df.index.notna()]
+#
+#
+# # Find the index of the row containing "Algemene kenmerken"
+# row0_index = df.index[df.apply(lambda row: row.astype(str).str.contains("Algemene kenmerken").any(), axis=1)][0]
+#
+# # Define the index where actual column headers start
+# headers_index = row0_index + 16
+#
+# # Split the DataFrame into metadata and actual data
+# metadata_df = df.iloc[:headers_index]  # All rows up to and including headers_index
+# data_df = df.iloc[headers_index + 1:]  # All rows from headers_index onward
+#
+# # Set the actual column names using the row at headers_index
+# data_df.columns = df.iloc[headers_index]
+#
+# # Rename the first two columns
+# data_df.rename(columns={data_df.columns[0]: 'ALG__BORING_MONSTERNR', data_df.columns[1]: 'ALG__REGEL'}, inplace=True)
 
 # Remove rows where the first column is NaN, null, or empty
-data_df = data_df.dropna(subset=[data_df.columns[0]])
+data_df = df.dropna(subset=[df.columns[0]])
 
 ## Het volgende stuk knipt het dataframe op per categorie. Dit zodat:
 # het makkelijker inlaadt,
@@ -82,32 +127,62 @@ data_df = data_df.dropna(subset=[data_df.columns[0]])
 # Overzichtelijker tijdens het bouwen van de tool en
 # dat je later makkelijker kan zien in welke categorie de fouten zitten
 
-# Get the row0 values (assumes row0 is available in df at row0_index)
-row0_values = df.iloc[row0_index]
+prefix_mapping = {
+    "Algemene kenmerken": "ALG_",
+    "Kenmerken van de boring": "BORING_",
+    "Monster": "MONSTER_",
+    "Classificatie": "CLAS_",
+    "Korrelverdeling zeefproef en fractieverdeling": "KV_",
+    "Kenmerken van de sondering" : "CPT_",
+    "Constant rate of strain proeven (CRS)": "CRS_",
+    "Samendrukkingsproeven": "SD_",
+    "DSS-proeven": "DSS_",
+    "Triaxiaalproeven single stage": "TXT_SS_",
+    "Triaxiaalproeven multistage": "TXT_MS",
+    "Beschrijving proefresultaten en controle berekening terreinspanning": "CEL_",
+    "Analyse": "ANA_"
+}
 
-# Initialize a dictionary to store the separate DataFrames
+# Dictionary to store resulting dataframes
 dataframes = {}
 
-# Find the indices of the non-NaN values in row0
-non_nan_indices = row0_values.dropna().index
+# Split dataframe based on column prefixes
+for name, prefix in prefix_mapping.items():
+    # Filter columns based on the prefix
+    filtered_columns = [col for col in df.columns if col.startswith(prefix)]
 
-# Iterate over each category defined by non-NaN values in row0
-for i in range(len(non_nan_indices)):
-    # Get the start and end index for the current category
-    start_index = non_nan_indices[i]
-    end_index = non_nan_indices[i + 1] if i + 1 < len(non_nan_indices) else len(data_df.columns)
+    # Create a new dataframe with those columns
+    dataframes[name] = df[filtered_columns]
 
-    # Get the category name
-    category_name = row0_values[start_index]
 
-    # Select columns for the current category
-    category_columns = ['ALG__BORING_MONSTERNR', 'ALG__REGEL'] + list(data_df.columns[start_index:end_index])
 
-    # Create a new DataFrame for this category
-    category_df = data_df[category_columns]
-
-    # Store the DataFrame in the dictionary with the category name
-    dataframes[category_name] = category_df
+#
+# # Get the row0 values (assumes row0 is available in df at row0_index)
+# row0_values = df.iloc[row0_index]
+#
+# # Initialize a dictionary to store the separate DataFrames
+# dataframes = {}
+#
+# # Find the indices of the non-NaN values in row0
+# non_nan_indices = row0_values.dropna().index
+#
+# # Iterate over each category defined by non-NaN values in row0
+# for i in range(len(non_nan_indices)):
+#     # Get the start and end index for the current category
+#     start_index = non_nan_indices[i]
+#     end_index = non_nan_indices[i + 1] if i + 1 < len(non_nan_indices) else len(data_df.columns)
+#
+#     # Get the category name
+#     category_name = row0_values[start_index]
+#
+#     # Select columns for the current category
+#     category_columns = ['ALG__BORING_MONSTERNR', 'ALG__REGEL'] + list(data_df.columns[start_index:end_index])
+#
+#     # Create a new DataFrame for this category
+#     category_df = data_df[category_columns]
+#
+#     # Store the DataFrame in the dictionary with the category name
+#     dataframes[category_name] = category_df
 
 print(dataframes.keys())
 # Now you have a dictionary `dataframes` where the keys are the category names,
@@ -118,23 +193,23 @@ print(dataframes.keys())
 # Mocht het nodig zijn dan kan dit later natuurlijk makkelijk worden omgezet naar 1 dataframe
 
 # Define validation functions
-def is_not_empty(value):
-    return value != "" and not pd.isna(value)
-
-def is_not_empty_and_string(value):
-    return isinstance(value, str) and value.strip() != "" and not pd.isna(value)
-
-# Check welke van de ID kolommen unieke waardes bevatten
-def is_unique(series):
-    # Filter out empty strings and NaN values
-    non_empty_values = series.dropna().loc[series != ""]
-    print(len(non_empty_values), len(non_empty_values.unique()))
-    return len(non_empty_values) == len(non_empty_values.unique())
+# def is_not_empty(value):
+#     return value != "" and not pd.isna(value)
+#
+# def is_not_empty_and_string(value):
+#     return isinstance(value, str) and value.strip() != "" and not pd.isna(value)
+#
+# # Check welke van de ID kolommen unieke waardes bevatten
+# def is_unique(series):
+#     # Filter out empty strings and NaN values
+#     non_empty_values = series.dropna().loc[series != ""]
+#     print(len(non_empty_values), len(non_empty_values.unique()))
+#     return len(non_empty_values) == len(non_empty_values.unique())
 
 unique_columns = ['ALG__BORING_MONSTERNR_ID', 'MONSTER_ID', 'CLAS_MONSTERID', 'CRS_MONSTERID', 'SD_MONSTERID', 'DSS_MONSTERID', 'TXT_SS_MONSTERID']
 
 for col in unique_columns:
-    print(col, ' has unique values? ', is_unique(data_df[col]))
+    print(col, ' has unique values? ', is_unique(data_df[col])) #hoe roepen we nou deze functie gedefinieerd in class aan??
 
 # Define schemas for each dataframe (example: you need 15 schemas for 15 DataFrames)
 schemas = {
