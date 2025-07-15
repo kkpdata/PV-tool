@@ -65,7 +65,18 @@ for warning in warnings:
 
 
 ##
-# Tjalda is amazingg
+from pathlib import Path
+import os
+from pv_tool.importeren import Dbase
+from pv_tool.validation import Validation
+from typing import Optional
+import git
+
+path_to_data = r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel.xlsm"
+dbase = Dbase()
+
+
+validate = Validation()
 
 
 
