@@ -47,12 +47,15 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     repo = git.Repo(root_search_dir, search_parent_directories=True)
     return repo.working_tree_dir
 
-
+##
 # dir_pv_tool = Path(os.path.join(get_repo_root(), "example_files", "Proevenverzameling_tool_v4.2n.xlsm"))
-dir_pv_tool = Path(os.path.join(get_repo_root(), "example_files", "PV-tool_platte_data.xlsx"))
+# dir_pv_tool = Path(os.path.join(get_repo_root(), "example_files", "PV-tool_platte_data.xlsx"))
+dir_stowa = Path(os.path.join(get_repo_root(), "example_files", "STOWA_Baarlo.xlsm"))
 dbase = Dbase()
-dbase.import_pv_tool(pv_dir=dir_pv_tool)
-df = dbase.pv_tool
+# dbase.import_pv_tool(pv_dir=dir_pv_tool)
+dbase.import_stowa(stowa_dir=dir_stowa)
+# df = dbase.pv_tool
+df = dbase.stowa_df
 
 ##
 validate = Validation()
@@ -62,6 +65,28 @@ warnings = validate.check_all()
 
 for warning in warnings:
     print(warning)
+
+##
+# de grote test van impoteren.py
+
+dir_pv = Path(os.path.join(get_repo_root(), "example_files", "Proevenverzameling_tool_v4.2o.xlsm"))
+dir_stowa = Path(os.path.join(get_repo_root(), "example_files", "Uitwisselformat-database"
+                                                                "-proevenverzameling_versie_4_2l.xlsx"))
+dir_dbase = Path(os.path.join(get_repo_root(), "example_files", "Dbase-template.xlsx"))
+
+dbase = Dbase()
+# dbase.import_date_and_create_dbase(source='Stowa', source_dir=dir_stowa)
+# dbase.import_date_and_create_dbase(source='PV-tool', source_dir=dir_pv)
+dbase.import_date_and_create_dbase(source='Dbase', source_dir=dir_dbase)
+
+df = dbase.dbase_df
+print(df)
+
+## export dbase naar excel
+# export_path = Path(os.path.join(get_repo_root(), "example_files", "Dbase-template.xlsx"))
+# df.to_excel(export_path, index=False)
+# print(f"Export completed: {export_path}")
+
 
 
 
