@@ -6,3 +6,6 @@ matplotlib
 openpyxl
 gitpython
 pandas_schema
+
+setuptools
+twine

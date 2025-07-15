@@ -7,7 +7,7 @@
 
 from pathlib import Path
 import os
-from pv_tool.importeren import Dbase
+from pv_tool.import_data import Dbase
 from pv_tool.validation import Validation
 from typing import Optional
 import git
@@ -75,9 +75,9 @@ dir_stowa = Path(os.path.join(get_repo_root(), "example_files", "Uitwisselformat
 dir_dbase = Path(os.path.join(get_repo_root(), "example_files", "Dbase-template.xlsx"))
 
 dbase = Dbase()
-# dbase.import_date_and_create_dbase(source='Stowa', source_dir=dir_stowa)
+dbase.import_date_and_create_dbase(source='Stowa', source_dir=dir_stowa)
 # dbase.import_date_and_create_dbase(source='PV-tool', source_dir=dir_pv)
-dbase.import_date_and_create_dbase(source='Dbase', source_dir=dir_dbase)
+# dbase.import_date_and_create_dbase(source='Dbase', source_dir=dir_dbase)
 
 df = dbase.dbase_df
 print(df)
@@ -87,6 +87,7 @@ print(df)
 # df.to_excel(export_path, index=False)
 # print(f"Export completed: {export_path}")
 
+##
 
 
 ##
