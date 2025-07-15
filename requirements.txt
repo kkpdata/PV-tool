@@ -5,3 +5,6 @@ pandas
 matplotlib
 openpyxl
 gitpython
+
+setuptools
+twine

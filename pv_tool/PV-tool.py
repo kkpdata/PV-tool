@@ -1,7 +1,7 @@
 # Hier komt alle functies in die we in de notebook gaan draaien
 
-from pv_tool.importeren import Dbase
-from pv_tool.analyse_c_phi import CPhi
+from pv_tool.import_data import Dbase
+from pv_tool.c_phi_analysis import CPhi
 
 from pathlib import Path
 

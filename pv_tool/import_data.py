@@ -23,8 +23,8 @@ class Dbase:
     def add_missing_columns(self):
         """Voeg de missende kolommen toe aan de stowa-df om hem gelijk te maken aan de pv-tool-df """
         self.dbase_df = self.stowa_df.copy(deep=True)
-        self.dbase_df = self.dbase_df.reindex(columns=PV_TOOL_DBASE_COLUMNS, fill_value=pd.NA)
-        self.dbase_df = self.dbase_df[PV_TOOL_DBASE_COLUMNS] # zorgt ervoor dat de volgorde van kolommen overeenkomt
+        self.dbase_df = self.dbase_df.reindex(columns=PV_TOOL_DBASE_COLUMNS, fill_value=np.nan)
+        self.dbase_df = self.dbase_df[PV_TOOL_DBASE_COLUMNS]  # zorgt ervoor dat de volgorde van kolommen overeenkomt
 
     def import_pv_tool(self, pv_dir: Path):
         """Importeert de oude pv-tool"""
@@ -168,18 +168,32 @@ class Dbase:
         self.add_ocr_txt()
         self.add_ocr_dss()
 
+    def add_pv_naam(self):
+        """Als er geen PV-naam aanwezig is, wordt 'TXT-proef' en/of 'DSS-proef' gebruikt als PV-naam"""
+        if self.dbase_df['PV_NAAM'].isnull().all() or (self.dbase_df['PV_NAAM'] == '').all():
+            # Voeg waarden toe op basis van de condities
+            self.dbase_df['PV_NAAM'] = self.dbase_df.apply(
+                lambda row: 'TXT-proef' if row['ALG__TRIAXIAAL'] else (
+                    'DSS-proef' if row['ALG__DSS'] else None
+                ),
+                axis=1
+            )
+
     def create_dbase(self, source: Literal['Stowa', 'PV-tool', 'Dbase']):
         """Maakt de dbase-dataframe"""
         if source == 'Stowa':
             self.add_missing_columns()
             self.alg_columns()
             self.add_ana_columns()
+            self.add_pv_naam()
         elif source == 'PV-tool':
-            self.select_columns()  # select columns needed for building dbase
+            self.select_columns()
             self.alg_columns()
             self.add_ana_columns()
+            self.add_pv_naam()
         elif source == 'Dbase':
-            self.add_ana_columns()  # de ANA kolommen worden dan opnieuw berekend, indien een aanpassing is gedaan in de PV-naam oid.
+            self.add_ana_columns()
+            self.add_pv_naam()
 
     def import_date_and_create_dbase(self, source: Literal['Stowa', 'PV-tool', 'Dbase'], source_dir: Path):
         if source == 'Stowa':
@@ -190,5 +204,13 @@ class Dbase:
             self.create_dbase(source=source)
         elif source == 'Dbase':
             self.import_dbase(dbase_dir=source_dir)
-            self.create_dbase(source=source)  # dependencies? anders weglaten
+            self.create_dbase(source=source)
         return self.dbase_df
+
+    def export_dbase_to_excel(self, export_dir: Path, filename: str = 'Dbase-template.xlsx'):
+        """Exporteert de Dbase-df naar een excel, het template-file
+        :param export_dir: Het pad naar de directory waarin het bestand wordt opgeslagen.
+        :param filename: De naam van het bestand. Standaard: 'Dbase-template.xlsx."""
+        export_path = export_dir / filename
+        self.dbase_df.to_excel(export_path, index=False)
+        print(f"Excel-bestand geëxporteerd naar: {export_path}")
