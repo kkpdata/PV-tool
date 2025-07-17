@@ -16,8 +16,6 @@ from openpyxl import load_workbook
 from openpyxl.styles import Alignment
 import math
 
-# TODO Nathan: Er staan best veel warning er errors in de code. zie rechtboven in je scherm het rode uitroepteken. Deze moet je allemaal netjes wegwerken.
-
 # onderstaande code is een idee van Chris. Mogelijk iets voor later als we nog tijd hebben.
 # class ValidationVB:
 #     class Methods:
@@ -83,7 +81,8 @@ class Validation:
         return self.dataframes
 
     def validation_selection(self, df, category):
-        """Deze functie bepaalt welke rijen door gaan naar de validatie, gebaseerd op de kolom in algemene kenmerken. Als de waarde = FALSE wordt de rij verwijderd"""
+        """Deze functie bepaalt welke rijen door gaan naar de validatie, gebaseerd op de kolom in algemene kenmerken.
+        Als de waarde = FALSE wordt de rij verwijderd"""
         df_alg = self.split_dbase()['Algemene kenmerken']
         df_to_check = self.split_dbase()[category]
         if category == 'Classificatie':
@@ -109,7 +108,7 @@ class Validation:
 
         return df_to_check_filtered
 
-        pass
+
 
     # Define validation functions
     def is_not_empty(self, value):
@@ -207,7 +206,7 @@ class Validation:
         validation_df = validation_df.drop(index=to_delete)
 
         return validation_df, error_log
-        pass
+
 
     def validate_alg(self):
         category = "Algemene kenmerken"
