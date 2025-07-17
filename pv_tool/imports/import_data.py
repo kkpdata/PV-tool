@@ -32,15 +32,15 @@ class Dbase:
     def import_data_and_validate(self, source: Literal['Stowa', 'PV-tool', 'Dbase'], source_dir: Path):
         if source == 'Stowa':
             import_stowa(self, stowa_dir=source_dir)
-            # Validation(self)  # TODO: uncomment nadat stukje Nathan gereed is.
+            Validation(self)  # TODO: uncomment nadat stukje Nathan gereed is.
             self._create_dbase(source=source)
         elif source == 'PV-tool':
             import_pv_tool(self, pv_dir=source_dir)
-            # Validation(self)  # TODO: uncomment nadat stukje Nathan gereed is.
+            Validation(self)  # TODO: uncomment nadat stukje Nathan gereed is.
             self._create_dbase(source=source)
         elif source == 'Dbase':
             import_dbase(self, dbase_dir=source_dir)
-            # Validation(self)  # TODO: uncomment nadat stukje Nathan gereed is.
+            Validation(self)  # TODO: uncomment nadat stukje Nathan gereed is.
             self._create_dbase(source=source)
         return self.dbase_df
 

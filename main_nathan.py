@@ -46,19 +46,23 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     repo = git.Repo(root_search_dir, search_parent_directories=True)
     return repo.working_tree_dir
 
-path_to_data = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel.xlsm")
-inputfile = "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel.xlsm"
-dir_dbase = Path(os.path.join(get_repo_root(), "example_files", inputfile))
+path_to_data = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm")
+# inputfile = "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel.xlsm"
+#dir_dbase = Path(os.path.join(get_repo_root(), "example_files", inputfile))
 dir_dbase = path_to_data
 dbase = Dbase()
-dbase.import_date_and_validate(source='PV-tool', source_dir=dir_dbase)
+dbase.import_data_and_validate(source='PV-tool', source_dir=dir_dbase)
 df = dbase.dbase_df
 
-validate = Validation()
-validate.dbase_df = df
+###
 
-testpath = f"c:\\Users\\gebraadn0645\\ARCADIS\\103076457 - STOWA PV Tool - 05 Project execution\\Deliverables\\2. validatie\\Test output\\validation_output_{inputfile[:-5]}.xlsx"
-test_output = validate.validation_log(save_path=testpath)
+print(df)
+
+# validate = Validation()
+# validate.dbase_df = df
+#
+# testpath = f"c:\\Users\\gebraadn0645\\ARCADIS\\103076457 - STOWA PV Tool - 05 Project execution\\Deliverables\\2. validatie\\Test output\\validation_output_{inputfile[:-5]}.xlsx"
+# test_output = validate.validation_log(save_path=testpath)
 
 
 
