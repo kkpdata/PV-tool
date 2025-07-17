@@ -49,8 +49,8 @@ class Validation:
         self.dbase_df = dbase_df
 
     def split_dbase(self):
-        """hier komt  per proef een df uit in een library van dataframes"""
-        """deze zijn later aan te roepen door bijvoorbeeld df_algemeen = dataframes['Algemene kenmerken']"""
+        """Hier komt per proef een df uit in een library van dataframes
+        deze zijn later aan te roepen door bijvoorbeeld df_algemeen = dataframes['Algemene kenmerken']"""
 
         prefix_mapping = {
             "Algemene kenmerken": "ALG_",
