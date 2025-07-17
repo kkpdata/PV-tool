@@ -1,19 +1,23 @@
-from typing import Optional, List
+from typing import Optional, List, Literal
 from pandas import DataFrame
-
+from pv_tool.analysis.globals import (TWO_PERC_COLUMNS, FIVE_PERC_COLUMNS, FIFTEEN_PERC_COLUMNS, PIEKSTERKTE_COLUMNS,
+                                      EINDSTERKTE_COLUMNS)3
+import numpy as np
 
 class CPhi:
     """Deze class bevat alle functies die te maken hebben met de C-phi analyse"""
 
     def __init__(self):
+        self.two_pr_df = None
         self.dbase_df: Optional[DataFrame] = None
         self.analysis_df: Optional[DataFrame] = None
 
-    def get_selection_for_analysis(self, investigation_groups: List):
+    def get_selection_for_analysis(self, investigation_groups: List, effective_stress: Literal = ['2% rek', '5% rek', '15% rek', 'pieksterkte', 'eindsterkte']):
         """Deze functie maakt een selecte van de benodigde date voor de C-Phi-analyse"""
-        columns = ['ALG__BORING_MONSTERNR', 'PV_NAAM', 'TXT_SS_S\'_2%', 'TXT_SS_T_2%', 'TXT_SS_S\'_5%', 'TXT_SS_T_5%',
-                   'TXT_SS_S\'_15%', 'TXT_SS_T_15%', 'TXT_SS_S\'_BIJ_T_PIEK', 'TXT_SS_T_PIEK', 'TXT_SS_S\'_BIJ_T_EIND',
-                   'TXT_SS_T_EIND']
+        if effective_stress == '2% rek':
+            self.two_pr_df = self.dbase_df.copy(deep=True)
+            self.two_pr_df = self.two_pr_df.reindex(columns=TWO_PERC_COLUMNS, fill_value=np.nan)
+        # TODO: hier gebleven
         filtered_df = self.dbase_df[self.dbase_df['PV_NAAM'].isin(investigation_groups)]
         self.analysis_df = filtered_df[columns]
 

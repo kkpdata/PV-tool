@@ -1,13 +1,6 @@
-# # Voorbeeldje
-# my_obj = PVTool()
-# stowa_dir = ...
-# my_obj.import_stowa(stowa_dir=stowa_dir)
-# investigation_groups = ['Klei_licht', 'Klei_zwaar']
-# my_obj.c_phi_plot(investigation_groups=investigation_groups)
-
 from pathlib import Path
 import os
-from pv_tool.import_data import Dbase
+from pv_tool.imports.import_data import Dbase
 from pv_tool.validation import Validation
 from typing import Optional
 import git
@@ -48,36 +41,18 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     return repo.working_tree_dir
 
 ##
-# dir_pv_tool = Path(os.path.join(get_repo_root(), "example_files", "Proevenverzameling_tool_v4.2n.xlsm"))
-# dir_pv_tool = Path(os.path.join(get_repo_root(), "example_files", "PV-tool_platte_data.xlsx"))
-dir_stowa = Path(os.path.join(get_repo_root(), "example_files", "STOWA_Baarlo.xlsm"))
-dbase = Dbase()
-# dbase.import_pv_tool(pv_dir=dir_pv_tool)
-dbase.import_stowa(stowa_dir=dir_stowa)
-# df = dbase.pv_tool
-df = dbase.stowa_df
-
-##
-validate = Validation()
-validate.dbase_df = df
-
-warnings = validate.check_all()
-
-for warning in warnings:
-    print(warning)
-
-##
 # de grote test van impoteren.py
-
 dir_pv = Path(os.path.join(get_repo_root(), "example_files", "Proevenverzameling_tool_v4.2o.xlsm"))
 dir_stowa = Path(os.path.join(get_repo_root(), "example_files", "Uitwisselformat-database"
                                                                 "-proevenverzameling_versie_4_2l.xlsx"))
 dir_dbase = Path(os.path.join(get_repo_root(), "example_files", "Dbase-template.xlsx"))
+check_path_nathan = Path(r"C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm")
 
 dbase = Dbase()
-dbase.import_date_and_create_dbase(source='Stowa', source_dir=dir_stowa)
+# dbase.import_date_and_create_dbase(source='Stowa', source_dir=dir_stowa)
 # dbase.import_date_and_create_dbase(source='PV-tool', source_dir=dir_pv)
 # dbase.import_date_and_create_dbase(source='Dbase', source_dir=dir_dbase)
+dbase.import_date_and_validate(source='PV-tool', source_dir=check_path_nathan)
 
 df = dbase.dbase_df
 print(df)
@@ -87,7 +62,7 @@ print(df)
 # df.to_excel(export_path, index=False)
 # print(f"Export completed: {export_path}")
 
-##
+
 
 
 
