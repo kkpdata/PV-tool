@@ -16,6 +16,28 @@ from openpyxl import load_workbook
 from openpyxl.styles import Alignment
 import math
 
+
+# class ValidationVB:
+#
+#     class Methods:
+#         pass
+#
+#     class ValidationCategories:
+#
+#         def dss:
+#             pass
+#
+#         def txt:
+#             pass
+#
+#         def etc:
+#             pass
+#
+#     class Utils:
+#         pass
+
+
+
 ###
 class Validation:
     """In deze class staan alle functies die de validatie uitvoeren."""
@@ -54,7 +76,6 @@ class Validation:
             # Create a new dataframe with those columns
             self.dataframes[name] = self.dbase_df[filtered_columns]
         return self.dataframes
-        pass
 
     def validation_selection(self, df, category):
         """Deze functie bepaalt welke rijen door gaan naar de validatie, gebaseerd op de kolom in algemene kenmerken. Als de waarde = FALSE wordt de rij verwijderd"""
@@ -99,7 +120,7 @@ class Validation:
         print(len(non_empty_values), len(non_empty_values.unique()))
         return len(non_empty_values) == len(non_empty_values.unique())
 
-    def validate_with_schema(self, category, schema):
+    def validate_with_schema(self, category, schema: Schema):
         df = self.split_dbase()[category]
 
         if category in ['Classificatie', 'Constant rate of strain proeven (CRS)', 'Samendrukkingsproeven', 'DSS-proeven', 'Triaxiaalproeven single stage']:
@@ -188,7 +209,6 @@ class Validation:
             Column('ALG_REFERENTIE', [CustomElementValidation(is_not_empty, "General reference is empty")])
         ])
         return self.validate_with_schema(category, schema)
-        pass
 
     def validate_kenmerken_boring(self):
         category = "Kenmerken van de boring"
@@ -228,7 +248,6 @@ class Validation:
     ])
 
         return self.validate_with_schema(category, schema)
-        pass
 
     def validate_kenmerken_sondering(self):
         category = "Kenmerken van de sondering"
@@ -309,7 +328,6 @@ class Validation:
             Column('DSS_REK_BIJ_T_EIND', [InRangeValidation(0, 60)])
         ])
         return self.validate_with_schema(category, schema)
-        pass
 
     def validate_triaxiaal(self):
         category = "Triaxiaalproeven single stage"
@@ -352,7 +370,6 @@ class Validation:
         ])
         return self.validate_with_schema(category, schema)
         pass
-
 
     def validation_log(self, save_path):  # save_path is the location where the Excel file will be saved
         """
@@ -400,7 +417,6 @@ class Validation:
         combined_error_log = "\n\n".join(error_logs)
 
         return combined_error_log
-
 
 
 # Define a validation function DEZE MOET NOG IN DE CLASS WORDEN GEDEFINIEERD EN DE GOEDE INPUT HEBBEN
