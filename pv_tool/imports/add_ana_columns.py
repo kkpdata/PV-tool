@@ -14,7 +14,6 @@ def add_terreinspanning(self: Dbase):
 def add_grensspanning(self: Dbase):
     """Deze functie berekend de grensspanning."""
     columns = ['CRS_GRENSSPANNING_A', 'SD_ISOTACHE_GRENSSPANNING_A', 'ANA_GRENSSPANNING_HANDMATIG']
-    self.dbase_df[columns].to_excel("tmp.xlsx")
     grens_values = self.dbase_df[columns].max(axis=1)
     self.dbase_df['ANA_GRENSSPANNING'] = grens_values
 

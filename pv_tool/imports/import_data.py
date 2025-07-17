@@ -29,7 +29,7 @@ class Dbase:
             add_ana_columns(self)
             add_pv_naam(self)
 
-    def import_date_and_validate(self, source: Literal['Stowa', 'PV-tool', 'Dbase'], source_dir: Path):
+    def import_data_and_validate(self, source: Literal['Stowa', 'PV-tool', 'Dbase'], source_dir: Path):
         if source == 'Stowa':
             import_stowa(self, stowa_dir=source_dir)
             # Validation(self)  # TODO: uncomment nadat stukje Nathan gereed is.
