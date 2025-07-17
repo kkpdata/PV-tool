@@ -16,29 +16,34 @@ from openpyxl import load_workbook
 from openpyxl.styles import Alignment
 import math
 
+# TODO Nathan: Er staan best veel warning er errors in de code. zie rechtboven in je scherm het rode uitroepteken. Deze moet je allemaal netjes wegwerken.
 
+# onderstaande code is een idee van Chris. Mogelijk iets voor later als we nog tijd hebben.
 # class ValidationVB:
-#
 #     class Methods:
 #         pass
 #
-#     class ValidationCategories:
+#     class Categories:
 #
-#         def dss:
+#         def dss(self):
 #             pass
 #
-#         def txt:
+#         def txt(self):
 #             pass
 #
-#         def etc:
+#         def etc(self):
 #             pass
 #
 #     class Utils:
 #         pass
 
 
-
 ###
+IsEmptyValidator = CustomElementValidation(
+    lambda value: value != "" and not pd.isna(value), "This column is empty"
+)
+
+
 class Validation:
     """In deze class staan alle functies die de validatie uitvoeren."""
 
@@ -123,7 +128,8 @@ class Validation:
     def validate_with_schema(self, category, schema: Schema):
         df = self.split_dbase()[category]
 
-        if category in ['Classificatie', 'Constant rate of strain proeven (CRS)', 'Samendrukkingsproeven', 'DSS-proeven', 'Triaxiaalproeven single stage']:
+        if category in ['Classificatie', 'Constant rate of strain proeven (CRS)', 'Samendrukkingsproeven',
+                        'DSS-proeven', 'Triaxiaalproeven single stage']:
             df = self.validation_selection(df, category)
 
         # Filter the DataFrame to only include columns present in the schema
@@ -176,20 +182,21 @@ class Validation:
 
             # Add number of errors
             summary_row_2.append(validation_df[f"{col}_validate"]
-                                .apply(lambda x: bool(str(x).strip()) if pd.notna(x) else False)
-                                .sum())
+                                 .apply(lambda x: bool(str(x).strip()) if pd.notna(x) else False)
+                                 .sum())
 
         # Prepend the summary rows using pd.concat
         summary_df = pd.DataFrame([summary_row_1, summary_row_2], columns=validation_df.columns)
         validation_df = pd.concat([summary_df, validation_df], ignore_index=True)
-        #validation_df.index = self.dbase_df.index          # make sure the index is the same as the original dataframe
+        # validation_df.index = self.dbase_df.index          # make sure the index is the same as the original dataframe
 
         # onderstaand stukje gooit de regels eruit waar er geen enkele error is (niks te fixen) en waar alles een error is (geen proef uitgevoerd)
         to_delete = []
         for i in validation_df.index:
 
             data = [validation_df[f"{schema_column}_validate"].loc[i] for schema_column in schema_columns]
-            if not data or all(item == '' for item in data) or all(isinstance(item, float) and math.isnan(item) for item in data):
+            if not data or all(item == '' for item in data) or all(
+                    isinstance(item, float) and math.isnan(item) for item in data):
                 to_delete.append(i)
                 print(f"this data in category {category} is being deleted for being empty: {data}")
             elif all(data):
@@ -205,8 +212,9 @@ class Validation:
     def validate_alg(self):
         category = "Algemene kenmerken"
         schema = Schema([
-            Column('ALG_NAAM_POLDER_DIJK', [CustomElementValidation(self.is_not_empty, "General name polder is empty")]),
-            Column('ALG_REFERENTIE', [CustomElementValidation(is_not_empty, "General reference is empty")])
+            # Column('ALG_NAAM_POLDER_DIJK', [CustomElementValidation(self.is_not_empty, "General name polder is empty")]),
+            Column('ALG_NAAM_POLDER_DIJK', [IsEmptyValidator]),
+            Column('ALG_REFERENTIE', [IsEmptyValidator])  # TODO: dit concept toepassen op de overige kolommen die je valideert
         ])
         return self.validate_with_schema(category, schema)
 
@@ -239,13 +247,13 @@ class Validation:
     def validate_clas(self):
         category = "Classificatie"
         schema = Schema([
-        Column('CLAS_MONSTERID', [CustomElementValidation(is_not_empty, "No classification sample ID")]),
-        Column('CLAS_GRONDSOORT', [CustomElementValidation(is_not_empty, "No soil type classification")]),
-        Column('CLAS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
-        Column('CLAS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
-        Column('CLAS_VOLUMEGEWICHT_DRG', [InRangeValidation(0, 25)]),
-        Column('CLAS_WATERGEHALTE', [InRangeValidation(0, 1000)])
-    ])
+            Column('CLAS_MONSTERID', [CustomElementValidation(is_not_empty, "No classification sample ID")]),
+            Column('CLAS_GRONDSOORT', [CustomElementValidation(is_not_empty, "No soil type classification")]),
+            Column('CLAS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
+            Column('CLAS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
+            Column('CLAS_VOLUMEGEWICHT_DRG', [InRangeValidation(0, 25)]),
+            Column('CLAS_WATERGEHALTE', [InRangeValidation(0, 1000)])
+        ])
 
         return self.validate_with_schema(category, schema)
 
