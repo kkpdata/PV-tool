@@ -7,7 +7,7 @@
 
 from pathlib import Path
 import os
-from pv_tool.import_data import Dbase
+from pv_tool.imports.import_data import Dbase
 from pv_tool.validation import Validation
 from typing import Optional
 import git
@@ -47,15 +47,17 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     return repo.working_tree_dir
 
 path_to_data = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel.xlsm")
-dir_dbase = Path(os.path.join(get_repo_root(), "example_files", "Dbase-template.xlsx"))
+inputfile = "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel.xlsm"
+dir_dbase = Path(os.path.join(get_repo_root(), "example_files", inputfile))
+dir_dbase = path_to_data
 dbase = Dbase()
-dbase.import_date_and_create_dbase(source='Dbase', source_dir=dir_dbase)
+dbase.import_date_and_validate(source='PV-tool', source_dir=dir_dbase)
 df = dbase.dbase_df
 
 validate = Validation()
 validate.dbase_df = df
 
-testpath = Path(r"C:\Users\gebraadn0645\Downloads\test_excel.xlsx")
+testpath = f"c:\\Users\\gebraadn0645\\ARCADIS\\103076457 - STOWA PV Tool - 05 Project execution\\Deliverables\\2. validatie\\Test output\\validation_output_{inputfile[:-5]}.xlsx"
 test_output = validate.validation_log(save_path=testpath)
 
 

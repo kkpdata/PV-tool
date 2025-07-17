@@ -6,14 +6,10 @@
 from typing import Optional
 from pandas import DataFrame
 import pandas as pd
-from io import StringIO
 from pandas_schema import Column, Schema
 from pandas_schema.validation import (
-    CustomElementValidation, CanCallValidation, LeadingWhitespaceValidation, TrailingWhitespaceValidation,
-    InRangeValidation, InListValidation, MatchesPatternValidation
+    CustomElementValidation, InRangeValidation
 )
-from openpyxl import load_workbook
-from openpyxl.styles import Alignment
 import math
 
 # onderstaande code is een idee van Chris. Mogelijk iets voor later als we nog tijd hebben.
@@ -38,7 +34,7 @@ import math
 
 ###
 IsEmptyValidator = CustomElementValidation(
-    lambda value: value != "" and not pd.isna(value), "This column is empty"
+    lambda value: value != "" and not pd.isna(value), "This cell is empty"
 )
 
 
@@ -80,7 +76,7 @@ class Validation:
             self.dataframes[name] = self.dbase_df[filtered_columns]
         return self.dataframes
 
-    def validation_selection(self, df, category):
+    def validation_selection(self, category):
         """Deze functie bepaalt welke rijen door gaan naar de validatie, gebaseerd op de kolom in algemene kenmerken.
         Als de waarde = FALSE wordt de rij verwijderd"""
         df_alg = self.split_dbase()['Algemene kenmerken']
@@ -108,32 +104,36 @@ class Validation:
 
         return df_to_check_filtered
 
-
-
-    # Define validation functions
-    def is_not_empty(self, value):
-        return value != "" and not pd.isna(value)
-
-    # def is_not_empty_and_string(value):
-    #     return isinstance(value, str) and value.strip() != "" and not pd.isna(value)
-
     # Check welke van de ID kolommen unieke waardes bevatten
-    def is_unique(series):
-        # Filter out empty strings and NaN values
-        non_empty_values = series.dropna().loc[series != ""]
-        print(len(non_empty_values), len(non_empty_values.unique()))
+    def is_unique(self, series):
+        """"Dit wilde Leo misschien nog gebruiken -
+        Mocht blijken dat het toch niet nodig is kan deze verwijderd worden"""
+        # Check if the input is a pandas Series
+        if isinstance(series, pd.Series):
+            # Filter out empty strings and NaN values
+            non_empty_values = series.dropna().loc[series != ""]
+            print(f'series has {len(non_empty_values)} values and {len(non_empty_values.unique())} unique values,'
+                  f'so every value is unique is a {len(non_empty_values) == len(non_empty_values.unique())} statement')
+        else:
+            non_empty_values = []
+            print('series is not a pandas series')
+
         return len(non_empty_values) == len(non_empty_values.unique())
 
     def validate_with_schema(self, category, schema: Schema):
-        df = self.split_dbase()[category]
+        # Split the dataframe and get the category-specific data
+        df = self.split_dbase().get(category, pd.DataFrame())
 
-        if category in ['Classificatie', 'Constant rate of strain proeven (CRS)', 'Samendrukkingsproeven',
-                        'DSS-proeven', 'Triaxiaalproeven single stage']:
-            df = self.validation_selection(df, category)
-
-        # Filter the DataFrame to only include columns present in the schema
+        # Check which columns are expected in the schema
         schema_columns = [col.name for col in schema.columns]
-        data_to_validate = df[schema_columns]
+        missing_columns = [col for col in schema_columns if col not in df.columns]
+
+        if missing_columns:
+            print(f"Missing columns in category '{category}': {', '.join(missing_columns)}")
+
+        # Filter the DataFrame to only include columns present in both the schema and DataFrame
+        available_columns = [col for col in schema_columns if col in df.columns]
+        data_to_validate = df[available_columns]
 
         # Validate the data
         errors = schema.validate(data_to_validate)
@@ -144,7 +144,7 @@ class Validation:
         validation_df = data_to_validate.copy()
 
         # Populate the validation columns with error messages
-        for column in schema_columns:
+        for column in available_columns:
             validation_df[f"{column}_validate"] = ""  # Add validation column with empty strings
             # Move the validation column to the right of the original column
             col_position = validation_df.columns.get_loc(column) + 1
@@ -155,13 +155,13 @@ class Validation:
             column = error.column
             error_message = error.message
             validation_df.at[row, f"{column}_validate"] = error_message
-            error_log.append(f"error in row '{row}' and column '{column}': {error_message}")
+            error_log.append(f"Error in row '{row}' and column '{column}': {error_message}")
 
         # Add extra validation summary rows at the top
         summary_row_1 = []
         summary_row_2 = []
 
-        for col in schema_columns:
+        for col in available_columns:
             original_column_data = df[col]
             validation_column_data = validation_df[f"{col}_validate"]
 
@@ -187,22 +187,19 @@ class Validation:
         # Prepend the summary rows using pd.concat
         summary_df = pd.DataFrame([summary_row_1, summary_row_2], columns=validation_df.columns)
         validation_df = pd.concat([summary_df, validation_df], ignore_index=True)
-        # validation_df.index = self.dbase_df.index          # make sure the index is the same as the original dataframe
 
-        # onderstaand stukje gooit de regels eruit waar er geen enkele error is (niks te fixen) en waar alles een error is (geen proef uitgevoerd)
+        # Remove rows without any errors or with all errors
         to_delete = []
         for i in validation_df.index:
-
-            data = [validation_df[f"{schema_column}_validate"].loc[i] for schema_column in schema_columns]
+            data = [validation_df[f"{schema_column}_validate"].loc[i] for schema_column in available_columns]
             if not data or all(item == '' for item in data) or all(
                     isinstance(item, float) and math.isnan(item) for item in data):
                 to_delete.append(i)
-                print(f"this data in category {category} is being deleted for being empty: {data}")
+                print(f"This data in category {category} is being deleted for being empty: {data}")
             elif all(data):
                 to_delete.append(i)
-                print(f"this data in category {category} is being deleted for only returning errors: {data}")
+                print(f"This data in category {category} is being deleted for only returning errors: {data}")
 
-        # Delete rows with indices in `to_delete`
         validation_df = validation_df.drop(index=to_delete)
 
         return validation_df, error_log
@@ -223,12 +220,10 @@ class Validation:
             Column('BORING_XID', [InRangeValidation(-7000, 300000)]),
             Column('BORING_YID', [InRangeValidation(289000, 629000)]),
             Column('BORING_MAAIVELDPEIL', [InRangeValidation(-100, 500)]),
-            Column('BORING_NUMMER',
-                   [CustomElementValidation(is_not_empty, "No (or incorrect) borehole numbering")]),
-            Column('BORING_POSITIE',
-                   [CustomElementValidation(is_not_empty, "No (or incorrect) borehole position")]),
-            Column('BORING_FILENAAM_PDF', [CustomElementValidation(is_not_empty, "No borehole log PDF")]),
-            Column('BORING_FILENAAM_GEF', [CustomElementValidation(is_not_empty, "No borehole log GEF")])
+            Column('BORING_NUMMER',[IsEmptyValidator]),
+            Column('BORING_POSITIE',[IsEmptyValidator]),
+            Column('BORING_FILENAAM_PDF', [IsEmptyValidator]),
+            Column('BORING_FILENAAM_GEF', [IsEmptyValidator])
         ])
         return self.validate_with_schema(category, schema)
         pass
@@ -236,7 +231,7 @@ class Validation:
     def validate_monster(self):
         category = "Monster"
         schema = Schema([
-            Column('MONSTER_ID', [CustomElementValidation(is_not_empty, "No sample ID")]),
+            Column('MONSTER_ID', [IsEmptyValidator]),
             Column('MONSTER_NIVEAU_NAP_VANAF', [InRangeValidation(-100, 500)]),
             Column('MONSTER_NIVEAU_NAP_TOT', [InRangeValidation(-100, 500)])
         ])
@@ -246,8 +241,8 @@ class Validation:
     def validate_clas(self):
         category = "Classificatie"
         schema = Schema([
-            Column('CLAS_MONSTERID', [CustomElementValidation(is_not_empty, "No classification sample ID")]),
-            Column('CLAS_GRONDSOORT', [CustomElementValidation(is_not_empty, "No soil type classification")]),
+            Column('CLAS_MONSTERID', [IsEmptyValidator]),
+            Column('CLAS_GRONDSOORT', [IsEmptyValidator]),
             Column('CLAS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
             Column('CLAS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
             Column('CLAS_VOLUMEGEWICHT_DRG', [InRangeValidation(0, 25)]),
@@ -267,9 +262,9 @@ class Validation:
     def validate_csr(self):
         category = "Constant rate of strain proeven (CRS)"
         schema = Schema([
-            Column('CRS_FILENAAM_PDF', [CustomElementValidation(is_not_empty, "No CRS PDF")]),
-            Column('CRS_MONSTERID', [CustomElementValidation(is_not_empty, "No CRS sample ID")]),
-            Column('CRS_GRONDSOORT', [CustomElementValidation(is_not_empty, "No soil type classification for CRS")]),
+            Column('CRS_FILENAAM_PDF', [IsEmptyValidator]),
+            Column('CRS_MONSTERID', [IsEmptyValidator]),
+            Column('CRS_GRONDSOORT', [IsEmptyValidator]),
             Column('CRS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
             Column('CRS_TERREINSPANNING', [InRangeValidation(0, 500)]),
             Column('CRS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
@@ -287,10 +282,10 @@ class Validation:
     def validate_samendrukking(self):
         category = "Samendrukkingsproeven"
         schema = Schema([
-            Column('SD_FILENAAM_PDF', [CustomElementValidation(is_not_empty, "No samendrukkingsproef PDF")]),
-            Column('SD_MONSTERID', [CustomElementValidation(is_not_empty, "No samendrukkingsproef sample ID")]),
+            Column('SD_FILENAAM_PDF', [IsEmptyValidator]),
+            Column('SD_MONSTERID', [IsEmptyValidator]),
             Column('SD_GRONDSOORT',
-                   [CustomElementValidation(is_not_empty, "No soil type classification for samendrukkingsproef")]),
+                   [IsEmptyValidator]),
             Column('SD_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
             Column('SD_TERREINSPANNING', [InRangeValidation(0, 500)]),
             Column('SD_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
@@ -307,10 +302,9 @@ class Validation:
     def validate_dss(self):
         category = "DSS-proeven"
         schema = Schema([
-            Column('DSS_FILENAAM_PDF', [CustomElementValidation(is_not_empty, "No DSS PDF")]),
-            Column('DSS_MONSTERID', [CustomElementValidation(is_not_empty, "No DSS sample ID")]),
-            Column('DSS_GRONDSOORT',
-                   [CustomElementValidation(is_not_empty, "No soil type classification for DSS")]),
+            Column('DSS_FILENAAM_PDF', [IsEmptyValidator]),
+            Column('DSS_MONSTERID', [IsEmptyValidator]),
+            Column('DSS_GRONDSOORT',[IsEmptyValidator]),
             Column('DSS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
             Column('DSS_TERREINSPANNING', [InRangeValidation(0, 500)]),
             Column('DSS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
@@ -339,10 +333,9 @@ class Validation:
     def validate_triaxiaal(self):
         category = "Triaxiaalproeven single stage"
         schema = Schema([
-            Column('TXT_SS_FILENAAM_PDF', [CustomElementValidation(is_not_empty, "No TXT_SS PDF")]),
-            Column('TXT_SS_MONSTERID', [CustomElementValidation(is_not_empty, "No TXT_SS sample ID")]),
-            Column('TXT_SS_GRONDSOORT',
-                   [CustomElementValidation(is_not_empty, "No soil type classification for TXT_SS")]),
+            Column('TXT_SS_FILENAAM_PDF', [IsEmptyValidator]),
+            Column('TXT_SS_MONSTERID', [IsEmptyValidator]),
+            Column('TXT_SS_GRONDSOORT',[IsEmptyValidator]),
             Column('TXT_SS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
             Column('TXT_SS_TERREINSPANNING', [InRangeValidation(0, 500)]),
             Column('TXT_SS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
@@ -426,6 +419,3 @@ class Validation:
         return combined_error_log
 
 
-# Define a validation function DEZE MOET NOG IN DE CLASS WORDEN GEDEFINIEERD EN DE GOEDE INPUT HEBBEN
-def is_not_empty(value):
-    return value != "" and not pd.isna(value)
