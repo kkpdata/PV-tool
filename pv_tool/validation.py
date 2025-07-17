@@ -51,8 +51,8 @@ class Validation:
         self.dbase_df = dbase_df
 
     def split_dbase(self):
-        """hier komt  per proef een df uit in een library van dataframes"""
-        """deze zijn later aan te roepen door bijvoorbeeld df_algemeen = dataframes['Algemene kenmerken']"""
+        """Hier komt per proef een df uit in een library van dataframes
+        deze zijn later aan te roepen door bijvoorbeeld df_algemeen = dataframes['Algemene kenmerken']"""
 
         prefix_mapping = {
             "Algemene kenmerken": "ALG_",
@@ -83,7 +83,8 @@ class Validation:
         return self.dataframes
 
     def validation_selection(self, df, category):
-        """Deze functie bepaalt welke rijen door gaan naar de validatie, gebaseerd op de kolom in algemene kenmerken. Als de waarde = FALSE wordt de rij verwijderd"""
+        """Deze functie bepaalt welke rijen door gaan naar de validatie, gebaseerd op de kolom in algemene kenmerken.
+        Als de waarde = FALSE wordt de rij verwijderd"""
         df_alg = self.split_dbase()['Algemene kenmerken']
         df_to_check = self.split_dbase()[category]
         if category == 'Classificatie':
