@@ -41,7 +41,7 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     return repo.working_tree_dir
 
 ##
-# de grote test van impoteren.py
+# de grote test van importeren.py
 dir_pv = Path(os.path.join(get_repo_root(), "example_files", "Proevenverzameling_tool_v4.2o.xlsm"))
 dir_stowa = Path(os.path.join(get_repo_root(), "example_files", "Uitwisselformat-database"
                                                                 "-proevenverzameling_versie_4_2l.xlsx"))
@@ -52,10 +52,41 @@ dbase = Dbase()
 # dbase.import_date_and_create_dbase(source='Stowa', source_dir=dir_stowa)
 # dbase.import_date_and_create_dbase(source='PV-tool', source_dir=dir_pv)
 # dbase.import_date_and_create_dbase(source='Dbase', source_dir=dir_dbase)
-dbase.import_date_and_validate(source='PV-tool', source_dir=check_path_nathan)
+dbase.import_data_and_validate(source='PV-tool', source_dir=check_path_nathan)
 
 df = dbase.dbase_df
 print(df)
+
+##
+
+pv_namen = df['PV_NAAM'].unique()
+print(pv_namen)
+
+##
+from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
+
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='2% rek')
+analyse.get_cphi_data()
+
+# df = analyse.cphi_analyse_df
+df_ana = analyse.cphi_analyses_data_df
+print(df_ana)
+print(df_ana.columns)
+
+##
+analyse.expand_analysis_df()
+df_ana2 = analyse.cphi_analyses_data_df
+print(df_ana2)
+
+##
+print(df_ana2['S\''])
+print(df_ana2['T'])
+print(df_ana2['s_tt'])
+
+
+
+
+
 
 ## export dbase naar excel
 # export_path = Path(os.path.join(get_repo_root(), "example_files", "Dbase-template.xlsx"))
