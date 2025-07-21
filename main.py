@@ -55,43 +55,37 @@ dbase = Dbase()
 dbase.import_data_and_validate(source='PV-tool', source_dir=check_path_nathan)
 
 df = dbase.dbase_df
-print(df)
-
-##
-
-pv_namen = df['PV_NAAM'].unique()
-print(pv_namen)
+# print(df)
 
 ##
 from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
+from pv_tool.analysis.globals import (TWO_PERC_COLUMNS, FIVE_PERC_COLUMNS, FIFTEEN_PERC_COLUMNS, PIEKSTERKTE_COLUMNS,
+                                      EINDSTERKTE_COLUMNS, TEXTUAL_NAMES, NEW_COLUMN_NAMES)
 
-analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='2% rek')
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
+                      analysis_type='TXT_CPhi')
+
 analyse.get_cphi_data()
 
-# df = analyse.cphi_analyse_df
-df_ana = analyse.cphi_analyses_data_df
-print(df_ana)
-print(df_ana.columns)
-
-##
 analyse.expand_analysis_df()
-df_ana2 = analyse.cphi_analyses_data_df
-print(df_ana2)
+analyse.eerste_benadering()
+analyse.expand_analysis_df_corrected()
+# df_ana = analyse.cphi_analyses_data_df
+# analyse.eerste_benadering()
+
+# print(df_ana['S\''])
+
+
+
+
+
+
 
 ##
-print(df_ana2['S\''])
-print(df_ana2['T'])
-print(df_ana2['s_tt'])
-
-
-
-
-
-
-## export dbase naar excel
-# export_path = Path(os.path.join(get_repo_root(), "example_files", "Dbase-template.xlsx"))
-# df.to_excel(export_path, index=False)
-# print(f"Export completed: {export_path}")
+# export dbase naar excel
+export_path = Path(os.path.join(get_repo_root(), "example_files", "cphi_ana_data.xlsx"))
+df_ana.to_excel(export_path, index=False)
+print(f"Export completed: {export_path}")
 
 
 
