@@ -214,30 +214,32 @@ class Validation:
         return validation_df, error_log
 
 
-    def validate_alg(self):
+    def validate_alg(self, which_errors):
         category = "Algemene kenmerken"
         schema = Schema([
             # Column('ALG_NAAM_POLDER_DIJK', [CustomElementValidation(self.is_not_empty, "General name polder is empty")]),
             Column('ALG_NAAM_POLDER_DIJK', [IsEmptyValidator]),
-            Column('ALG_REFERENTIE', [IsEmptyValidator])  # TODO: dit concept toepassen op de overige kolommen die je valideert
+            Column('ALG_REFERENTIE', [IsEmptyValidator])
         ])
+
+
         return self.validate_with_schema(category, schema)
 
-    def validate_kenmerken_boring(self):
+    def validate_kenmerken_boring(self, which_errors):
         category = "Kenmerken van de boring"
         schema = Schema([
             Column('BORING_XID', [InRangeValidation(-7000, 300000)]),
             Column('BORING_YID', [InRangeValidation(289000, 629000)]),
             Column('BORING_MAAIVELDPEIL', [InRangeValidation(-100, 500)]),
-            Column('BORING_NUMMER',[IsEmptyValidator]),
-            Column('BORING_POSITIE',[IsEmptyValidator]),
+            Column('BORING_NUMMER', [IsEmptyValidator]),
+            Column('BORING_POSITIE', [IsEmptyValidator]),
             Column('BORING_FILENAAM_PDF', [IsEmptyValidator]),
             Column('BORING_FILENAAM_GEF', [IsEmptyValidator])
         ])
-        return self.validate_with_schema(category, schema)
-        pass
 
-    def validate_monster(self):
+        return self.validate_with_schema(category, schema)
+
+    def validate_monster(self, which_errors):
         category = "Monster"
         schema = Schema([
             Column('MONSTER_ID', [IsEmptyValidator]),
@@ -247,7 +249,7 @@ class Validation:
         return self.validate_with_schema(category, schema)
         pass
 
-    def validate_clas(self):
+    def validate_clas(self, which_errors):
         category = "Classificatie"
         schema = Schema([
             Column('CLAS_MONSTERID', [IsEmptyValidator]),
@@ -260,15 +262,15 @@ class Validation:
 
         return self.validate_with_schema(category, schema)
 
-    def validate_kenmerken_sondering(self):
-        category = "Kenmerken van de sondering"
-        schema = Schema([
-            Column('CPT_QNET', [InRangeValidation(0, 5000)])
-        ])
-        return self.validate_with_schema(category, schema)
-        pass
+    # def validate_kenmerken_sondering(self):
+    #     category = "Kenmerken van de sondering"
+    #     schema = Schema([
+    #         Column('CPT_QNET', [InRangeValidation(0, 5000)])
+    #     ])
+    #     return self.validate_with_schema(category, schema)
+    #     pass
 
-    def validate_csr(self):
+    def validate_crs(self, which_errors):
         category = "Constant rate of strain proeven (CRS)"
         schema = Schema([
             Column('CRS_FILENAAM_PDF', [IsEmptyValidator]),
@@ -288,7 +290,7 @@ class Validation:
         return self.validate_with_schema(category, schema)
         pass
 
-    def validate_samendrukking(self):
+    def validate_samendrukking(self, which_errors):
         category = "Samendrukkingsproeven"
         schema = Schema([
             Column('SD_FILENAAM_PDF', [IsEmptyValidator]),
@@ -308,7 +310,7 @@ class Validation:
         return self.validate_with_schema(category, schema)
         pass
 
-    def validate_dss(self):
+    def validate_dss(self, which_errors):
         category = "DSS-proeven"
         schema = Schema([
             Column('DSS_FILENAAM_PDF', [IsEmptyValidator]),
@@ -339,7 +341,7 @@ class Validation:
         ])
         return self.validate_with_schema(category, schema)
 
-    def validate_triaxiaal(self):
+    def validate_triaxiaal(self, which_errors):
         category = "Triaxiaalproeven single stage"
         schema = Schema([
             Column('TXT_SS_FILENAAM_PDF', [IsEmptyValidator]),
@@ -370,25 +372,26 @@ class Validation:
         return self.validate_with_schema(category, schema)
         pass
 
-    def validate_ana(self):
-        category = "Analyse"
-        schema = Schema([
-            Column('ANA_GRENSSPANNING', [InRangeValidation(0, 1000)]),
-            Column('ANA_GRENSSPANNING_HANDMATIG', [InRangeValidation(0, 1000)])
+    # def validate_ana(self):
+    #     category = "Analyse"
+    #     schema = Schema([
+    #         Column('ANA_GRENSSPANNING', [InRangeValidation(0, 1000)]),
+    #         Column('ANA_GRENSSPANNING_HANDMATIG', [InRangeValidation(0, 1000)])
+    #
+    #     ])
+    #     return self.validate_with_schema(category, schema)
+    #     pass
 
-        ])
-        return self.validate_with_schema(category, schema)
-        pass
-
-    def validation_log(self, save_path):  # save_path is the location where the Excel file will be saved
+    def validation_log(self, save_path, which_errors):  # save_path is the location where the Excel file will be saved
         """
         Voert alle validaties uit en genereert een Excel-bestand en een logbestand.
 
         Parameters:
             save_path (str): Pad waar het Excel-bestand moet worden opgeslagen.
+            which_errors takes the values 'non-essential' (only warnings) or 'essential' (tool cannot function without)
 
         Returns:
-            str: Logbestand met alle foutmeldingen.
+            lijst met strings: Logbestand met alle foutmeldingen.
         """
         # A dictionary to hold the validation DataFrames and error logs
         validation_results = {}
@@ -399,37 +402,39 @@ class Validation:
             self.validate_alg,
             self.validate_kenmerken_boring,
             self.validate_clas,
-            self.validate_csr,
-            self.validate_kenmerken_sondering,
+            self.validate_crs,
             self.validate_samendrukking,
             self.validate_monster,
             self.validate_triaxiaal,
             self.validate_dss,
-            self.validate_ana
         ]
-
+        sheet_names = {'validate_alg': 'ALG',
+                       'validate_kenmerken_boring': 'BORING',
+                       'validate_clas': 'CLAS',
+                        'validate_crs': 'CRS',
+                        'validate_samendrukking': 'SD',
+                        'validate_monster': 'MONSTER',
+                        'validate_triaxiaal': 'TXT',
+                        'validate_dss': 'DSS',
+        }
         # Iterate through each validation function and collect the results
         for func in validation_functions:
             validation_name = func.__name__  # Get the name of the function (e.g., 'validate_alg')
-            validation_df, error_log = func()  # Call the function and get its output
+            validation_df, error_log = func(which_errors)  # Call the function and get its output
 
             # Store the validation DataFrame and error log
             validation_results[validation_name] = validation_df
-            # error_logs.append(f"Errors in {validation_name}:\n" + "\n".join(error_log))  # Categorize and append errors
+            #error_logs.append(f"Errors in {validation_name}:\n" + "\n".join(error_log))  # Categorize and append errors
 
             error_logs.append(error_log)
 
-
-
         # Create the Excel file with each validation_df as a separate sheet
         with pd.ExcelWriter(save_path, engine='xlsxwriter') as writer:
-            for sheet_name, validation_df in validation_results.items():
-                validation_df.to_excel(writer, sheet_name=sheet_name, index=False)
+            for validation_name, validation_df in validation_results.items():
+                # Use the corresponding sheet name from the sheet_names dictionary
+                sheet_name = sheet_names.get(validation_name, validation_name)  # Fallback to function name if not found
+                validation_df.to_excel(writer, sheet_name=sheet_name, index=True)
 
-        # Combine all error logs into a single log string
-        # combined_error_log = "\n\n".join(error_logs)
-
-        # print(error_logs)
         self.total_error_log = error_logs
 
         return error_logs

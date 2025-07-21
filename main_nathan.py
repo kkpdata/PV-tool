@@ -56,56 +56,35 @@ dir_dbase = path_to_data
 dbase = Dbase()
 dbase.import_data_and_validate(source='PV-tool', source_dir=dir_dbase)
 df = dbase.dbase_df
-print(df)
+
 
 ##
 path_to_export = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output\validation_output_test.xlsx")
 
 validate = Validation()
 validate.dbase_df = df
-print(validate.dbase_df)
 
-# validate.set_index()
-# print(validate.dbase_df)
+test_output_warnings = validate.validation_log(save_path=path_to_export, which_errors='non-essential')
+test_output_essential = validate.validation_log(save_path=path_to_export, which_errors='essential')
+dfs = validate.dataframes
 
-# dataframes = validate.split_dbase()
-# print(validate.dbase_df)
+c = 0
 
-# df2 = validate.dbase_df['BORING_XID'].unique()
-# print(df2)
-#
+for errorclass in test_output_warnings:
+    c+=1
+    e = 0
+    for error in errorclass:
+        e+=1
+    # print(error)
+    print(f"in categorie {c} zijn {e} waarschuwingen gevonden")
 
-test_output = validate.validation_log(save_path=path_to_export)
-print(validate.dbase_df)
-for error in test_output:
-    print(error)
-
-
-#
-# print(validate.dbase_df.columns)
-#
-# validate.dbase_df.set_index('ALG__BORING_MONSTERNR_ID')
-# print(validate.dbase_df)
-
-
-
-## test only stuff in validate class
-
-path_to_export = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie")
-
-
-
-# validate = Validation()
-# validate.dbase_df = dbase
-# validate.validation_log(path_to_export)
-
-validate = Validation()
-validate.dbase_df = dbase.dbase_df
-
-testpath = f"c:\\Users\\gebraadn0645\\ARCADIS\\103076457 - STOWA PV Tool - 05 Project execution\\Deliverables\\2. validatie\\Test output\\validation_output_test.xlsx"
-test_output = validate.validation_log(save_path=testpath)
-
-print(validate.dbase_df)
-
+c = 0
+for errorclass in test_output_warnings:
+    c+=1
+    e = 0
+    for error in errorclass:
+        e+=1
+    # print(error)
+    print(f"in categorie {c} zijn {e} fatale errors gevonden")
 
 
