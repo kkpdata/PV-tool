@@ -46,23 +46,66 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     repo = git.Repo(root_search_dir, search_parent_directories=True)
     return repo.working_tree_dir
 
+
+## Test the import + validate
+from pv_tool.imports.import_options import *
+
 path_to_data = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm")
-# inputfile = "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel.xlsm"
-#dir_dbase = Path(os.path.join(get_repo_root(), "example_files", inputfile))
+
 dir_dbase = path_to_data
 dbase = Dbase()
 dbase.import_data_and_validate(source='PV-tool', source_dir=dir_dbase)
 df = dbase.dbase_df
-
-###
-
 print(df)
 
-# validate = Validation()
-# validate.dbase_df = df
+##
+path_to_export = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output\validation_output_test.xlsx")
+
+validate = Validation()
+validate.dbase_df = df
+print(validate.dbase_df)
+
+# validate.set_index()
+# print(validate.dbase_df)
+
+# dataframes = validate.split_dbase()
+# print(validate.dbase_df)
+
+# df2 = validate.dbase_df['BORING_XID'].unique()
+# print(df2)
 #
-# testpath = f"c:\\Users\\gebraadn0645\\ARCADIS\\103076457 - STOWA PV Tool - 05 Project execution\\Deliverables\\2. validatie\\Test output\\validation_output_{inputfile[:-5]}.xlsx"
-# test_output = validate.validation_log(save_path=testpath)
+
+test_output = validate.validation_log(save_path=path_to_export)
+print(validate.dbase_df)
+for error in test_output:
+    print(error)
+
+
+#
+# print(validate.dbase_df.columns)
+#
+# validate.dbase_df.set_index('ALG__BORING_MONSTERNR_ID')
+# print(validate.dbase_df)
+
+
+
+## test only stuff in validate class
+
+path_to_export = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie")
+
+
+
+# validate = Validation()
+# validate.dbase_df = dbase
+# validate.validation_log(path_to_export)
+
+validate = Validation()
+validate.dbase_df = dbase.dbase_df
+
+testpath = f"c:\\Users\\gebraadn0645\\ARCADIS\\103076457 - STOWA PV Tool - 05 Project execution\\Deliverables\\2. validatie\\Test output\\validation_output_test.xlsx"
+test_output = validate.validation_log(save_path=testpath)
+
+print(validate.dbase_df)
 
 
 

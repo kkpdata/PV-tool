@@ -44,9 +44,16 @@ class Validation:
     def __init__(self, dbase_df: Optional[DataFrame] = None):
         self.dbase_df = dbase_df
 
+
+    # def set_index(self):
+    #     self.dbase_df = self.dbase_df.set_index('ALG__BORING_MONSTERNR_ID')
+
     def split_dbase(self):
         """Hier komt per proef een df uit in een library van dataframes
         deze zijn later aan te roepen door bijvoorbeeld df_algemeen = dataframes['Algemene kenmerken']"""
+        #print(self.dbase_df['ALG__BORING_MONSTERNR_ID'])
+        # self.dbase_df = self.dbase_df.set_index('ALG__BORING_MONSTERNR_ID')
+
 
         prefix_mapping = {
             "Algemene kenmerken": "ALG_",
@@ -74,6 +81,7 @@ class Validation:
 
             # Create a new dataframe with those columns
             self.dataframes[name] = self.dbase_df[filtered_columns]
+
         return self.dataframes
 
     def validation_selection(self, category):
@@ -126,6 +134,7 @@ class Validation:
 
         # Check which columns are expected in the schema
         schema_columns = [col.name for col in schema.columns]
+        # print(schema_columns)
         missing_columns = [col for col in schema_columns if col not in df.columns]
 
         if missing_columns:
@@ -195,10 +204,10 @@ class Validation:
             if not data or all(item == '' for item in data) or all(
                     isinstance(item, float) and math.isnan(item) for item in data):
                 to_delete.append(i)
-                print(f"This data in category {category} is being deleted for being empty: {data}")
+                # print(f"This data in category {category} is being deleted for being empty: {data}")
             elif all(data):
                 to_delete.append(i)
-                print(f"This data in category {category} is being deleted for only returning errors: {data}")
+                # print(f"This data in category {category} is being deleted for only returning errors: {data}")
 
         validation_df = validation_df.drop(index=to_delete)
 
@@ -406,7 +415,11 @@ class Validation:
 
             # Store the validation DataFrame and error log
             validation_results[validation_name] = validation_df
-            error_logs.append(f"Errors in {validation_name}:\n" + "\n".join(error_log))  # Categorize and append errors
+            # error_logs.append(f"Errors in {validation_name}:\n" + "\n".join(error_log))  # Categorize and append errors
+
+            error_logs.append(error_log)
+
+
 
         # Create the Excel file with each validation_df as a separate sheet
         with pd.ExcelWriter(save_path, engine='xlsxwriter') as writer:
@@ -414,8 +427,11 @@ class Validation:
                 validation_df.to_excel(writer, sheet_name=sheet_name, index=False)
 
         # Combine all error logs into a single log string
-        combined_error_log = "\n\n".join(error_logs)
+        # combined_error_log = "\n\n".join(error_logs)
 
-        return combined_error_log
+        # print(error_logs)
+        self.total_error_log = error_logs
+
+        return error_logs
 
 

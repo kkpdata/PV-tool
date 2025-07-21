@@ -18,7 +18,8 @@ def add_missing_columns(self):
 def select_columns(self):
     """Selecteert de kolommen in de pv-tool die nodig zijn voor het maken van de Dbase-df (template)"""
     self.dbase_df = self.pv_tool.copy(deep=True)
-    self.dbase_df = self.dbase_df[PV_TOOL_DBASE_COLUMNS]
+    pv_tool_dbase_cols_new = [col for col in PV_TOOL_DBASE_COLUMNS if col != 'ALG__BORING_MONSTERNR_ID'] # this is new because we set ALG__BORING_MONSTERNR_ID as index
+    self.dbase_df = self.dbase_df[pv_tool_dbase_cols_new]
 
 
 def alg_columns(self):
