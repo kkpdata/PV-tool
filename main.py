@@ -1,18 +1,10 @@
-# # Voorbeeldje
-# my_obj = PVTool()
-# stowa_dir = ...
-# my_obj.import_stowa(stowa_dir=stowa_dir)
-# investigation_groups = ['Klei_licht', 'Klei_zwaar']
-# my_obj.c_phi_plot(investigation_groups=investigation_groups)
-
-# WAZZUP!!
-
 from pathlib import Path
 import os
-from pv_tool.importeren import Dbase
+from pv_tool.imports.import_data import Dbase
 from pv_tool.validation import Validation
 from typing import Optional
 import git
+
 
 # Deze functie is ooit geschreven door Chris, willen we deze openbaar maken?
 def get_repo_root(root_search_dir: Optional[str] = None) -> str:
@@ -48,20 +40,54 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     repo = git.Repo(root_search_dir, search_parent_directories=True)
     return repo.working_tree_dir
 
+##
+# de grote test van importeren.py
+dir_pv = Path(os.path.join(get_repo_root(), "example_files", "Proevenverzameling_tool_v4.2o.xlsm"))
+dir_stowa = Path(os.path.join(get_repo_root(), "example_files", "Uitwisselformat-database"
+                                                                "-proevenverzameling_versie_4_2l.xlsx"))
+dir_dbase = Path(os.path.join(get_repo_root(), "example_files", "Dbase-template.xlsx"))
+check_path_nathan = Path(r"C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm")
 
-dir_pv_tool = Path(os.path.join(get_repo_root(), "example_files", "Proevenverzameling_tool_v4.2n.xlsm"))
 dbase = Dbase()
-dbase.import_pv_tool(pv_dir=dir_pv_tool)
-df = dbase.pv_tool
+# dbase.import_date_and_create_dbase(source='Stowa', source_dir=dir_stowa)
+# dbase.import_date_and_create_dbase(source='PV-tool', source_dir=dir_pv)
+# dbase.import_date_and_create_dbase(source='Dbase', source_dir=dir_dbase)
+dbase.import_data_and_validate(source='PV-tool', source_dir=check_path_nathan)
+
+df = dbase.dbase_df
+# print(df)
 
 ##
-validate = Validation()
-validate.dbase_df = df
+from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
+from pv_tool.analysis.globals import (TWO_PERC_COLUMNS, FIVE_PERC_COLUMNS, FIFTEEN_PERC_COLUMNS, PIEKSTERKTE_COLUMNS,
+                                      EINDSTERKTE_COLUMNS, TEXTUAL_NAMES, NEW_COLUMN_NAMES)
 
-warnings = validate.check_all()
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
+                      analysis_type='TXT_CPhi')
 
-for warning in warnings:
-    print(warning)
+analyse.get_cphi_data()
+
+analyse.expand_analysis_df()
+analyse.eerste_benadering()
+analyse.expand_analysis_df_corrected()
+# df_ana = analyse.cphi_analyses_data_df
+# analyse.eerste_benadering()
+
+# print(df_ana['S\''])
+
+
+
+
+
+
+
+##
+# export dbase naar excel
+export_path = Path(os.path.join(get_repo_root(), "example_files", "cphi_ana_data.xlsx"))
+df_ana.to_excel(export_path, index=False)
+print(f"Export completed: {export_path}")
+
+
 
 
 

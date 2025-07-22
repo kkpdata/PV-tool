@@ -1,7 +1,7 @@
 # Hier komt alle functies in die we in de notebook gaan draaien
 
-from pv_tool.importeren import Dbase
-from pv_tool.analyse_c_phi import CPhi
+from pv_tool.imports.import_data import Dbase
+from pv_tool.analysis.c_phi_analysis import CPhi
 
 from pathlib import Path
 
@@ -20,6 +20,7 @@ class PVTool:
 
     def c_phi_plot(self, investigation_groups: list[str]):
         self.c_phi.c_phi_plot(investigation_groups=investigation_groups)
+
 
 
 
