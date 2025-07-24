@@ -62,13 +62,20 @@ class CPhiAnalyse:
         self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
 
-    def apply_settings(self, alpha: Optional[Alpha],
-                       material_factor_cohesion: Optional[float],
-                       material_factor_tan_phi: Optional[float]):
+    def apply_settings(self, alpha: Optional[Literal['Alpha.LOCAL', 'Alpha.REGIONAL']] = None,
+                       material_factor_cohesion: Optional[float] = None,
+                       material_factor_tan_phi: Optional[float] = None):
         """Met deze functie kan je de alpha en materiaalfactoren instellen."""
-        self.alpha = alpha
-        self.material_cohesie = material_factor_cohesion
-        self.material_tan_phi = material_factor_tan_phi
+        self.alpha = alpha if alpha is not None else self.alpha
+        self.material_cohesie = material_factor_cohesion if material_factor_cohesion is not None else self.material_cohesie
+        self.material_tan_phi = material_factor_tan_phi if material_factor_tan_phi is not None else self.material_tan_phi
+
+    def apply_parameters(self, cohesie_gem: Optional[float] = None,
+                         phi_kar: Optional[float] = None,
+                         cohesie_kar: Optional[float] = None):
+        self.cohesie_gem_handmatig = cohesie_gem
+        self.phi_kar_handmatig = phi_kar
+        self.cohesie_kar_handmatig = cohesie_kar
 
     def expand_analysis_df(self):
         """Deze functie berekend alle benodigde parameters per monster voor de analyse."""
@@ -83,9 +90,12 @@ class CPhiAnalyse:
         calculate_kappa_2_ondergrens(self)
 
     def eerste_benadering(self):
-        """Deze functie maakt een eerste benadering voor de cohesie en phi."""
+        """Deze functie maakt een eerste benadering voor de gemiddelde cohesie en phi."""
         calc_phi_gem(self)
         self.cohesie_gem_handmatig = calc_cohesie_gem(self)
+
+    def eerste_benadering_deel2(self):
+        """Deze functie maakt een eerste benadering voor de karakteristieke cohesie en phi"""
         self.phi_kar_handmatig = calc_phi_kar(self)
         self.cohesie_kar_handmatig = calc_cohesie_kar(self)
 
@@ -113,6 +123,7 @@ class CPhiAnalyse:
         self.expand_analysis_df()
         self.eerste_benadering()
         self.expand_analysis_df_corrected()
+        self.eerste_benadering_deel2()
         self.result_values()
 
     def set_figure(self):
@@ -126,18 +137,18 @@ class CPhiAnalyse:
         self._run()
         self.figure = go.Figure()
         self.set_figure()
-        # self.figure.show()
+        self.figure.show()
 
-    def factsheet(self):
+    def factsheet(self):  # TODO: specifiek maken voor hoe we de resultaten willen presenteren.
         self._run()
-        # print('df =', self.cphi_analyses_data_df)
-        # print('Results')
-        # print('tan(phi)_gem = ', self.tan_phi_gem)
-        # print('c_gem = ', self.c_gem)
-        # print('tan(phi)_kar)', self.tan_phi_kar)
-        # print('c_kar', self.c_kar)
-        # print('tan(phi)_d', self.tan_phi_d)
-        # print('c_d', self.c_d)
+        print('df =', self.cphi_analyses_data_df)
+        print('Results')
+        print('tan(phi)_gem = ', self.tan_phi_gem)
+        print('c_gem = ', self.c_gem)
+        print('tan(phi)_kar)', self.tan_phi_kar)
+        print('c_kar', self.c_kar)
+        print('tan(phi)_d', self.tan_phi_d)
+        print('c_d', self.c_d)
 
 
 # voorbeeld uitvoer

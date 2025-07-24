@@ -66,19 +66,26 @@ dbase.import_data_and_validate(source='PV-tool', source_dir=check_path_nathan)
 
 ##
 from pv_tool.analysis.c_phi_analysis import *
+from pv_tool.analysis.variables import *
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
                       analysis_type='TXT_CPhi')
 
-# analyse.factsheet()
-
+analyse.factsheet()
+analyse.show_figure()
+##
+# analyse.apply_settings(alpha=0.75)
+# analyse.apply_settings(alpha='LOCAL')
+analyse.apply_settings(alpha=Alpha.LOCAL)
+analyse.show_figure()
+# analyse.cohesie_gem_handmatig = 5.15
+# analyse.phi_kar_handmatig = 0.55
+# analyse.cohesie_kar_handmatig = 0.0
+##
+analyse.apply_parameters(cohesie_kar=15) # volgens mij werkt dit nog niet
 analyse.show_figure()
 
 ##
-df = analyse.cphi_analyses_data_df
-print(df['5pr_ondergrens_cor'])
 
-# test
-# cphi_analyses_data_df['S\''].max
 
 
 ##

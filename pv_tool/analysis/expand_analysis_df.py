@@ -32,7 +32,8 @@ def s_max(self: CPhiAnalyse):
 def calculate_s(self: CPhiAnalyse):
     lijst = [s_min(self)]
 
-    formule = (s_max(self) - s_min(self)) / count_s(self) - 1
+    # =L15 + (MAX($E$15:$E$54) - MIN($E$15:$E$54)) / ($E$56-1)
+    formule = (s_max(self) - s_min(self)) / (count_s(self) - 1)
 
     aantal_waarden = len(self.cphi_analyses_data_df)
 
@@ -44,33 +45,29 @@ def calculate_s(self: CPhiAnalyse):
 
 
 def calculate_5pr_ondergrens(self: CPhiAnalyse):
-    alpha_value = self.alpha.value
-
     formule = (
             e_a1(self) +
             e_a2(self) * self.cphi_analyses_data_df['s\''] - t_n_2(self) *
             (sigma_a1(self) ** 2 + self.cphi_analyses_data_df['s\''] ** 2 * sigma_a2(self) ** 2 +
              2 * rho_a1_a2(self) * self.cphi_analyses_data_df['s\''] * sigma_a1(self) * sigma_a2(self) +
-             (1.0 - alpha_value) * (sum_kappa_2(self) / (count_s(self) - 2))) ** 0.5
+             (1.0 - self.alpha.value) * (sum_kappa_2(self) / (count_s(self) - 2))) ** 0.5
     )
     self.cphi_analyses_data_df['5_pr_ondergrens'] = formule
 
 
 def calculate_5pr_bovengrens(self: CPhiAnalyse):
-    alpha_value = self.alpha.value
-
     formule = (
             e_a1(self) +
             e_a2(self) * self.cphi_analyses_data_df['s\''] + t_n_2(self) *
             (sigma_a1(self) ** 2 + self.cphi_analyses_data_df['s\''] ** 2 * sigma_a2(self) ** 2 +
              2 * rho_a1_a2(self) * self.cphi_analyses_data_df['s\''] * sigma_a1(self) * sigma_a2(self) +
-             (1 - alpha_value) * (sum_kappa_2(self) / (count_s(self) - 2))) ** 0.5
+             (1 - self.alpha.value) * (sum_kappa_2(self) / (count_s(self) - 2))) ** 0.5
     )
     self.cphi_analyses_data_df['5_pr_bovengrens'] = formule
 
 
 def calculate_s_tt_ondergrens(self: CPhiAnalyse):
-    formule = (self.cphi_analyses_data_df['s\''] - sum_s(self) / count_s2(self)) ** 2
+    formule = (self.cphi_analyses_data_df['s\''] - sum_s2(self) / count_s2(self)) ** 2
     self.cphi_analyses_data_df['s_tt_ondergrens'] = formule
 
 
@@ -98,41 +95,13 @@ def kappa_2_2pr_cor(self: CPhiAnalyse):
     self.cphi_analyses_data_df['kappa_2_2pr_cor'] = formule
 
 
-def calculate_5pr_ondergrens_correctie_c(self: CPhiAnalyse):  # TODO: waarom nan?
-    # = $AA$63 + $AA$62 * $L15 - $E$72 *
-    # ($AA$70 ^ 2 + $L15 ^ 2 * $AA$69 ^ 2 + 2 * $AA$68 * $L15 * $AA$70 * $AA$69 + (1 - $F$12) *
-    # ($AA$64 / ($E$56 - 2))) ^ 0,5
-
-    # formule = ... + ... *
-    # ... - ... *
-    # (...**2 + ...**2 * ...**2 +
-    # 2 * ... * ... * ... * ... +
-    # (1 - ...) *
-    # (... / (... - 2)))**0.5
-
-    deel1 = self.cohesie_gem_handmatig + e_a2(self)
-    print('deel1 = ', deel1)
-    deel2 = self.cphi_analyses_data_df['s\''] - t_n_2(self)
-    print('deel2 = ', deel2)
-    deel3 = sigma_a1_gecorrigeerd(self)**2 + self.cphi_analyses_data_df['s\'']**2 * sigma_a2_gecorrigeerd(self)**2
-    print('deel3 = ', deel3)
-    deel4 = (rho_a1_a2(self) * self.cphi_analyses_data_df['s\''] *
-             sigma_a1_gecorrigeerd(self) * sigma_a2_gecorrigeerd(self))
-    print('deel4 = ', deel4)
-    deel5 = 1 - self.alpha.value
-    print('deel5 = ', deel5)
-    deel6 = sum_kappa_2_2pr_gecorrigeerd(self) / (count_s(self) - 2)
-    print('deel6 = ', deel6)
-
-    formule = deel1 * deel2 * (deel3 + 2 * deel4 + deel5 * deel6)**0.5
-    print('formule = ', formule)
-
-    # formule = (e_a1(self) + e_a2(self) *
-    #            self.cphi_analyses_data_df['s\''] - t_n_2(self) *
-    #            (sigma_a1_gecorrigeerd(self)**2 + self.cphi_analyses_data_df['s\'']**2 * sigma_a2_gecorrigeerd(self)**2 +
-    #             2 * rho_a1_a2(self) * self.cphi_analyses_data_df['s\''] * sigma_a1_gecorrigeerd(self) * sigma_a2_gecorrigeerd(self) +
-    #             (1 - self.alpha.value) *
-    #             (sum_kappa_2_2pr_gecorrigeerd(self) / (count_s(self) - 2))) ** 0.5)
+def calculate_5pr_ondergrens_correctie_c(self: CPhiAnalyse):
+    formule = (e_a1(self) + e_a2(self) *
+               self.cphi_analyses_data_df['s\''] - t_n_2(self) *
+               (sigma_a1_gecorrigeerd(self)**2 + self.cphi_analyses_data_df['s\'']**2 * sigma_a2_gecorrigeerd(self)**2 +
+                2 * rho_a1_a2(self) * self.cphi_analyses_data_df['s\''] * sigma_a1_gecorrigeerd(self) *
+                sigma_a2_gecorrigeerd(self) + (1 - self.alpha.value) *
+                (sum_kappa_2_2pr_gecorrigeerd(self) / (count_s(self) - 2))) ** 0.5)
     self.cphi_analyses_data_df['5pr_ondergrens_cor'] = formule
 
 

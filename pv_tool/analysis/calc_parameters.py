@@ -37,6 +37,7 @@ def calc_cohesie_kar(self: CPhiAnalyse):
     if self.cohesie_gem_handmatig is not None:
         cohesie_kar = a1_kar_gecorrigeerd(self)
     else:
+        # =(M58 - L57 * L62) / L56
         cohesie_kar = a1_kar(self)
     return cohesie_kar
 
