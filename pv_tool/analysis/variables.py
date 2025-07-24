@@ -7,6 +7,7 @@ import numpy as np
 from scipy.stats import t
 from scipy.stats import linregress
 
+
 def count_s(self: CPhiAnalyse):
     return self.cphi_analyses_data_df['S\''].count()
 
@@ -131,7 +132,6 @@ def var_a1_gecorrigeerd(self: CPhiAnalyse):
 
 
 def cov_a1_a2_gecorrigeerd(self: CPhiAnalyse):
-    # =-($E$57 / ($E$56 * $E$59)) * $AA$64 / ($E$56-2)
     formule = (-(sum_s(self) / (count_s(self) * sum_s_tt(self))) *
                sum_kappa_2_2pr_gecorrigeerd(self) / (count_s(self) - 2))
     return formule
@@ -153,3 +153,12 @@ def helling_gecor(self: CPhiAnalyse):
     else:
         phi_gem = sum_s_ty(self) / sum_s_tt(self)
     return phi_gem
+
+
+def var_tan_phi_gem(self: CPhiAnalyse):
+    return helling_gecor(self) / np.sqrt(1 - helling_gecor(self)**2)
+
+
+def var_tan_phi_kar(self: CPhiAnalyse):
+    return self.phi_kar_handmatig / np.sqrt(1 - helling_gecor(self)**2)
+
