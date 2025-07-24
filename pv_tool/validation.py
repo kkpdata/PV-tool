@@ -214,181 +214,193 @@ class Validation:
         return validation_df, error_log
 
 
-    def validate_alg(self, which_errors):
+    def validate_alg(self, critical=True):
         category = "Algemene kenmerken"
-        schema = Schema([
-            # Column('ALG_NAAM_POLDER_DIJK', [CustomElementValidation(self.is_not_empty, "General name polder is empty")]),
-            Column('ALG_NAAM_POLDER_DIJK', [IsEmptyValidator]),
-            Column('ALG_REFERENTIE', [IsEmptyValidator])
-        ])
+        if not critical:
+            schema = Schema([
+                Column('ALG_NAAM_POLDER_DIJK', [IsEmptyValidator]),
+                Column('ALG_REFERENTIE', [IsEmptyValidator])
+            ])
 
+            return self.validate_with_schema(category, schema)
 
-        return self.validate_with_schema(category, schema)
-
-    def validate_kenmerken_boring(self, which_errors):
+    def validate_kenmerken_boring(self, critical=True):
         category = "Kenmerken van de boring"
-        schema = Schema([
-            Column('BORING_XID', [InRangeValidation(-7000, 300000)]),
-            Column('BORING_YID', [InRangeValidation(289000, 629000)]),
-            Column('BORING_MAAIVELDPEIL', [InRangeValidation(-100, 500)]),
-            Column('BORING_NUMMER', [IsEmptyValidator]),
-            Column('BORING_POSITIE', [IsEmptyValidator]),
-            Column('BORING_FILENAAM_PDF', [IsEmptyValidator]),
-            Column('BORING_FILENAAM_GEF', [IsEmptyValidator])
-        ])
+        if not critical:
+            schema = Schema([
+                Column('BORING_FILENAAM_PDF', [IsEmptyValidator]),
+                Column('BORING_FILENAAM_GEF', [IsEmptyValidator])
+            ])
+        else:
+            schema = Schema([
+                Column('BORING_XID', [InRangeValidation(-7000, 300000)]),
+                Column('BORING_YID', [InRangeValidation(289000, 629000)]),
+                Column('BORING_MAAIVELDPEIL', [InRangeValidation(-100, 500)]),
+                Column('BORING_NUMMER', [IsEmptyValidator]),
+                Column('BORING_POSITIE', [IsEmptyValidator])
+            ])
 
         return self.validate_with_schema(category, schema)
 
-    def validate_monster(self, which_errors):
+    def validate_monster(self, critical=True):
         category = "Monster"
-        schema = Schema([
-            Column('MONSTER_ID', [IsEmptyValidator]),
-            Column('MONSTER_NIVEAU_NAP_VANAF', [InRangeValidation(-100, 500)]),
-            Column('MONSTER_NIVEAU_NAP_TOT', [InRangeValidation(-100, 500)])
-        ])
+        if not critical:
+            schema = Schema([
+                Column('MONSTER_NIVEAU_MV_VANAF', [IsEmptyValidator]),
+                Column('MONSTER_NIVEAU_MV_TOT', [IsEmptyValidator])
+            ])
+        else:
+            schema = Schema([
+                Column('MONSTER_ID', [IsEmptyValidator]),
+                Column('MONSTER_NIVEAU_NAP_VANAF', [InRangeValidation(-100, 500)]),
+                Column('MONSTER_NIVEAU_NAP_TOT', [InRangeValidation(-100, 500)])
+            ])
         return self.validate_with_schema(category, schema)
-        pass
 
-    def validate_clas(self, which_errors):
+    def validate_clas(self, critical=True):
         category = "Classificatie"
-        schema = Schema([
-            Column('CLAS_MONSTERID', [IsEmptyValidator]),
-            Column('CLAS_GRONDSOORT', [IsEmptyValidator]),
-            Column('CLAS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
-            Column('CLAS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
-            Column('CLAS_VOLUMEGEWICHT_DRG', [InRangeValidation(0, 25)]),
-            Column('CLAS_WATERGEHALTE', [InRangeValidation(0, 1000)])
-        ])
-
+        if not critical:
+            schema = Schema([
+                Column('CLAS_GRONDSOORT', [IsEmptyValidator]),
+                Column('CLAS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
+                Column('CLAS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
+                Column('CLAS_VOLUMEGEWICHT_DRG', [InRangeValidation(0, 25)]),
+                Column('CLAS_WATERGEHALTE', [InRangeValidation(0, 1000)])
+            ])
+        else:
+            schema = Schema([
+                Column('CLAS_MONSTERID', [IsEmptyValidator])
+            ])
         return self.validate_with_schema(category, schema)
 
-    # def validate_kenmerken_sondering(self):
-    #     category = "Kenmerken van de sondering"
-    #     schema = Schema([
-    #         Column('CPT_QNET', [InRangeValidation(0, 5000)])
-    #     ])
-    #     return self.validate_with_schema(category, schema)
-    #     pass
-
-    def validate_crs(self, which_errors):
+    def validate_crs(self, critical=True):
         category = "Constant rate of strain proeven (CRS)"
-        schema = Schema([
-            Column('CRS_FILENAAM_PDF', [IsEmptyValidator]),
-            Column('CRS_MONSTERID', [IsEmptyValidator]),
-            Column('CRS_GRONDSOORT', [IsEmptyValidator]),
-            Column('CRS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
-            Column('CRS_TERREINSPANNING', [InRangeValidation(0, 500)]),
-            Column('CRS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
-            Column('CRS_VOLUMEGEWICHT_DRG', [InRangeValidation(0, 25)]),
-            Column('CRS_WATERGEHALTE_VOOR', [InRangeValidation(0, 1000)]),
-            Column('CRS_GRENSSPANNING_A', [InRangeValidation(0, 1000)]),
-            Column('CRS_REK_BIJ_GRENSSPANNING_A', [InRangeValidation(0, 100)]),
-            Column('CRS_ISOTACHE_A', [InRangeValidation(0, 0.1)]),
-            Column('CRS_ISOTACHE_B', [InRangeValidation(0, 1)]),
-            Column('CRS_ISOTACHE_C', [InRangeValidation(0, 0.1)])
-        ])
-        return self.validate_with_schema(category, schema)
-        pass
+        if not critical:
+            schema = Schema([
+                Column('CRS_FILENAAM_PDF', [IsEmptyValidator]),
+                Column('CRS_MONSTERID', [IsEmptyValidator]),
+                Column('CRS_GRONDSOORT', [IsEmptyValidator]),
+                Column('CRS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
+                Column('CRS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
+                Column('CRS_VOLUMEGEWICHT_DRG', [InRangeValidation(0, 25)]),
+                Column('CRS_WATERGEHALTE_VOOR', [InRangeValidation(0, 1000)]),
+                Column('CRS_REK_BIJ_GRENSSPANNING_A', [InRangeValidation(0, 100)]),
 
-    def validate_samendrukking(self, which_errors):
+            ])
+        else:
+            schema = Schema([
+                Column('CRS_TERREINSPANNING', [InRangeValidation(0, 500)]),
+                Column('CRS_GRENSSPANNING_A', [InRangeValidation(0, 1000)]),
+                Column('CRS_ISOTACHE_A', [InRangeValidation(0, 0.1)]),
+                Column('CRS_ISOTACHE_B', [InRangeValidation(0, 1)]),
+                Column('CRS_ISOTACHE_C', [InRangeValidation(0, 0.1)])
+            ])
+
+        return self.validate_with_schema(category, schema)
+
+    def validate_samendrukking(self, critical=True):
         category = "Samendrukkingsproeven"
-        schema = Schema([
-            Column('SD_FILENAAM_PDF', [IsEmptyValidator]),
-            Column('SD_MONSTERID', [IsEmptyValidator]),
-            Column('SD_GRONDSOORT',
-                   [IsEmptyValidator]),
-            Column('SD_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
-            Column('SD_TERREINSPANNING', [InRangeValidation(0, 500)]),
-            Column('SD_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
-            # Column('SD_VOLUMEGEWICHT_DR', [InRangeValidation(0, 25)]),
-            Column('SD_WATERGEHALTE_INI', [InRangeValidation(0, 1000)]),
-            Column('SD_ISOTACHE_A', [InRangeValidation(0, 0.1)]),
-            Column('SD_ISOTACHE_B', [InRangeValidation(0, 1)]),
-            Column('SD_ISOTACHE_C', [InRangeValidation(0, 0.1)]),
-            Column('SD_ISOTACHE_GRENSSPANNING_A', [InRangeValidation(0, 1000)])
-        ])
+        if not critical:
+            schema = Schema([
+                Column('SD_FILENAAM_PDF', [IsEmptyValidator]),
+                Column('SD_MONSTERID', [IsEmptyValidator]),
+                Column('SD_GRONDSOORT',
+                       [IsEmptyValidator]),
+                Column('SD_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
+                Column('SD_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
+                Column('SD_VOLUMEGEWICHT_DR', [InRangeValidation(0, 25)]),
+                Column('SD_WATERGEHALTE_INI', [InRangeValidation(0, 1000)]),
+                Column('SD_ISOTACHE_REK_BIJ_GRENSSPANNING_A', [IsEmptyValidator, InRangeValidation(0, 100)]),
+                Column('SD_ISOTACHE_BOVENGRENS_GRENSSPANNING_B', [IsEmptyValidator, InRangeValidation(0, 100)])
+            ])
+        else:
+            schema = Schema([
+                Column('SD_TERREINSPANNING', [InRangeValidation(0, 500)]),
+                Column('SD_ISOTACHE_A', [InRangeValidation(0, 0.1)]),
+                Column('SD_ISOTACHE_B', [InRangeValidation(0, 1)]),
+                Column('SD_ISOTACHE_C', [InRangeValidation(0, 0.1)]),
+                Column('SD_ISOTACHE_GRENSSPANNING_A', [InRangeValidation(0, 1000)])
+            ])
         return self.validate_with_schema(category, schema)
-        pass
 
-    def validate_dss(self, which_errors):
+    def validate_dss(self, critical=True):
         category = "DSS-proeven"
-        schema = Schema([
-            Column('DSS_FILENAAM_PDF', [IsEmptyValidator]),
-            Column('DSS_MONSTERID', [IsEmptyValidator]),
-            Column('DSS_GRONDSOORT',[IsEmptyValidator]),
-            Column('DSS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
-            Column('DSS_TERREINSPANNING', [InRangeValidation(0, 500)]),
-            Column('DSS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
-            Column('DSS_WATERGEHALTE_VOOR', [InRangeValidation(0, 1000)]),
-            Column('DSS_MAX_EFF_VERT_SPANNING_CONSOLIDATIE', [InRangeValidation(0, 2000)]),
-            Column('DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE', [InRangeValidation(0, 2000)]),
-            Column('DSS_S_2%', [InRangeValidation(0, 2000)]),
-            Column('DSS_T_2%', [InRangeValidation(0, 1000)]),
-            Column('DSS_S_5%', [InRangeValidation(0, 2000)]),
-            Column('DSS_T_5%', [InRangeValidation(0, 1000)]),
-            Column('DSS_S_10%', [InRangeValidation(0, 2000)]),
-            Column('DSS_T_10%', [InRangeValidation(0, 1000)]),
-            Column('DSS_S_15%', [InRangeValidation(0, 2000)]),
-            Column('DSS_T_15%', [InRangeValidation(0, 1000)]),
-            Column('DSS_S_20%', [InRangeValidation(0, 2000)]),
-            Column('DSS_T_20%', [InRangeValidation(0, 1000)]),
-            Column('DSS_S_BIJ_T_MAX', [InRangeValidation(0, 2000)]),
-            Column('DSS_T_MAX', [InRangeValidation(0, 1000)]),
-            Column('DSS_REK_BIJ_T_MAX', [InRangeValidation(0, 60)]),
-            Column('DSS_S_BIJ_T_EIND', [InRangeValidation(0, 2000)]),
-            Column('DSS_T_EIND', [InRangeValidation(0, 1000)]),
-            Column('DSS_REK_BIJ_T_EIND', [InRangeValidation(0, 60)])
-        ])
+        if not critical:
+            schema = Schema([
+                Column('DSS_FILENAAM_PDF', [IsEmptyValidator]),
+                Column('DSS_FILENAAM_SPANNINGSPAD', [IsEmptyValidator]),
+                Column('DSS_MONSTERID', [IsEmptyValidator]),
+                Column('DSS_GRONDSOORT',[IsEmptyValidator]),
+                Column('DSS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
+                Column('DSS_TERREINSPANNING', [InRangeValidation(0, 500)]),
+                Column('DSS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
+                Column('DSS_WATERGEHALTE_VOOR', [InRangeValidation(0, 1000)])
+            ])
+        else:
+            schema = Schema([
+                Column('DSS_TERREINSPANNING', [InRangeValidation(0, 500)]),
+                Column('DSS_MAX_EFF_VERT_SPANNING_CONSOLIDATIE', [InRangeValidation(0, 2000)]),
+                Column('DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE', [InRangeValidation(0, 2000)]),
+                Column('DSS_S_2%', [InRangeValidation(0, 2000)]),
+                Column('DSS_T_2%', [InRangeValidation(0, 1000)]),
+                Column('DSS_S_5%', [InRangeValidation(0, 2000)]),
+                Column('DSS_T_5%', [InRangeValidation(0, 1000)]),
+                Column('DSS_S_10%', [InRangeValidation(0, 2000)]),
+                Column('DSS_T_10%', [InRangeValidation(0, 1000)]),
+                Column('DSS_S_15%', [InRangeValidation(0, 2000)]),
+                Column('DSS_T_15%', [InRangeValidation(0, 1000)]),
+                Column('DSS_S_20%', [InRangeValidation(0, 2000)]),
+                Column('DSS_T_20%', [InRangeValidation(0, 1000)]),
+                Column('DSS_S_BIJ_T_MAX', [InRangeValidation(0, 2000)]),
+                Column('DSS_T_MAX', [InRangeValidation(0, 1000)]),
+                Column('DSS_REK_BIJ_T_MAX', [InRangeValidation(0, 60)]),
+                Column('DSS_S_BIJ_T_EIND', [InRangeValidation(0, 2000)]),
+                Column('DSS_T_EIND', [InRangeValidation(0, 1000)]),
+                Column('DSS_REK_BIJ_T_EIND', [InRangeValidation(0, 60)])
+            ])
         return self.validate_with_schema(category, schema)
 
-    def validate_triaxiaal(self, which_errors):
+    def validate_triaxiaal(self, critical=True):
         category = "Triaxiaalproeven single stage"
-        schema = Schema([
-            Column('TXT_SS_FILENAAM_PDF', [IsEmptyValidator]),
-            Column('TXT_SS_MONSTERID', [IsEmptyValidator]),
-            Column('TXT_SS_GRONDSOORT',[IsEmptyValidator]),
-            Column('TXT_SS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
-            Column('TXT_SS_TERREINSPANNING', [InRangeValidation(0, 500)]),
-            Column('TXT_SS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
-            Column('TXT_SS_WATERGEHALTE_NA_PROEF', [InRangeValidation(0, 1000)]),
-            Column("TXT_SS_S\'_MAX_CONSOLIDATIE", [InRangeValidation(0, 2000)]),
-            Column('TXT_SS_T_MAX_CONSOLIDATIE', [InRangeValidation(0, 1000)]),
-            Column("TXT_SS_S\'_EIND_CONSOLIDATIE", [InRangeValidation(0, 2000)]),
-            Column('TXT_SS_T_EIND_CONSOLIDATIE', [InRangeValidation(0, 1000)]),
-            Column("TXT_SS_S\'_2%", [InRangeValidation(0, 2000)]),
-            Column('TXT_SS_T_2%', [InRangeValidation(0, 1000)]),
-            Column("TXT_SS_S\'_5%", [InRangeValidation(0, 2000)]),
-            Column('TXT_SS_T_5%', [InRangeValidation(0, 1000)]),
-            Column("TXT_SS_S\'_15%", [InRangeValidation(0, 2000)]),
-            Column('TXT_SS_T_15%', [InRangeValidation(0, 1000)]),
-            Column("TXT_SS_S\'_BIJ_T_PIEK", [InRangeValidation(0, 2000)]),
-            Column('TXT_SS_T_PIEK', [InRangeValidation(0, 1000)]),
-            Column('TXT_SS_REK_BIJ_T_PIEK', [InRangeValidation(0, 40)]),
-            Column("TXT_SS_S\'_BIJ_T_EIND", [InRangeValidation(0, 2000)]),
-            Column('TXT_SS_T_EIND', [InRangeValidation(0, 1000)]),
-            Column('TXT_SS_REK_BIJ_T_EIND', [InRangeValidation(0, 40)])
-        ])
-
+        if not critical:
+            schema = Schema([
+                Column('TXT_SS_FILENAAM_PDF', [IsEmptyValidator]),
+                Column('TXT_SS_MONSTERID', [IsEmptyValidator]),
+                Column('TXT_SS_GRONDSOORT',[IsEmptyValidator]),
+                Column('TXT_SS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
+                Column('TXT_SS_WATERGEHALTE_NA_PROEF', [InRangeValidation(0, 1000)])
+            ])
+        else:
+            schema = Schema([
+                Column('TXT_SS_TERREINSPANNING', [InRangeValidation(0, 500)]),
+                Column('TXT_SS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
+                Column("TXT_SS_S\'_MAX_CONSOLIDATIE", [InRangeValidation(0, 2000)]),
+                Column('TXT_SS_T_MAX_CONSOLIDATIE', [InRangeValidation(0, 1000)]),
+                Column("TXT_SS_S\'_EIND_CONSOLIDATIE", [InRangeValidation(0, 2000)]),
+                Column('TXT_SS_T_EIND_CONSOLIDATIE', [InRangeValidation(0, 1000)]),
+                Column("TXT_SS_S\'_2%", [InRangeValidation(0, 2000)]),
+                Column('TXT_SS_T_2%', [InRangeValidation(0, 1000)]),
+                Column("TXT_SS_S\'_5%", [InRangeValidation(0, 2000)]),
+                Column('TXT_SS_T_5%', [InRangeValidation(0, 1000)]),
+                Column("TXT_SS_S\'_15%", [InRangeValidation(0, 2000)]),
+                Column('TXT_SS_T_15%', [InRangeValidation(0, 1000)]),
+                Column("TXT_SS_S\'_BIJ_T_PIEK", [InRangeValidation(0, 2000)]),
+                Column('TXT_SS_T_PIEK', [InRangeValidation(0, 1000)]),
+                Column('TXT_SS_REK_BIJ_T_PIEK', [InRangeValidation(0, 40)]),
+                Column("TXT_SS_S\'_BIJ_T_EIND", [InRangeValidation(0, 2000)]),
+                Column('TXT_SS_T_EIND', [InRangeValidation(0, 1000)]),
+                Column('TXT_SS_REK_BIJ_T_EIND', [InRangeValidation(0, 40)])
+            ])
         return self.validate_with_schema(category, schema)
         pass
 
-    # def validate_ana(self):
-    #     category = "Analyse"
-    #     schema = Schema([
-    #         Column('ANA_GRENSSPANNING', [InRangeValidation(0, 1000)]),
-    #         Column('ANA_GRENSSPANNING_HANDMATIG', [InRangeValidation(0, 1000)])
-    #
-    #     ])
-    #     return self.validate_with_schema(category, schema)
-    #     pass
-
-    def validation_log(self, save_path, which_errors):  # save_path is the location where the Excel file will be saved
+    def validation_log(self, save_path, critical=True):  # save_path is the location where the Excel file will be saved
         """
         Voert alle validaties uit en genereert een Excel-bestand en een logbestand.
 
         Parameters:
             save_path (str): Pad waar het Excel-bestand moet worden opgeslagen.
-            which_errors takes the values 'non-essential' (only warnings) or 'essential' (tool cannot function without)
+            critical is true if only critical errors should be tested. critical is false will only return warnings. default is True
 
         Returns:
             lijst met strings: Logbestand met alle foutmeldingen.
@@ -398,29 +410,51 @@ class Validation:
         error_logs = []
 
         # List of validation functions to call
-        validation_functions = [
-            self.validate_alg,
-            self.validate_kenmerken_boring,
-            self.validate_clas,
-            self.validate_crs,
-            self.validate_samendrukking,
-            self.validate_monster,
-            self.validate_triaxiaal,
-            self.validate_dss,
-        ]
-        sheet_names = {'validate_alg': 'ALG',
-                       'validate_kenmerken_boring': 'BORING',
-                       'validate_clas': 'CLAS',
-                        'validate_crs': 'CRS',
-                        'validate_samendrukking': 'SD',
-                        'validate_monster': 'MONSTER',
-                        'validate_triaxiaal': 'TXT',
-                        'validate_dss': 'DSS',
-        }
+        if not critical:
+            validation_functions = [
+                self.validate_alg,
+                self.validate_kenmerken_boring,
+                self.validate_clas,
+                self.validate_crs,
+                self.validate_samendrukking,
+                self.validate_monster,
+                self.validate_triaxiaal,
+                self.validate_dss,
+            ]
+            sheet_names = {'validate_alg': 'ALG',
+                           'validate_kenmerken_boring': 'BORING',
+                           'validate_clas': 'CLAS',
+                            'validate_crs': 'CRS',
+                            'validate_samendrukking': 'SD',
+                            'validate_monster': 'MONSTER',
+                            'validate_triaxiaal': 'TXT',
+                            'validate_dss': 'DSS'
+            }
+        else:
+            validation_functions = [
+
+                self.validate_kenmerken_boring,
+                self.validate_clas,
+                self.validate_crs,
+                self.validate_samendrukking,
+                self.validate_monster,
+                self.validate_triaxiaal,
+                self.validate_dss,
+            ]
+            sheet_names = {
+                           'validate_kenmerken_boring': 'BORING',
+                           'validate_clas': 'CLAS',
+                           'validate_crs': 'CRS',
+                           'validate_samendrukking': 'SD',
+                           'validate_monster': 'MONSTER',
+                           'validate_triaxiaal': 'TXT',
+                           'validate_dss': 'DSS'
+                           }
+
         # Iterate through each validation function and collect the results
         for func in validation_functions:
             validation_name = func.__name__  # Get the name of the function (e.g., 'validate_alg')
-            validation_df, error_log = func(which_errors)  # Call the function and get its output
+            validation_df, error_log = func(critical=critical)  # Call the function and get its output
 
             # Store the validation DataFrame and error log
             validation_results[validation_name] = validation_df
@@ -428,15 +462,17 @@ class Validation:
 
             error_logs.append(error_log)
 
+        sheet_names_print = []
         # Create the Excel file with each validation_df as a separate sheet
         with pd.ExcelWriter(save_path, engine='xlsxwriter') as writer:
             for validation_name, validation_df in validation_results.items():
                 # Use the corresponding sheet name from the sheet_names dictionary
                 sheet_name = sheet_names.get(validation_name, validation_name)  # Fallback to function name if not found
+                sheet_names_print.append(sheet_name)
                 validation_df.to_excel(writer, sheet_name=sheet_name, index=True)
 
         self.total_error_log = error_logs
 
-        return error_logs
+        return error_logs, sheet_names_print, validation_results
 
 

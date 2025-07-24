@@ -64,27 +64,35 @@ path_to_export = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool 
 validate = Validation()
 validate.dbase_df = df
 
-test_output_warnings = validate.validation_log(save_path=path_to_export, which_errors='non-essential')
-test_output_essential = validate.validation_log(save_path=path_to_export, which_errors='essential')
-dfs = validate.dataframes
+val_warning = validate.validation_log(save_path=path_to_export, critical=False)
+val_crit = validate.validation_log(save_path=path_to_export, critical=True)
 
-c = 0
+test_output_warnings = val_warning[0]
+names_output_warnings = val_warning[1]
+dfs_warnings = val_warning[2]
+test_output_critical = val_crit[0]
+names_output_critical = val_crit[1]
+dfs_critical = val_warning[2]
 
-for errorclass in test_output_warnings:
-    c+=1
+
+
+for i in range(len(names_output_warnings)):
+    c = names_output_warnings[i]
     e = 0
-    for error in errorclass:
+    for error in test_output_warnings[i]:
         e+=1
-    # print(error)
+        if e < 5:
+            print(error)
     print(f"in categorie {c} zijn {e} waarschuwingen gevonden")
 
-c = 0
-for errorclass in test_output_warnings:
-    c+=1
+
+for i in range(len(names_output_critical)):
+    c = names_output_critical[i]
     e = 0
-    for error in errorclass:
+    for error in test_output_critical[i]:
         e+=1
-    # print(error)
+        if e < 5:
+            print(error)
     print(f"in categorie {c} zijn {e} fatale errors gevonden")
 
 
