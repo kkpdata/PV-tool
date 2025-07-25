@@ -139,7 +139,7 @@ class CPhiAnalyse:
         self.eerste_benadering_deel2()
         self.result_values()
 
-    def set_figure(self):  # TODO: mogelijkheid inbouwen om meer proefresultaten te laten zien uit een andere set.
+    def set_figure(self):  # TODO: mogelijkheid inbouwen om meer proefresultaten te laten zien uit een andere set. test
         """Deze functie maakt alle invoer voor het figuur."""
         add_proefresultaten(self)
         add_5pr_bovengrens(self)
