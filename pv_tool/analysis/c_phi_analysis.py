@@ -38,9 +38,11 @@ class CPhiAnalyse:
         self.cohesie_gem_set = False
         self.phi_kar_set = False
         self.cohesie_kar_set = False
+        self.plot_extra_dataset = False
 
         # Placeholder
         self.cphi_analyses_data_df: Optional[DataFrame] = None
+
 
         # Results
         self.tan_phi_gem: Optional[float] = None
@@ -145,6 +147,8 @@ class CPhiAnalyse:
     def set_figure(self):  # TODO: mogelijkheid inbouwen om meer proefresultaten te laten zien uit een andere set
         """Deze functie maakt alle invoer voor het figuur."""
         add_proefresultaten(self)
+        if self.plot_extra_dataset:
+            add_extra_proefresultaten(self)
         add_5pr_bovengrens(self)
         add_fysische_realiseerbare_ondergrens(self)
         add_gemiddelde(self)
@@ -162,12 +166,19 @@ class CPhiAnalyse:
         self._run()
         print('df =', self.cphi_analyses_data_df)
         print('Results')
-        print('tan(phi)_gem = ', self.tan_phi_gem)
-        print('c_gem = ', self.c_gem)
-        print('tan(phi)_kar)', self.tan_phi_kar)
-        print('c_kar', self.c_kar)
-        print('tan(phi)_d', self.tan_phi_d)
-        print('c_d', self.c_d)
+        # print('tan(phi)_gem = ', self.tan_phi_gem)
+        # print('c_gem = ', self.c_gem)
+        # print('tan(phi)_kar)', self.tan_phi_kar)
+        # print('c_kar', self.c_kar)
+        # print('tan(phi)_d', self.tan_phi_d)
+        # print('c_d', self.c_d)
+
+        index = ['verwachtingswaarde', 'karakteristieke waarde', 'rekenwaarde']
+        columns = ['tan phi [-]', 'cohesie [kPa]']
+        analyse_output_df = DataFrame(index=index, columns=columns)
+        analyse_output_df['tan phi [-]'] = [self.tan_phi_gem, self.tan_phi_kar, self.tan_phi_d]
+        analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d]
+        print(analyse_output_df)
 
 
 # voorbeeld uitvoer

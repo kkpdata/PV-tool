@@ -25,6 +25,23 @@ def add_proefresultaten(self: CPhiAnalyse):
         )
     )
 
+def add_extra_proefresultaten(self: CPhiAnalyse):
+    """Deze functie voegt de proefresultaten toe aan de figuur."""
+    boring_monsternummer = self.cphi_analyses_data_df['ALG__BORING_MONSTERNR_ID']
+
+    x_proefresultaten = self.cphi_analyses_data_df['S\'']  # TODO: hier moet nog iets anders komen aangezien het om extra resultaten gaat
+    y_proefresultaten = self.cphi_analyses_data_df['T']  # TODO: hier moet nog iets anders komen aangezien het om extra resultaten gaat
+
+    self.figure.add_trace(
+        go.Scatter(
+            x=x_proefresultaten,
+            y=y_proefresultaten,
+            mode='markers',
+            name='Proefresultaten',
+            text=boring_monsternummer,
+            hoverinfo='text'
+        )
+    )
 
 def add_5pr_bovengrens(self: CPhiAnalyse):
     """Deze functie voegt de 5% bovengrens toe aan de figuur."""
