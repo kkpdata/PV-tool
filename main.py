@@ -73,15 +73,22 @@ analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16
 analyse.factsheet()
 analyse.show_figure()
 ##
-# analyse.apply_settings(alpha=0.75)
-# analyse.apply_settings(alpha='LOCAL')
+
 analyse.apply_settings(alpha=Alpha.LOCAL)
 analyse.show_figure()
+
+##
+print(analyse.cohesie_gem_handmatig)
+
+analyse.apply_parameters(cohesie_gem=15)
+analyse.show_figure()
+print(analyse.cohesie_gem_handmatig)
+
 # analyse.cohesie_gem_handmatig = 5.15
 # analyse.phi_kar_handmatig = 0.55
 # analyse.cohesie_kar_handmatig = 0.0
 ##
-analyse.apply_parameters(cohesie_kar=15) # volgens mij werkt dit nog niet
+analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
 analyse.show_figure()
 
 ##
