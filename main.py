@@ -38,8 +38,6 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
 from pathlib import Path
 import os
 from pv_tool.imports.import_data import Dbase
-from pv_tool.validation import Validation
-from typing import Optional
 import git
 
 # de grote test van importeren.py

@@ -2,7 +2,7 @@ from pandas import DataFrame
 from typing import Optional, Literal
 from pv_tool.imports.create_dbase import *
 from pv_tool.imports.import_options import *
-from pv_tool.validation import Validation
+from pv_tool.imports.validation import Validation
 
 
 class Dbase:
