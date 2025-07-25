@@ -107,6 +107,7 @@ class Validation:
         """
         This function validates a dataframe with a certain name (category) and uses the corresponding schema for it
         This function is called in each individual validation function, where the schema is made for each category
+        NB in error log and validation_df, the rows in which there are only errors or no errors are deleted
         """
         # Define dataframe and schema columns;
         # Filter the DataFrame to only include columns present in both the schema and DataFrame
@@ -138,13 +139,30 @@ class Validation:
             column = error.column
             error_message = error.message
             validation_df.at[row, f"{column}_validate"] = error_message
-            error_log.append(f"Error in row '{row}' and column '{column}': {error_message}")
+            error_log.append([row, column, error_message])
+
+        # Remove rows without any errors or with all errors - those are not interesting for the user
+        to_delete = []
+        for i in validation_df.index:
+            data = [validation_df[f"{schema_column}_validate"].loc[i] for schema_column in available_columns]
+            if not data or all(item == '' for item in data) or all(
+                    isinstance(item, float) and math.isnan(item) for item in data):
+                to_delete.append(i)
+            elif all(data):
+                to_delete.append(i)
+
+        validation_df = validation_df.drop(index=to_delete)
+
+        for error in error_log[:]:
+            if error[0] in to_delete:
+                error_log.remove(error)
+
 
         # Add extra validation summary rows at the top
         summary_row_1 = []
         summary_row_2 = []
 
-        for col in available_columns:  # TODO: dit komt niet goed door in output excel - checken
+        for col in available_columns:
             original_column_data = df[col]
             validation_column_data = validation_df[f"{col}_validate"]
 
@@ -167,17 +185,7 @@ class Validation:
                                  .apply(lambda x: bool(str(x).strip()) if pd.notna(x) else False)
                                  .sum())
 
-        # Remove rows without any errors or with all errors - those are not interesting for the user
-        to_delete = []
-        for i in validation_df.index:
-            data = [validation_df[f"{schema_column}_validate"].loc[i] for schema_column in available_columns]
-            if not data or all(item == '' for item in data) or all(
-                    isinstance(item, float) and math.isnan(item) for item in data):
-                to_delete.append(i)
-            elif all(data):
-                to_delete.append(i)
 
-        validation_df = validation_df.drop(index=to_delete)
         initial_index = validation_df.index.tolist()
         new_index = ['samenvatting', 'aantal fouten'] + initial_index
 

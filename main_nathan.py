@@ -80,8 +80,7 @@ for i in range(len(names_output_warnings)):
     e = 0
     for error in test_output_warnings[i]:
         e+=1
-        if e < 5:
-            print(error)
+        print(f"waarschuwing in categorie {c} in row {error[0]} in column {error[1]}: {error[2]}")
     print(f"in categorie {c} zijn {e} waarschuwingen gevonden")
 
 
@@ -90,8 +89,7 @@ for i in range(len(names_output_critical)):
     e = 0
     for error in test_output_critical[i]:
         e+=1
-        if e < 5:
-            print(error)
+        print(f"kritieke fout in category {c} in row {error[0]} in column {error[1]}: {error[2]}")
     print(f"in categorie {c} zijn {e} fatale errors gevonden")
 
 
