@@ -1,10 +1,3 @@
-# # Voorbeeldje
-# my_obj = PVTool()
-# stowa_dir = ...
-# my_obj.import_stowa(stowa_dir=stowa_dir)
-# investigation_groups = ['Klei_licht', 'Klei_zwaar']
-# my_obj.c_phi_plot(investigation_groups=investigation_groups)
-
 from pathlib import Path
 import os
 from pv_tool.import_data import Dbase
@@ -12,7 +5,7 @@ from pv_tool.validation import Validation
 from typing import Optional
 import git
 
-# Deze functie is ooit geschreven door Chris, willen we deze openbaar maken?
+
 def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     """Returns the repository root by searching in the given directory and its subdirectories.
 
@@ -46,7 +39,10 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     repo = git.Repo(root_search_dir, search_parent_directories=True)
     return repo.working_tree_dir
 
-path_to_data = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel.xlsm")
+
+# path_to_data = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel.xlsm")
+path_to_data = Path(r"c:\Users\deenekat7271\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel.xlsm")
+
 dir_dbase = Path(os.path.join(get_repo_root(), "example_files", "Dbase-template.xlsx"))
 dbase = Dbase()
 dbase.import_date_and_create_dbase(source='Dbase', source_dir=dir_dbase)
@@ -55,8 +51,7 @@ df = dbase.dbase_df
 validate = Validation()
 validate.dbase_df = df
 
-testpath = Path(r"C:\Users\gebraadn0645\Downloads\test_excel.xlsx")
+# testpath = Path(r"C:\Users\gebraadn0645\Downloads\test_excel.xlsx")
+testpath = Path(r"C:\Users\deenekat7271\Downloads\test_excel.xlsx")
 test_output = validate.validation_log(save_path=testpath)
-
-
 
