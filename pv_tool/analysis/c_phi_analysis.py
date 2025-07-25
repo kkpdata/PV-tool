@@ -33,6 +33,7 @@ class CPhiAnalyse:
         self.cohesie_gem_handmatig: Optional[float] = None
         self.phi_kar_handmatig: Optional[float] = None
         self.cohesie_kar_handmatig: Optional[float] = None
+
         #test
         self.cohesie_gem_set = False
         self.phi_kar_set = False
@@ -48,6 +49,7 @@ class CPhiAnalyse:
         self.c_kar: Optional[float] = None
         self.tan_phi_d: Optional[float] = None
         self.c_d: Optional[float] = None
+        self.st_dev: Optional[float] = None
 
         # Figure
         self.figure = go.Figure()
@@ -129,6 +131,7 @@ class CPhiAnalyse:
         self.c_kar = calc_c_kar(self)
         self.tan_phi_d = calc_tan_phi_d(self)
         self.c_d = calc_c_d(self)
+        self.st_dev = calc_st_dev(self)
 
     def _run(self):
         """Deze functie zorgt ervoor dat zodra er iets veranderd in de bron-data alles opnieuw wordt berekend."""
@@ -155,7 +158,7 @@ class CPhiAnalyse:
         self.figure.show()
 
     def factsheet(self):  # TODO: specifiek maken voor hoe we de resultaten willen presenteren.
-        """Deze functie presenteerd alle resultaten."""
+        """Deze functie presenteert alle resultaten."""
         self._run()
         print('df =', self.cphi_analyses_data_df)
         print('Results')

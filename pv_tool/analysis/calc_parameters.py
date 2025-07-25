@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
 from pv_tool.analysis.variables import *
-from scipy.stats import linregress
+from scipy.stats import linregress, norm
 
 
 def calc_phi_gem(self: CPhiAnalyse):
@@ -65,3 +65,5 @@ def calc_tan_phi_d(self: CPhiAnalyse):
 def calc_c_d(self: CPhiAnalyse):
     return calc_c_kar(self) / self.material_cohesie
 
+def calc_st_dev(self: CPhiAnalyse):
+    return calc_tan_phi_gem(self) * math.sqrt(math.exp((((norm.ppf(0.05)*2) + math.sqrt((norm.ppf(0.05)*2)**2 + 8 * (math.log(calc_tan_phi_gem(self)) - math.log(calc_tan_phi_d(self))))) / 2)**2)-1)
