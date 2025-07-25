@@ -6,6 +6,7 @@ matplotlib
 openpyxl
 gitpython
 pandas_schema
+xlsxwriter
 
 setuptools
 twine

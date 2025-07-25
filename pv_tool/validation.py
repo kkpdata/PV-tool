@@ -1,48 +1,20 @@
-# In deze file wil ik alle code opslaan wat betreft de validatie van de import
-# Kijk in de file van Leo:
-# C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie
-# welke kolommen we allemaal moeten valideren.
-
 from typing import Optional, List, Literal
 from pandas import DataFrame
 import pandas as pd
 from pandas_schema import Column, Schema
-from pandas_schema.validation import (
-    CustomElementValidation, InRangeValidation
-)
+from pandas_schema.validation import CustomElementValidation, InRangeValidation
 import math
 from pathlib import Path
 
-
-# onderstaande code is een idee van Chris. Mogelijk iets voor later als we nog tijd hebben.
-# class ValidationVB:
-#     class Methods:
-#         pass
-#
-#     class Categories:
-#
-#         def dss(self):
-#             pass
-#
-#         def txt(self):
-#             pass
-#
-#         def etc(self):
-#             pass
-#
-#     class Utils:
-#         pass
-
-
-###
 IsEmptyValidator = CustomElementValidation(
     lambda value: value != "" and not pd.isna(value), "This cell is empty"
 )
 
+
 class Validation:
     """In deze class staan alle functies die de validatie uitvoeren."""
 
-    def __init__(self, dbase_df: Optional[DataFrame] = None, critical: Optional[bool]=True):
+    def __init__(self, dbase_df: Optional[DataFrame] = None, critical: Optional[bool] = True):
         self.dbase_df = dbase_df
         self.critical = critical
         self.total_error_log: Optional[List] = None
@@ -76,8 +48,16 @@ class Validation:
 
         return self.dataframes
 
-    def validation_selection(self, category: Literal['Classificatie', 'Constant rate of strain proeven (CRS)',
-    'Samendrukkingsproeven', 'DSS-proeven', 'Triaxiaalproeven single stage']):
+    def validation_selection(
+            self,
+            category: Literal[
+                'Classificatie',
+                'Constant rate of strain proeven (CRS)',
+                'Samendrukkingsproeven',
+                'DSS-proeven',
+                'Triaxiaalproeven single stage'
+            ]
+    ):
         """Deze functie bepaalt welke rijen door gaan naar de validatie, gebaseerd op de kolom in algemene kenmerken.
         Als de waarde = FALSE wordt de rij verwijderd"""
         df_alg = self.split_dbase()['Algemene kenmerken']
@@ -98,7 +78,7 @@ class Validation:
         if not uitgevoerd.index.equals(df_to_check.index):
             raise ValueError("Indices van 'uitgevoerd' en 'df_to_check' komen niet overeen")
 
-        valid_indices = uitgevoerd[uitgevoerd == True].index
+        valid_indices = uitgevoerd[uitgevoerd is True].index
         df_to_check_filtered = df_to_check.loc[valid_indices]
 
         return df_to_check_filtered
@@ -157,7 +137,6 @@ class Validation:
             if error[0] in to_delete:
                 error_log.remove(error)
 
-
         # Add extra validation summary rows at the top
         summary_row_1 = []
         summary_row_2 = []
@@ -184,7 +163,6 @@ class Validation:
             summary_row_2.append(validation_df[f"{col}_validate"]
                                  .apply(lambda x: bool(str(x).strip()) if pd.notna(x) else False)
                                  .sum())
-
 
         initial_index = validation_df.index.tolist()
         new_index = ['samenvatting', 'aantal fouten'] + initial_index
@@ -340,7 +318,7 @@ class Validation:
                 Column('DSS_FILENAAM_PDF', [IsEmptyValidator]),
                 Column('DSS_FILENAAM_SPANNINGSPAD', [IsEmptyValidator]),
                 Column('DSS_MONSTERID', [IsEmptyValidator]),
-                Column('DSS_GRONDSOORT',[IsEmptyValidator]),
+                Column('DSS_GRONDSOORT', [IsEmptyValidator]),
                 Column('DSS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
                 Column('DSS_TERREINSPANNING', [InRangeValidation(0, 500)]),
                 Column('DSS_VOLUMEGEWICHT_NAT', [InRangeValidation(8, 25)]),
@@ -380,7 +358,7 @@ class Validation:
             schema = Schema([
                 Column('TXT_SS_FILENAAM_PDF', [IsEmptyValidator]),
                 Column('TXT_SS_MONSTERID', [IsEmptyValidator]),
-                Column('TXT_SS_GRONDSOORT',[IsEmptyValidator]),
+                Column('TXT_SS_GRONDSOORT', [IsEmptyValidator]),
                 Column('TXT_SS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
                 Column('TXT_SS_WATERGEHALTE_NA_PROEF', [InRangeValidation(0, 1000)])
             ])
@@ -413,7 +391,8 @@ class Validation:
 
         Parameters:
             save_path (str): Pad waar het Excel-bestand moet worden opgeslagen.
-            critical is true if only critical errors should be tested. critical is false will only return warnings. default is True
+            critical is true if only critical errors should be tested. critical is false will only return warnings.
+            Default is True
 
         Returns:
             lijst met strings: Logbestand met alle foutmeldingen.
@@ -437,12 +416,12 @@ class Validation:
             sheet_names = {'validate_alg': 'ALG',
                            'validate_kenmerken_boring': 'BORING',
                            'validate_clas': 'CLAS',
-                            'validate_crs': 'CRS',
-                            'validate_samendrukking': 'SD',
-                            'validate_monster': 'MONSTER',
-                            'validate_triaxiaal': 'TXT',
-                            'validate_dss': 'DSS'
-            }
+                           'validate_crs': 'CRS',
+                           'validate_samendrukking': 'SD',
+                           'validate_monster': 'MONSTER',
+                           'validate_triaxiaal': 'TXT',
+                           'validate_dss': 'DSS'
+                           }
         else:
             validation_functions = [
 
@@ -455,14 +434,14 @@ class Validation:
                 self.validate_dss,
             ]
             sheet_names = {
-                           'validate_kenmerken_boring': 'BORING',
-                           'validate_clas': 'CLAS',
-                           'validate_crs': 'CRS',
-                           'validate_samendrukking': 'SD',
-                           'validate_monster': 'MONSTER',
-                           'validate_triaxiaal': 'TXT',
-                           'validate_dss': 'DSS'
-                           }
+                'validate_kenmerken_boring': 'BORING',
+                'validate_clas': 'CLAS',
+                'validate_crs': 'CRS',
+                'validate_samendrukking': 'SD',
+                'validate_monster': 'MONSTER',
+                'validate_triaxiaal': 'TXT',
+                'validate_dss': 'DSS'
+            }
 
         # Iterate through each validation function and collect the results
         for func in validation_functions:
@@ -471,7 +450,6 @@ class Validation:
 
             # Store the validation DataFrame and error log
             validation_results[validation_name] = validation_df
-            #error_logs.append(f"Errors in {validation_name}:\n" + "\n".join(error_log))  # Categorize and append errors
 
             error_logs.append(error_log)
 
@@ -487,5 +465,3 @@ class Validation:
         self.total_error_log = error_logs
 
         return error_logs, sheet_names_print, validation_results
-
-
