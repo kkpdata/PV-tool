@@ -3,7 +3,7 @@
 # C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie
 # welke kolommen we allemaal moeten valideren.
 
-from typing import Optional
+from typing import Optional, List, Literal
 from pandas import DataFrame
 import pandas as pd
 from pandas_schema import Column, Schema
@@ -11,6 +11,8 @@ from pandas_schema.validation import (
     CustomElementValidation, InRangeValidation
 )
 import math
+from pathlib import Path
+
 
 # onderstaande code is een idee van Chris. Mogelijk iets voor later als we nog tijd hebben.
 # class ValidationVB:
@@ -37,23 +39,18 @@ IsEmptyValidator = CustomElementValidation(
     lambda value: value != "" and not pd.isna(value), "This cell is empty"
 )
 
-
 class Validation:
     """In deze class staan alle functies die de validatie uitvoeren."""
 
-    def __init__(self, dbase_df: Optional[DataFrame] = None):
+    def __init__(self, dbase_df: Optional[DataFrame] = None, critical: Optional[bool]=True):
         self.dbase_df = dbase_df
-
-
-    # def set_index(self):
-    #     self.dbase_df = self.dbase_df.set_index('ALG__BORING_MONSTERNR_ID')
+        self.critical = critical
+        self.total_error_log: Optional[List] = None
+        self.dataframes: Optional[List] = None
 
     def split_dbase(self):
         """Hier komt per proef een df uit in een library van dataframes
         deze zijn later aan te roepen door bijvoorbeeld df_algemeen = dataframes['Algemene kenmerken']"""
-        #print(self.dbase_df['ALG__BORING_MONSTERNR_ID'])
-        # self.dbase_df = self.dbase_df.set_index('ALG__BORING_MONSTERNR_ID')
-
 
         prefix_mapping = {
             "Algemene kenmerken": "ALG_",
@@ -71,20 +68,16 @@ class Validation:
             "Analyse": "ANA_"
         }
 
-        # Dictionary to store resulting dataframes
         self.dataframes = {}
 
-        # Split dataframe based on column prefixes
         for name, prefix in prefix_mapping.items():
-            # Filter columns based on the prefix
             filtered_columns = [col for col in self.dbase_df.columns if col.startswith(prefix)]
-
-            # Create a new dataframe with those columns
             self.dataframes[name] = self.dbase_df[filtered_columns]
 
         return self.dataframes
 
-    def validation_selection(self, category):
+    def validation_selection(self, category: Literal['Classificatie', 'Constant rate of strain proeven (CRS)',
+    'Samendrukkingsproeven', 'DSS-proeven', 'Triaxiaalproeven single stage']):
         """Deze functie bepaalt welke rijen door gaan naar de validatie, gebaseerd op de kolom in algemene kenmerken.
         Als de waarde = FALSE wordt de rij verwijderd"""
         df_alg = self.split_dbase()['Algemene kenmerken']
@@ -102,45 +95,29 @@ class Validation:
         else:
             raise ValueError("Ongeldige categorie")
 
-        # Ensure 'uitgevoerd' and 'df_to_check' have the same index
         if not uitgevoerd.index.equals(df_to_check.index):
             raise ValueError("Indices van 'uitgevoerd' en 'df_to_check' komen niet overeen")
 
-        # Only keep rows where 'uitgevoerd' is True
         valid_indices = uitgevoerd[uitgevoerd == True].index
         df_to_check_filtered = df_to_check.loc[valid_indices]
 
         return df_to_check_filtered
 
-    # Check welke van de ID kolommen unieke waardes bevatten
-    def is_unique(self, series):
-        """"Dit wilde Leo misschien nog gebruiken -
-        Mocht blijken dat het toch niet nodig is kan deze verwijderd worden"""
-        # Check if the input is a pandas Series
-        if isinstance(series, pd.Series):
-            # Filter out empty strings and NaN values
-            non_empty_values = series.dropna().loc[series != ""]
-            print(f'series has {len(non_empty_values)} values and {len(non_empty_values.unique())} unique values,'
-                  f'so every value is unique is a {len(non_empty_values) == len(non_empty_values.unique())} statement')
-        else:
-            non_empty_values = []
-            print('series is not a pandas series')
-
-        return len(non_empty_values) == len(non_empty_values.unique())
-
     def validate_with_schema(self, category, schema: Schema):
-        # Split the dataframe and get the category-specific data
+        """
+        This function validates a dataframe with a certain name (category) and uses the corresponding schema for it
+        This function is called in each individual validation function, where the schema is made for each category
+        """
+        # Define dataframe and schema columns;
+        # Filter the DataFrame to only include columns present in both the schema and DataFrame
         df = self.split_dbase().get(category, pd.DataFrame())
 
-        # Check which columns are expected in the schema
         schema_columns = [col.name for col in schema.columns]
-        # print(schema_columns)
         missing_columns = [col for col in schema_columns if col not in df.columns]
 
         if missing_columns:
             print(f"Missing columns in category '{category}': {', '.join(missing_columns)}")
 
-        # Filter the DataFrame to only include columns present in both the schema and DataFrame
         available_columns = [col for col in schema_columns if col in df.columns]
         data_to_validate = df[available_columns]
 
@@ -148,14 +125,11 @@ class Validation:
         errors = schema.validate(data_to_validate)
 
         error_log = []
-
-        # Prepare a DataFrame for validation errors
         validation_df = data_to_validate.copy()
 
         # Populate the validation columns with error messages
         for column in available_columns:
-            validation_df[f"{column}_validate"] = ""  # Add validation column with empty strings
-            # Move the validation column to the right of the original column
+            validation_df[f"{column}_validate"] = ""
             col_position = validation_df.columns.get_loc(column) + 1
             validation_df.insert(col_position, f"{column}_validate", validation_df.pop(f"{column}_validate"))
 
@@ -170,7 +144,7 @@ class Validation:
         summary_row_1 = []
         summary_row_2 = []
 
-        for col in available_columns:
+        for col in available_columns:  # TODO: dit komt niet goed door in output excel - checken
             original_column_data = df[col]
             validation_column_data = validation_df[f"{col}_validate"]
 
@@ -193,30 +167,34 @@ class Validation:
                                  .apply(lambda x: bool(str(x).strip()) if pd.notna(x) else False)
                                  .sum())
 
-        # Prepend the summary rows using pd.concat
-        summary_df = pd.DataFrame([summary_row_1, summary_row_2], columns=validation_df.columns)
-        validation_df = pd.concat([summary_df, validation_df], ignore_index=True)
-
-        # Remove rows without any errors or with all errors
+        # Remove rows without any errors or with all errors - those are not interesting for the user
         to_delete = []
         for i in validation_df.index:
             data = [validation_df[f"{schema_column}_validate"].loc[i] for schema_column in available_columns]
             if not data or all(item == '' for item in data) or all(
                     isinstance(item, float) and math.isnan(item) for item in data):
                 to_delete.append(i)
-                # print(f"This data in category {category} is being deleted for being empty: {data}")
             elif all(data):
                 to_delete.append(i)
-                # print(f"This data in category {category} is being deleted for only returning errors: {data}")
 
         validation_df = validation_df.drop(index=to_delete)
+        initial_index = validation_df.index.tolist()
+        new_index = ['samenvatting', 'aantal fouten'] + initial_index
 
+        # Prepend the summary rows using pd.concat
+        summary_df = pd.DataFrame([summary_row_1, summary_row_2], columns=validation_df.columns)
+        validation_df = pd.concat([summary_df, validation_df], ignore_index=True)
+
+        validation_df.index = new_index
         return validation_df, error_log
 
-
-    def validate_alg(self, critical=True):
+    def validate_alg(self):
+        """
+        This function validates the dataframe 'algemene kenmerken' with the following schema.
+        It uses validate_with_schema
+        """
         category = "Algemene kenmerken"
-        if not critical:
+        if not self.critical:
             schema = Schema([
                 Column('ALG_NAAM_POLDER_DIJK', [IsEmptyValidator]),
                 Column('ALG_REFERENTIE', [IsEmptyValidator])
@@ -224,9 +202,13 @@ class Validation:
 
             return self.validate_with_schema(category, schema)
 
-    def validate_kenmerken_boring(self, critical=True):
+    def validate_kenmerken_boring(self):
+        """
+        This function validates the dataframe 'Kenmerken van de boring' with the following schema.
+        It uses validate_with_schema
+        """
         category = "Kenmerken van de boring"
-        if not critical:
+        if not self.critical:
             schema = Schema([
                 Column('BORING_FILENAAM_PDF', [IsEmptyValidator]),
                 Column('BORING_FILENAAM_GEF', [IsEmptyValidator])
@@ -242,9 +224,13 @@ class Validation:
 
         return self.validate_with_schema(category, schema)
 
-    def validate_monster(self, critical=True):
+    def validate_monster(self):
+        """
+        This function validates the dataframe 'Monster' with the following schema.
+        It uses validate_with_schema
+        """
         category = "Monster"
-        if not critical:
+        if not self.critical:
             schema = Schema([
                 Column('MONSTER_NIVEAU_MV_VANAF', [IsEmptyValidator]),
                 Column('MONSTER_NIVEAU_MV_TOT', [IsEmptyValidator])
@@ -257,9 +243,13 @@ class Validation:
             ])
         return self.validate_with_schema(category, schema)
 
-    def validate_clas(self, critical=True):
+    def validate_clas(self):
+        """
+        This function validates the dataframe 'Classificatie' with the following schema.
+        It uses validate_with_schema
+        """
         category = "Classificatie"
-        if not critical:
+        if not self.critical:
             schema = Schema([
                 Column('CLAS_GRONDSOORT', [IsEmptyValidator]),
                 Column('CLAS_MONSTERNIVEAU', [InRangeValidation(-100, 500)]),
@@ -273,9 +263,13 @@ class Validation:
             ])
         return self.validate_with_schema(category, schema)
 
-    def validate_crs(self, critical=True):
+    def validate_crs(self):
+        """
+        This function validates the dataframe 'Constant rate of strain proeven (CRS)' with the following schema.
+        It uses validate_with_schema
+        """
         category = "Constant rate of strain proeven (CRS)"
-        if not critical:
+        if not self.critical:
             schema = Schema([
                 Column('CRS_FILENAAM_PDF', [IsEmptyValidator]),
                 Column('CRS_MONSTERID', [IsEmptyValidator]),
@@ -298,9 +292,13 @@ class Validation:
 
         return self.validate_with_schema(category, schema)
 
-    def validate_samendrukking(self, critical=True):
+    def validate_samendrukking(self):
+        """
+        This function validates the dataframe 'Samendrukkingsproeven' with the following schema.
+        It uses validate_with_schema
+        """
         category = "Samendrukkingsproeven"
-        if not critical:
+        if not self.critical:
             schema = Schema([
                 Column('SD_FILENAAM_PDF', [IsEmptyValidator]),
                 Column('SD_MONSTERID', [IsEmptyValidator]),
@@ -323,9 +321,13 @@ class Validation:
             ])
         return self.validate_with_schema(category, schema)
 
-    def validate_dss(self, critical=True):
+    def validate_dss(self):
+        """
+        This function validates the dataframe 'DSS-proeven' with the following schema.
+        It uses validate_with_schema
+        """
         category = "DSS-proeven"
-        if not critical:
+        if not self.critical:
             schema = Schema([
                 Column('DSS_FILENAAM_PDF', [IsEmptyValidator]),
                 Column('DSS_FILENAAM_SPANNINGSPAD', [IsEmptyValidator]),
@@ -360,9 +362,13 @@ class Validation:
             ])
         return self.validate_with_schema(category, schema)
 
-    def validate_triaxiaal(self, critical=True):
+    def validate_triaxiaal(self):
+        """
+        This function validates the dataframe 'Triaxiaalproeven single stage' with the following schema.
+        It uses validate_with_schema
+        """
         category = "Triaxiaalproeven single stage"
-        if not critical:
+        if not self.critical:
             schema = Schema([
                 Column('TXT_SS_FILENAAM_PDF', [IsEmptyValidator]),
                 Column('TXT_SS_MONSTERID', [IsEmptyValidator]),
@@ -392,9 +398,8 @@ class Validation:
                 Column('TXT_SS_REK_BIJ_T_EIND', [InRangeValidation(0, 40)])
             ])
         return self.validate_with_schema(category, schema)
-        pass
 
-    def validation_log(self, save_path, critical=True):  # save_path is the location where the Excel file will be saved
+    def validation_log(self, save_path: Path):  # save_path is the location where the Excel file will be saved
         """
         Voert alle validaties uit en genereert een Excel-bestand en een logbestand.
 
@@ -410,7 +415,7 @@ class Validation:
         error_logs = []
 
         # List of validation functions to call
-        if not critical:
+        if not self.critical:
             validation_functions = [
                 self.validate_alg,
                 self.validate_kenmerken_boring,
@@ -454,7 +459,7 @@ class Validation:
         # Iterate through each validation function and collect the results
         for func in validation_functions:
             validation_name = func.__name__  # Get the name of the function (e.g., 'validate_alg')
-            validation_df, error_log = func(critical=critical)  # Call the function and get its output
+            validation_df, error_log = func()  # Call the function and get its output
 
             # Store the validation DataFrame and error log
             validation_results[validation_name] = validation_df
@@ -464,7 +469,7 @@ class Validation:
 
         sheet_names_print = []
         # Create the Excel file with each validation_df as a separate sheet
-        with pd.ExcelWriter(save_path, engine='xlsxwriter') as writer:
+        with pd.ExcelWriter(str(save_path), engine='xlsxwriter') as writer:
             for validation_name, validation_df in validation_results.items():
                 # Use the corresponding sheet name from the sheet_names dictionary
                 sheet_name = sheet_names.get(validation_name, validation_name)  # Fallback to function name if not found

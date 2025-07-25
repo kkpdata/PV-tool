@@ -53,19 +53,20 @@ from pv_tool.imports.import_options import *
 path_to_data = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm")
 
 dir_dbase = path_to_data
+
 dbase = Dbase()
 dbase.import_data_and_validate(source='PV-tool', source_dir=dir_dbase)
 df = dbase.dbase_df
 
-
 ##
-path_to_export = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output\validation_output_test.xlsx")
+path_to_export_warnings = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output\validation_output_warnings.xlsx")
+path_to_export_critical = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output\validation_output_critical.xlsx")
 
-validate = Validation()
-validate.dbase_df = df
+validate_w = Validation(dbase_df=df, critical=False)
+validate_c = Validation(dbase_df=df, critical=True)
 
-val_warning = validate.validation_log(save_path=path_to_export, critical=False)
-val_crit = validate.validation_log(save_path=path_to_export, critical=True)
+val_warning = validate_w.validation_log(save_path=path_to_export_warnings)
+val_crit = validate_c.validation_log(save_path=path_to_export_critical)
 
 test_output_warnings = val_warning[0]
 names_output_warnings = val_warning[1]
@@ -73,8 +74,6 @@ dfs_warnings = val_warning[2]
 test_output_critical = val_crit[0]
 names_output_critical = val_crit[1]
 dfs_critical = val_warning[2]
-
-
 
 for i in range(len(names_output_warnings)):
     c = names_output_warnings[i]
