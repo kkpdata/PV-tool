@@ -7,7 +7,6 @@ from pv_tool.imports.globals import (PV_TOOL_DBASE_COLUMNS, CLAS_COLUMNS, CRS_CO
 from pv_tool.imports.add_ana_columns import *
 from pv_tool.imports.import_options import *
 
-# TODO: herschrijf ALG_BORINGMONSTERNR_ID. In stowa gaat dit niet altijd goed.
 
 def add_missing_columns(self):
     """Voeg de missende kolommen toe aan de stowa-df om hem gelijk te maken aan de pv-tool-df """
@@ -19,7 +18,7 @@ def add_missing_columns(self):
 def select_columns(self):
     """Selecteert de kolommen in de pv-tool die nodig zijn voor het maken van de Dbase-df (template)"""
     self.dbase_df = self.pv_tool.copy(deep=True)
-    self.dbase_df = self.dbase_df[PV_TOOL_DBASE_COLUMNS] # TODO: check of het werkt als index = ALG_BORING_MONSTERNR_ID
+    self.dbase_df = self.dbase_df[PV_TOOL_DBASE_COLUMNS]
 
 
 def alg_columns(self):
