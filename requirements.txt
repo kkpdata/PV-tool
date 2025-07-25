@@ -2,7 +2,10 @@
 # NOTE! Do not overwrite this file with the freeze-command.
 
 pandas
+numpy
+scipy
 matplotlib
+plotly
 openpyxl
 gitpython
 pandas_schema

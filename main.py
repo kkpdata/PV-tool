@@ -1,12 +1,6 @@
-from pathlib import Path
-import os
-from pv_tool.imports.import_data import Dbase
-from pv_tool.validation import Validation
 from typing import Optional
-import git
 
 
-# Deze functie is ooit geschreven door Chris, willen we deze openbaar maken?
 def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     """Returns the repository root by searching in the given directory and its subdirectories.
 
@@ -41,63 +35,68 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     return repo.working_tree_dir
 
 ##
+from pathlib import Path
+import os
+from pv_tool.imports.import_data import Dbase
+from pv_tool.validation import Validation
+from typing import Optional
+import git
+
 # de grote test van importeren.py
-dir_pv = Path(os.path.join(get_repo_root(), "example_files", "Proevenverzameling_tool_v4.2o.xlsm"))
-dir_stowa = Path(os.path.join(get_repo_root(), "example_files", "Uitwisselformat-database"
-                                                                "-proevenverzameling_versie_4_2l.xlsx"))
-dir_dbase = Path(os.path.join(get_repo_root(), "example_files", "Dbase-template.xlsx"))
-check_path_nathan = Path(r"C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm")
 
-dbase = Dbase()
-# dbase.import_date_and_create_dbase(source='Stowa', source_dir=dir_stowa)
-# dbase.import_date_and_create_dbase(source='PV-tool', source_dir=dir_pv)
-# dbase.import_date_and_create_dbase(source='Dbase', source_dir=dir_dbase)
-dbase.import_data_and_validate(source='PV-tool', source_dir=check_path_nathan)
+# import pv_tool
+# path_pv_tool = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
+# dbase = Dbase()
+# dbase.import_data_and_validate(source='PV-tool', source_dir=path_pv_tool)
 
-df = dbase.dbase_df
-print(df)
+#import stowa
+# dir_stowa = Path(get_repo_root()) / "example_files" / "23ZP0747_STOWA-definitief.xlsx"
+# dbase2 = Dbase()
+# dbase2.import_data_and_validate(source_dir=dir_stowa, source='Stowa')
+#
+# print(dbase2.dbase_df.columns)
 
+# export_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
+# dbase2.dbase_df.to_excel(export_dir)
+
+#import dbase
+dbase_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
+dbase3 = Dbase()
+dbase3.import_data_and_validate(source_dir=dbase_dir, source='Dbase')
+
+print(dbase3.dbase_df)
+
+
+
+
+
+
+
+
+
+
+
+
+## CPHI-analyse
+from pv_tool.analysis.c_phi_analysis import *
+from pv_tool.analysis.variables import *
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
+                      analysis_type='TXT_CPhi')
+
+analyse.factsheet()
+analyse.show_figure()
 ##
 
-pv_namen = df['PV_NAAM'].unique()
-print(pv_namen)
+analyse.apply_settings(alpha=Alpha.LOCAL)
+analyse.show_figure()
 
 ##
-from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
+print(analyse.cohesie_gem_handmatig)
 
-analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='2% rek')
-analyse.get_cphi_data()
-
-# df = analyse.cphi_analyse_df
-df_ana = analyse.cphi_analyses_data_df
-print(df_ana)
-print(df_ana.columns)
+analyse.apply_parameters(cohesie_gem=15)
+analyse.show_figure()
+print(analyse.cohesie_gem_handmatig)
 
 ##
-analyse.expand_analysis_df()
-df_ana2 = analyse.cphi_analyses_data_df
-print(df_ana2)
-
-##
-print(df_ana2['S\''])
-print(df_ana2['T'])
-print(df_ana2['s_tt'])
-
-
-
-
-
-
-## export dbase naar excel
-# export_path = Path(os.path.join(get_repo_root(), "example_files", "Dbase-template.xlsx"))
-# df.to_excel(export_path, index=False)
-# print(f"Export completed: {export_path}")
-
-
-
-
-##
-# Tjalda is amazingg
-
-
-
+analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
+analyse.show_figure()
