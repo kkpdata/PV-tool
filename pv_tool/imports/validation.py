@@ -182,7 +182,7 @@ class Validation:
         validation_df.index = new_index
         return validation_df, error_log
 
-    def validation_log(self, export_path: Path):
+    def validation_log(self, export_path: Path):  # TODO: is dit het uiteindelijk format? Hierin kunnen we nog wel verbeteren
         """ Voert alle validaties uit en genereert een Excel-bestand (logbestand)."""
         if export_path.is_dir():
             file_name = f"validation_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
