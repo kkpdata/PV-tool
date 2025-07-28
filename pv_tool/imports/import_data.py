@@ -31,6 +31,10 @@ class Dbase:
             add_ana_columns(self)
             add_pv_naam(self)
 
+    def set_validation_critical(self, value: bool):
+        """Mogelijkheid om de critical value van Validation aan ta passen."""
+        self.validation.critical = value
+
     def import_data_and_validate(self, source: Literal['Stowa', 'PV-tool', 'Dbase'],
                                  source_dir: Path, export_path: Path):
         if source == 'Stowa':
