@@ -1,6 +1,7 @@
 from pandas import DataFrame
 from typing import Optional, Literal
-from pv_tool.imports.create_dbase import *
+from pathlib import Path
+from pv_tool.imports.create_dbase import add_missing_columns, select_columns, alg_columns, add_ana_columns, add_pv_naam
 from pv_tool.imports.import_options import import_dbase, import_pv_tool, import_stowa
 from pv_tool.imports.validation import Validation
 
@@ -40,12 +41,8 @@ class Dbase:
             self.dbase_df = self.pv_tool
         elif source == 'Dbase':
             import_dbase(self, dbase_dir=source_dir)
-        print('import gelukt')
-        print(self.dbase_df)
         self.validation.validation_log(export_path=export_path)
-        print('validatie gelukt')
         self._create_dbase(source=source)
-        print('dbase aangepast')
         return self.dbase_df
 
     def export_dbase_to_excel(self, export_dir: Path, filename: str = 'Dbase-template.xlsx'):

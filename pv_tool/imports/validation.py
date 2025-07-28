@@ -1,12 +1,17 @@
 from __future__ import annotations
+
+import math
 from typing import TYPE_CHECKING, Dict
 from typing import Optional, List, Literal
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
-from pv_tool.imports.validate_catagories import (validate_monster, validate_clas, validate_triaxiaal, validate_crs,
-                                                 validate_dss, validate_samendrukking, validate_alg,
-                                                 validate_kenmerken_boring)
+
+from pandas_schema import Schema
+
+from pv_tool.imports.validate_catagories import (validate_alg, validate_kenmerken_boring, validate_monster,
+                                                 validate_clas, validate_crs, validate_samendrukking, validate_dss,
+                                                 validate_triaxiaal)
 
 if TYPE_CHECKING:
     from pv_tool.imports.import_data import Dbase
@@ -17,7 +22,7 @@ class Validation:
 
     def __init__(self, dbase: Dbase,
                  critical: Optional[bool] = True):
-        self.dbase_df = dbase.dbase_df
+        self.dbase = dbase
         self.dataframes: Optional[Dict] = None
         self.critical = critical
         self.total_error_log: Optional[List] = None
@@ -41,14 +46,14 @@ class Validation:
             "Analyse": "ANA_"
         }
 
-        if self.dbase_df is None:
+        if self.dbase.dbase_df is None:
             raise ValueError("dbase_df is not initialized. Please ensure it is loaded properly.")
 
         self.dataframes = {}
 
         for name, prefix in prefix_mapping.items():
-            filtered_columns = [col for col in self.dbase_df.columns if col.startswith(prefix)]
-            self.dataframes[name] = self.dbase_df[filtered_columns]
+            filtered_columns = [col for col in self.dbase.dbase_df.columns if col.startswith(prefix)]
+            self.dataframes[name] = self.dbase.dbase_df[filtered_columns]
 
         return self.dataframes
 
@@ -86,16 +91,104 @@ class Validation:
 
         self.dataframes[category] = df_to_check_filtered
 
-    def validation_log(self, export_path: Path):
+    def validate_with_schema(self, category, schema: Schema):
         """
-        Voert alle validaties uit en genereert een Excel-bestand (logbestand)."""
+        This function validates a dataframe with a certain name (category) and uses the corresponding schema for it
+        This function is called in each individual validation function, where the schema is made for each category
+        NB in error log and validation_df, the rows in which there are only errors or no errors are deleted
+        """
+        # Define dataframe and schema columns;
+        # Filter the DataFrame to only include columns present in both the schema and DataFrame
+        df = self.split_dbase().get(category, pd.DataFrame())
+
+        schema_columns = [col.name for col in schema.columns]
+        missing_columns = [col for col in schema_columns if col not in df.columns]
+
+        if missing_columns:
+            print(f"Missing columns in category '{category}': {', '.join(missing_columns)}")
+
+        available_columns = [col for col in schema_columns if col in df.columns]
+        data_to_validate = df[available_columns]
+
+        # Validate the data
+        errors = schema.validate(data_to_validate)
+
+        error_log = []
+        validation_df = data_to_validate.copy()
+
+        # Populate the validation columns with error messages
+        for column in available_columns:
+            validation_df[f"{column}_validate"] = ""
+            col_position = validation_df.columns.get_loc(column) + 1
+            validation_df.insert(col_position, f"{column}_validate", validation_df.pop(f"{column}_validate"))
+
+        for error in errors:
+            row = error.row
+            column = error.column
+            error_message = error.message
+            validation_df.at[row, f"{column}_validate"] = error_message
+            error_log.append([row, column, error_message])
+
+        # Remove rows without any errors or with all errors - those are not interesting for the user
+        to_delete = []
+        for i in validation_df.index:
+            data = [validation_df[f"{schema_column}_validate"].loc[i] for schema_column in available_columns]
+            if not data or all(item == '' for item in data) or all(
+                    isinstance(item, float) and math.isnan(item) for item in data):
+                to_delete.append(i)
+            elif all(data):
+                to_delete.append(i)
+
+        validation_df = validation_df.drop(index=to_delete)
+
+        for error in error_log[:]:
+            if error[0] in to_delete:
+                error_log.remove(error)
+
+        # Add extra validation summary rows at the top
+        summary_row_1 = []
+        summary_row_2 = []
+
+        for col in available_columns:
+            original_column_data = df[col]
+            validation_column_data = validation_df[f"{col}_validate"]
+
+            # Determine the messages for the first row
+            if original_column_data.isnull().all():
+                summary_row_1.append('geen data')
+            elif validation_column_data.str.strip().any():
+                summary_row_1.append('fouten gevonden')
+            else:
+                summary_row_1.append('geen fouten gevonden')
+
+            # No message for the validation column
+            summary_row_1.append('')
+
+            # No message for the original column
+            summary_row_2.append('')
+
+            # Add number of errors
+            summary_row_2.append(validation_df[f"{col}_validate"]
+                                 .apply(lambda x: bool(str(x).strip()) if pd.notna(x) else False)
+                                 .sum())
+
+        initial_index = validation_df.index.tolist()
+        new_index = ['samenvatting', 'aantal fouten'] + initial_index
+
+        # Prepend the summary rows using pd.concat
+        summary_df = pd.DataFrame([summary_row_1, summary_row_2], columns=validation_df.columns)
+        validation_df = pd.concat([summary_df, validation_df], ignore_index=True)
+
+        validation_df.index = new_index
+        return validation_df, error_log
+
+    def validation_log(self, export_path: Path):
+        """ Voert alle validaties uit en genereert een Excel-bestand (logbestand)."""
         if export_path.is_dir():
             file_name = f"validation_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
             export_path = export_path / file_name
         elif export_path.suffix != ".xlsx":
             raise ValueError("Als save_path een bestandspad is, moet het de extensie '.xlsx' bevatten.")
-
-        print(f"{export_path=}") # TODO: foutmelding maar tot hier gaat sowieso goed
 
         validation_mapping = {
             "validate_alg": validate_alg,

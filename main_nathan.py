@@ -51,7 +51,12 @@ save_test = Path(r"C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 P
 dbase = Dbase()
 dbase.import_data_and_validate(source='PV-tool', source_dir=path_to_data, export_path=save_test)
 
-df = dbase.dbase_df
+
+
+
+
+
+
 
 ##
 #
