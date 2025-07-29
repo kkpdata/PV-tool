@@ -59,6 +59,10 @@ import git
 
 #import dbase
 dbase_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
+dbase = Dbase()
+dbase.import_data_and_validate(source_dir=dbase_dir, source='Dbase')
+
+print(dbase.dbase_df)
 export_dir = Path(get_repo_root()) / "example_files"
 dbase = Dbase()
 dbase.import_data_and_validate(source_dir=dbase_dir, source='Dbase', export_path=export_dir)
@@ -72,17 +76,13 @@ print(dbase.dbase_df)
 
 
 ## CPHI-analyse
-from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
+from pv_tool.analysis.c_phi_analysis import *
+from pv_tool.analysis.variables import *
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
                       analysis_type='TXT_CPhi')
 
 analyse.factsheet()
 analyse.show_figure()
-
-
-
-
-
 ##
 
 analyse.apply_settings(alpha=Alpha.LOCAL)
