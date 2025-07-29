@@ -98,3 +98,5 @@ print(analyse.cohesie_gem_handmatig)
 ##
 analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
 analyse.show_figure()
+
+##

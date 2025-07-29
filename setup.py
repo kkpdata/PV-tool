@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
 
+
 setup(
     name='PV-tool',
-    version='0.1.1',
+    version='0.1.2',
     author='Arcadis',
     author_email='leo.kwakman@arcadis.com',
     description='Functionalities concerning the PV-tool.',
@@ -16,7 +17,14 @@ setup(
         'Operating System :: OS Independent',
     ],
     python_requires='>=3.6',
-    install_requires=[
-        # Voeg hier je afhankelijkheden toe
-    ],
+    install_requires=['pandas',
+                      'numpy',
+                      'scipy',
+                      'matplotlib',
+                      'plotly',
+                      'openpyxl',
+                      'gitpython',
+                      'pandas_schema',
+                      'xlsxwriter'
+                      ],
 )
