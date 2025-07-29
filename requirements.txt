@@ -8,6 +8,8 @@ matplotlib
 plotly
 openpyxl
 gitpython
+pandas_schema
+xlsxwriter
 
 setuptools
 twine

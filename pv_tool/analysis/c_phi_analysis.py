@@ -125,7 +125,7 @@ class CPhiAnalyse:
         calculate_s_ty_ondergrens_correctie_c(self)
         calculate_kappa_2_ondergrens_correctie_c(self)
 
-    def result_values(self):
+    def result_values(self):  # TODO: voeg nog st.dev. toe
         """Berekend de resultaten van de analyse."""
         self.tan_phi_gem = calc_tan_phi_gem(self)
         self.c_gem = calc_c_gem(self)
@@ -139,7 +139,7 @@ class CPhiAnalyse:
         """Deze functie zorgt ervoor dat zodra er iets veranderd in de bron-data alles opnieuw wordt berekend."""
         self.get_cphi_data()
         self.expand_analysis_df()
-        self.eerste_benadering()  # if statement
+        self.eerste_benadering()
         self.expand_analysis_df_corrected()
         self.eerste_benadering_deel2()
         self.result_values()
@@ -147,6 +147,7 @@ class CPhiAnalyse:
     def set_figure(self):  # TODO: mogelijkheid inbouwen om meer proefresultaten te laten zien uit een andere set
         """Deze functie maakt alle invoer voor het figuur."""
         add_proefresultaten(self)
+        add_5pr_bovengrens(self)  # TODO: 5% ondergrens lijntje toevoegen.
         if self.plot_extra_dataset:
             add_extra_proefresultaten(self)
         add_5pr_bovengrens(self)
@@ -161,7 +162,7 @@ class CPhiAnalyse:
         self.set_figure()
         self.figure.show()
 
-    def factsheet(self):  # TODO: specifiek maken voor hoe we de resultaten willen presenteren.
+    def factsheet(self):  # TODO: specifiek maken voor hoe we de resultaten willen presenteren. dataframe?
         """Deze functie presenteert alle resultaten."""
         self._run()
         print('df =', self.cphi_analyses_data_df)

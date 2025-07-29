@@ -1,13 +1,13 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from pv_tool.imports.import_data import Dbase
+import pandas as pd
+import numpy as np
 from pv_tool.imports.globals import (PV_TOOL_DBASE_COLUMNS, CLAS_COLUMNS, CRS_COLUMNS, SD_COLUMNS, DSS_COLUMNS,
                                      TXT_COLUMNS)
-from pv_tool.imports.add_ana_columns import *
-from pv_tool.imports.import_options import *
+from pv_tool.imports.add_ana_columns import (add_terreinspanning, add_grensspanning, add_txt_max_vert_consol_sp,
+                                             add_dss_max_consol_sp, add_txt_consol_type, add_dss_consol_type,
+                                             add_txt_consol_type_handmatig, add_dss_consol_type_handmatig,
+                                             add_max_vert_spanning, add_ocr_txt, add_ocr_dss)
 
-# TODO: herschrijf ALG_BORINGMONSTERNR_ID. In stowa gaat dit niet altijd goed.
 
 def add_missing_columns(self):
     """Voeg de missende kolommen toe aan de stowa-df om hem gelijk te maken aan de pv-tool-df """
@@ -19,7 +19,8 @@ def add_missing_columns(self):
 def select_columns(self):
     """Selecteert de kolommen in de pv-tool die nodig zijn voor het maken van de Dbase-df (template)"""
     self.dbase_df = self.pv_tool.copy(deep=True)
-    self.dbase_df = self.dbase_df[PV_TOOL_DBASE_COLUMNS] # TODO: check of het werkt als index = ALG_BORING_MONSTERNR_ID
+    pv_tool_dbase_cols_new = [col for col in PV_TOOL_DBASE_COLUMNS if col != 'ALG__BORING_MONSTERNR_ID']
+    self.dbase_df = self.dbase_df[pv_tool_dbase_cols_new]
 
 
 def alg_columns(self):
