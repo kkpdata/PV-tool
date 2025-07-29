@@ -3,8 +3,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='PV-tool',
-    version='0.1.2',
-    author='Arcadis',
+    version='0.1.3',
+    author='Tjalda Deenekamp en Nathan Gebraad',
     author_email='leo.kwakman@arcadis.com',
     description='Functionalities concerning the PV-tool.',
     long_description=open('README.md').read(),
