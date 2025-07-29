@@ -65,5 +65,12 @@ def calc_tan_phi_d(self: CPhiAnalyse):
 def calc_c_d(self: CPhiAnalyse):
     return calc_c_kar(self) / self.material_cohesie
 
-def calc_st_dev(self: CPhiAnalyse):
-    return calc_tan_phi_gem(self) * math.sqrt(math.exp((((norm.ppf(0.05)*2) + math.sqrt((norm.ppf(0.05)*2)**2 + 8 * (math.log(calc_tan_phi_gem(self)) - math.log(calc_tan_phi_d(self))))) / 2)**2)-1)
+def calc_st_dev_phi(self: CPhiAnalyse):
+    st_dev = calc_tan_phi_gem(self) * math.sqrt(math.exp((((norm.ppf(0.05)*2) + math.sqrt((norm.ppf(0.05)*2)**2 +
+                            8 * (math.log(calc_tan_phi_gem(self)) - math.log(calc_tan_phi_d(self))))) / 2)**2)-1)
+    return st_dev
+
+def calc_st_dev_c(self: CPhiAnalyse):
+    st_dev = calc_c_gem(self) * math.sqrt(math.exp((((norm.ppf(0.05)*2) + math.sqrt((norm.ppf(0.05)*2)**2 +
+                            8 * (math.log(calc_c_gem(self)) - math.log(calc_c_d(self))))) / 2)**2)-1)
+    return st_dev

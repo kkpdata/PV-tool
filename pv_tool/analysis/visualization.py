@@ -29,8 +29,8 @@ def add_extra_proefresultaten(self: CPhiAnalyse):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
     boring_monsternummer = self.cphi_analyses_data_df['ALG__BORING_MONSTERNR_ID']
 
-    x_proefresultaten = self.cphi_analyses_data_df['S\'']  # TODO: hier moet nog iets anders komen aangezien het om extra resultaten gaat
-    y_proefresultaten = self.cphi_analyses_data_df['T']  # TODO: hier moet nog iets anders komen aangezien het om extra resultaten gaat
+    x_proefresultaten = self.cphi_analyses_data_df['S\'']  # TODO: hier moet nog iets anders komen aangezien het om extra resultaten gaat - andere PV naam zoals klei zwaar
+    y_proefresultaten = self.cphi_analyses_data_df['T']  # TODO: hier moet nog iets anders komen aangezien het om extra resultaten gaat - andere PV naam zoals klei zwaar
 
     self.figure.add_trace(
         go.Scatter(
@@ -40,6 +40,22 @@ def add_extra_proefresultaten(self: CPhiAnalyse):
             name='Proefresultaten',
             text=boring_monsternummer,
             hoverinfo='text'
+        )
+    )
+
+def add_5pr_ondergrens(self: CPhiAnalyse):
+    """Deze functie voegt de 5% bovengrens toe aan de figuur."""
+    x_5pr = self.cphi_analyses_data_df['s\'']
+    # print('x_5pr', x_5pr)
+    y_5pr = self.cphi_analyses_data_df['5pr_bovengrens_cor']
+    # print('y_5pr', y_5pr)
+
+    self.figure.add_trace(
+        go.Scatter(
+            x=x_5pr,
+            y=y_5pr,
+            mode='lines',
+            name='5% bovengrens'
         )
     )
 
