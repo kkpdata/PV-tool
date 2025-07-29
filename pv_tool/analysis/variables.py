@@ -7,6 +7,7 @@ import numpy as np
 from scipy.stats import t
 from scipy.stats import linregress
 
+
 def count_s(self: CPhiAnalyse):
     return self.cphi_analyses_data_df['S\''].count()
 
@@ -40,7 +41,7 @@ def sum_kappa_2(self: CPhiAnalyse):
 
 
 def var_a2(self: CPhiAnalyse):
-    return (1 / sum_s_tt(self)) * sum_kappa_2(self) / (sum_s(self) - 2)
+    return (1 / sum_s_tt(self)) * sum_kappa_2(self) / (count_s(self) - 2)
 
 
 def var_a1(self: CPhiAnalyse):
@@ -91,7 +92,7 @@ def sum_s_ty_ondergrens(self: CPhiAnalyse):
 
 
 def a2_kar(self: CPhiAnalyse):
-    return sum_s_tt_ondergrens(self) / sum_s_ty_ondergrens(self)
+    return sum_s_ty_ondergrens(self) / sum_s_tt_ondergrens(self)
 
 
 def a1_kar(self: CPhiAnalyse):
@@ -100,7 +101,7 @@ def a1_kar(self: CPhiAnalyse):
 
 
 def sum_5_pr_ondergrens_gecorrigeerd(self: CPhiAnalyse):
-    return self.cphi_analyses_data_df['s_tt_ondergrens'].sum()
+    return self.cphi_analyses_data_df['5pr_ondergrens_cor'].sum()
 
 
 def sum_s_ty_ondergrens_gecorrigeerd(self: CPhiAnalyse):
@@ -112,7 +113,7 @@ def a2_kar_gecorrigeerd(self: CPhiAnalyse):
 
 
 def a1_kar_gecorrigeerd(self: CPhiAnalyse):
-    return (sum_5_pr_ondergrens_gecorrigeerd(self) - sum_s2(self) * a2_kar_gecorrigeerd(self)) / sum_s(self)
+    return (sum_5_pr_ondergrens_gecorrigeerd(self) - sum_s2(self) * a2_kar_gecorrigeerd(self)) / count_s(self)
 
 
 def sum_kappa_2_2pr_gecorrigeerd(self: CPhiAnalyse):
@@ -124,14 +125,12 @@ def var_a2_gecorrigeerd(self: CPhiAnalyse):
 
 
 def var_a1_gecorrigeerd(self: CPhiAnalyse):
-    # =1 / E56 * (1 + E57 ^ 2 / (E56 * E59)) * AA64 / (E56 - 2)
     formule = (1 / count_s(self) * (1 + sum_s(self) ** 2 / (count_s(self) * sum_s_tt(self))) *
                sum_kappa_2_2pr_gecorrigeerd(self) / (count_s(self) - 2))
     return formule
 
 
 def cov_a1_a2_gecorrigeerd(self: CPhiAnalyse):
-    # =-($E$57 / ($E$56 * $E$59)) * $AA$64 / ($E$56-2)
     formule = (-(sum_s(self) / (count_s(self) * sum_s_tt(self))) *
                sum_kappa_2_2pr_gecorrigeerd(self) / (count_s(self) - 2))
     return formule
@@ -153,3 +152,11 @@ def helling_gecor(self: CPhiAnalyse):
     else:
         phi_gem = sum_s_ty(self) / sum_s_tt(self)
     return phi_gem
+
+
+def var_tan_phi_gem(self: CPhiAnalyse):
+    return helling_gecor(self) / np.sqrt(1 - helling_gecor(self)**2)
+
+
+def var_tan_phi_kar(self: CPhiAnalyse):
+    return self.phi_kar_handmatig / np.sqrt(1 - helling_gecor(self)**2)

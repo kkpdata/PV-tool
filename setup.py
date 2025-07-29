@@ -2,9 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name='PV-tool',
-    version='0.1.0',
-    author='Tjalda Deenekamp',
-    author_email='tjalda.deenekamp@arcadis.com',
+    version='0.1.1',
+    author='Arcadis',
+    author_email='leo.kwakman@arcadis.com',
     description='Functionalities concerning the PV-tool.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',

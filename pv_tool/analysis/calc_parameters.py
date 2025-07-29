@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import math
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -35,5 +37,31 @@ def calc_cohesie_kar(self: CPhiAnalyse):
     if self.cohesie_gem_handmatig is not None:
         cohesie_kar = a1_kar_gecorrigeerd(self)
     else:
+        # =(M58 - L57 * L62) / L56
         cohesie_kar = a1_kar(self)
     return cohesie_kar
+
+
+def calc_tan_phi_gem(self: CPhiAnalyse):
+    return math.atan(var_tan_phi_gem(self))*180 / np.pi
+
+
+def calc_c_gem(self: CPhiAnalyse):
+    return self.cohesie_gem_handmatig / np.sqrt(1 - helling_gecor(self)**2)
+
+
+def calc_tan_phi_kar(self: CPhiAnalyse):
+    return math.atan(var_tan_phi_kar(self))*180 / np.pi
+
+
+def calc_c_kar(self: CPhiAnalyse):
+    return self.cohesie_kar_handmatig / np.sqrt(1 - self.phi_kar_handmatig**2)
+
+
+def calc_tan_phi_d(self: CPhiAnalyse):
+    return math.atan(var_tan_phi_kar(self)/self.material_tan_phi)*180 / np.pi
+
+
+def calc_c_d(self: CPhiAnalyse):
+    return calc_c_kar(self) / self.material_cohesie
+
