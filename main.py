@@ -59,15 +59,12 @@ import git
 
 #import dbase
 dbase_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
-dbase3 = Dbase()
-dbase3.import_data_and_validate(source_dir=dbase_dir, source='Dbase')
+dbase = Dbase()
+dbase.import_data_and_validate(source_dir=dbase_dir, source='Dbase')
 
-print(dbase3.dbase_df)
+print(dbase.dbase_df)
 
-
-
-
-
+##
 
 
 
@@ -98,3 +95,5 @@ print(analyse.cohesie_gem_handmatig)
 ##
 analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
 analyse.show_figure()
+
+##

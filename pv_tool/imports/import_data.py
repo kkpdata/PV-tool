@@ -31,10 +31,6 @@ class Dbase:
             add_ana_columns(self)
             add_pv_naam(self)
 
-    def set_validation_critical(self, value: bool):
-        """Mogelijkheid om de critical value van Validation aan ta passen."""
-        self.validation.critical = value
-
     def import_data_and_validate(self, source: Literal['Stowa', 'PV-tool', 'Dbase'],
                                  source_dir: Path, export_path: Path):
         if source == 'Stowa':
@@ -45,11 +41,13 @@ class Dbase:
             self.dbase_df = self.pv_tool
         elif source == 'Dbase':
             import_dbase(self, dbase_dir=source_dir)
-        self.validation.validation_log(export_path=export_path)
+        try:
+            self.validation.validation_log(export_path=export_path)
+        # except Exception 'validatie gefaald'  # TODO: print van aantal fouten
         self._create_dbase(source=source)
         return self.dbase_df
 
-    def export_dbase_to_excel(self, export_dir: Path, filename: str = 'Dbase-template.xlsx'):
+    def export_dbase_to_excel(self, export_dir: Path, filename: str = 'Template_PVtool5_0.xlsx'):
         """Exporteert de Dbase-df naar een excel, het template-file
         :param export_dir: Het pad naar de directory waarin het bestand wordt opgeslagen.
         :param filename: De naam van het bestand. Standaard: 'Dbase-template.xlsx."""
