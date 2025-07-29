@@ -1,10 +1,13 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
+
 if TYPE_CHECKING:
     from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
 import plotly.graph_objects as go
 from pv_tool.analysis.variables import *
 from pv_tool.analysis.calc_parameters import *
+from typing import Optional, List, Literal
+from pv_tool.analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES)
 
 
 def add_proefresultaten(self: CPhiAnalyse):
@@ -25,12 +28,26 @@ def add_proefresultaten(self: CPhiAnalyse):
         )
     )
 
-def add_extra_proefresultaten(self: CPhiAnalyse):
-    """Deze functie voegt de proefresultaten toe aan de figuur."""
-    boring_monsternummer = self.cphi_analyses_data_df['ALG__BORING_MONSTERNR_ID']
+def get_extra_data(self: CPhiAnalyse, investigationgroups_extra: Optional[List]):
+    dataset_df = None
+    if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
+        dataset_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
+    elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+        dataset_df = self.dbase_df[self.dbase_df['ALG__DSS']]
 
-    x_proefresultaten = self.cphi_analyses_data_df['S\'']  # TODO: hier moet nog iets anders komen aangezien het om extra resultaten gaat - andere PV naam zoals klei zwaar
-    y_proefresultaten = self.cphi_analyses_data_df['T']  # TODO: hier moet nog iets anders komen aangezien het om extra resultaten gaat - andere PV naam zoals klei zwaar
+    dataset_df = dataset_df[
+        dataset_df['PV_NAAM'].isin(investigationgroups_extra)]
+    dataset_df = dataset_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
+    dataset_df.columns = NEW_COLUMN_NAMES
+    return dataset_df
+
+def add_extra_proefresultaten(self: CPhiAnalyse, extra_groepen: Optional[List]):
+    """Deze functie voegt de proefresultaten toe aan de figuur."""
+    df = get_extra_data(self, investigationgroups_extra=extra_groepen)
+    boring_monsternummer = df['ALG__BORING_MONSTERNR_ID']
+
+    x_proefresultaten = df['S\'']
+    y_proefresultaten = df['T']
 
     self.figure.add_trace(
         go.Scatter(
@@ -40,22 +57,6 @@ def add_extra_proefresultaten(self: CPhiAnalyse):
             name='Proefresultaten',
             text=boring_monsternummer,
             hoverinfo='text'
-        )
-    )
-
-def add_5pr_ondergrens(self: CPhiAnalyse):
-    """Deze functie voegt de 5% bovengrens toe aan de figuur."""
-    x_5pr = self.cphi_analyses_data_df['s\'']
-    # print('x_5pr', x_5pr)
-    y_5pr = self.cphi_analyses_data_df['5pr_bovengrens_cor']
-    # print('y_5pr', y_5pr)
-
-    self.figure.add_trace(
-        go.Scatter(
-            x=x_5pr,
-            y=y_5pr,
-            mode='lines',
-            name='5% bovengrens'
         )
     )
 
@@ -75,6 +76,21 @@ def add_5pr_bovengrens(self: CPhiAnalyse):
         )
     )
 
+def add_5pr_ondergrens(self: CPhiAnalyse):
+    """Deze functie voegt de 5% bovengrens toe aan de figuur."""
+    x_5pr = self.cphi_analyses_data_df['s\'']
+    # print('x_5pr', x_5pr)
+    y_5pr = self.cphi_analyses_data_df['5pr_ondergrens_cor']
+    # print('y_5pr', y_5pr)
+
+    self.figure.add_trace(
+        go.Scatter(
+            x=x_5pr,
+            y=y_5pr,
+            mode='lines',
+            name='5% ondergrens'
+        )
+    )
 
 def add_fysische_realiseerbare_ondergrens(self: CPhiAnalyse):
     """Deze functie voegt de fysische realiseerbare ondergrens toe aan de figuur."""

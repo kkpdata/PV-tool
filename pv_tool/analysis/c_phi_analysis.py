@@ -7,9 +7,9 @@ from pv_tool.analysis.expand_analysis_df import *
 from pv_tool.analysis.visualization import *
 
 
-class Alpha(Enum):
-    REGIONAL = 1.0
-    LOCAL = 0.75
+class Alpha(Enum):  # TODO: dit gaat weg en wordt een input van de class cphianalyse
+    LOCAL = 1.0
+    REGIONAL = 0.75
 
 
 class CPhiAnalyse:
@@ -68,7 +68,7 @@ class CPhiAnalyse:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
         elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__DSS']]
-
+        print(self.cphi_analyses_data_df)
         self.cphi_analyses_data_df = self.cphi_analyses_data_df[self.cphi_analyses_data_df['PV_NAAM'].isin(self.investigation_groups)]
         self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
@@ -153,9 +153,10 @@ class CPhiAnalyse:
         """Deze functie maakt alle invoer voor het figuur."""
 
         add_proefresultaten(self)
-        add_5pr_bovengrens(self)  # TODO: 5% ondergrens lijntje toevoegen.
+        add_5pr_bovengrens(self)
+        add_5pr_ondergrens(self)
         if plot_extra_dataset is not None:
-            add_extra_proefresultaten(self)
+            add_extra_proefresultaten(self, plot_extra_dataset)
         add_5pr_bovengrens(self)
         add_fysische_realiseerbare_ondergrens(self)
         add_gemiddelde(self)
