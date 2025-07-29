@@ -98,3 +98,11 @@ print(analyse.cohesie_gem_handmatig)
 ##
 analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
 analyse.show_figure()
+
+##
+# test
+from pv_tool.imports.import_data import Dbase
+from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
+
+dbase = Dbase()
+
