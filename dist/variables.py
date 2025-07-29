@@ -159,4 +159,4 @@ def var_tan_phi_gem(self: CPhiAnalyse):
 
 
 def var_tan_phi_kar(self: CPhiAnalyse):
-    return self.phi_kar_handmatig / np.sqrt(1 - self.phi_kar_handmatig**2)
+    return self.phi_kar_handmatig / np.sqrt(1 - phi_kar_handmatig*2)
