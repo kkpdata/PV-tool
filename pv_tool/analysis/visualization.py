@@ -9,7 +9,7 @@ from pv_tool.analysis.calc_parameters import *
 
 def add_proefresultaten(self: CPhiAnalyse):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
-    boring_monsternummer = self.cphi_analyses_data_df['ALG__BORING_MONSTERNR_ID']
+    boring_monsternummer = self.cphi_analyses_data_df.index
 
     x_proefresultaten = self.cphi_analyses_data_df['S\'']
     y_proefresultaten = self.cphi_analyses_data_df['T']
