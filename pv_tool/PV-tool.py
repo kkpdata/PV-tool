@@ -1,8 +1,6 @@
-# Hier komt alle functies in die we in de notebook gaan draaien
-
 from pv_tool.imports.import_data import Dbase
-from pv_tool.analysis.c_phi_analysis import CPhi
-
+from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
+from typing import Literal
 from pathlib import Path
 
 
@@ -10,17 +8,23 @@ class PVTool:
 
     def __init__(self):
         self.dbase: Dbase = Dbase()
-        self.c_phi: CPhi = CPhi()
+        self.analysis_type = []
+        self.effective_stress = []
+        self.investigation_groups = []
+        self.c_phi: CPhiAnalyse = CPhiAnalyse(dbase=self.dbase, analysis_type=self.analysis_type,
+                                              effective_stress=self.effective_stress,
+                                              investigation_groups=self.investigation_groups)
 
-    def import_stowa(self, stowa_dir: Path):
-        self.dbase.import_stowa(stowa_dir=stowa_dir)
+    def import_data_and_validate(self, source: Literal['Stowa', 'PV-tool', 'Dbase'],
+                                 source_dir: Path, export_path: Path):
+        self.dbase.import_data_and_validate(source=source, source_dir=source_dir, export_path=export_path)
 
-    def import_pv_tool(self, pv_dir: Path):
-        self.dbase.import_pv_tool(pv_dir=pv_dir)
+    def export_dbase_to_excel(self, export_dir: Path, filename: str = 'Dbase-template.xlsx'):
+        self.dbase.export_dbase_to_excel(export_dir=export_dir, filename=filename)
 
-    def c_phi_plot(self, investigation_groups: list[str]):
-        self.c_phi.c_phi_plot(investigation_groups=investigation_groups)
+    def show_figure(self):
+        self.c_phi.show_figure()
 
-
-
+    def show_factsheet(self):
+        self.c_phi.factsheet()
 
