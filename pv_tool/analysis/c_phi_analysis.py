@@ -151,22 +151,21 @@ class CPhiAnalyse:
 
     def set_figure(self, plot_extra_dataset: Optional[List] = None):  # TODO: mogelijkheid inbouwen om meer proefresultaten te laten zien uit een andere set
         """Deze functie maakt alle invoer voor het figuur."""
-
+        if plot_extra_dataset is not None:
+            add_extra_proefresultaten(self, plot_extra_dataset)
         add_proefresultaten(self)
         add_5pr_bovengrens(self)
         add_5pr_ondergrens(self)
-        if plot_extra_dataset is not None:
-            add_extra_proefresultaten(self, plot_extra_dataset)
         add_5pr_bovengrens(self)
         add_fysische_realiseerbare_ondergrens(self)
         add_gemiddelde(self)
         set_layout(self)
 
-    def show_figure(self):
+    def show_figure(self, plot_extra_dataset: Optional[List] = None):
         """Deze functie laat het figuur met alle resultaten zien."""
         self._run()
         self.figure = go.Figure()
-        self.set_figure()
+        self.set_figure(plot_extra_dataset)
         self.figure.show()
 
     def show_results(self):
@@ -181,7 +180,7 @@ class CPhiAnalyse:
         # print('tan(phi)_d', self.tan_phi_d)
         # print('c_d', self.c_d)
 
-        self.phi_gem = 180/math.pi * math.atan(self.tan_phi_gem)
+        self.phi_gem = 180/math.pi * math.atan(self.tan_phi_gem) # TODO omdat tan phi is phi klopt dit niet - fix na variabelen aanpassen
         self.phi_kar = 180/math.pi * math.atan(self.tan_phi_kar)
         self.phi_d = 180/math.pi * math.atan(self.tan_phi_d)
 

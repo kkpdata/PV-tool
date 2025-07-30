@@ -60,9 +60,10 @@ from pv_tool.analysis.variables import *
 
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
                       analysis_type='TXT_CPhi')
-#analyse.set_figure(plot_extra_dataset=['TXT_SAFE_klei_zwaar'])
+
+analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_zwaar'])
 analyse.show_results()
-analyse.show_figure()
+
 ##
 
 analyse.apply_settings(alpha=Alpha.LOCAL)
