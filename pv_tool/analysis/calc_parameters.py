@@ -9,7 +9,7 @@ from pv_tool.analysis.variables import *
 from scipy.stats import linregress, norm
 
 
-def calc_phi_gem(self: CPhiAnalyse):
+def calc_phi_gem(self: CPhiAnalyse):  # TODO: deze berekent tan phi en de functie calc_tan_phi berekent phi. Dit geeft verwarring
     """Geeft een eerste benadering voor de gemiddelde phi."""
     x_values = self.cphi_analyses_data_df['S\'']
     y_values = self.cphi_analyses_data_df['T']
