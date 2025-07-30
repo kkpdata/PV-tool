@@ -36,8 +36,8 @@ def add_txt_consol_type(self: Dbase):
     """Geeft een voorstel voor het consolidatietype van de triaxiaalproef. Indien de maximale consolidatiespanning
     niet meer dan 30% afwijkt van de terreinspanning wordt het consolidatietype OC aangenomen, anders wordt het
     consolidatietype NC aangenomen."""
-    if self.dbase_df['ALG_TRIAXIAAL'].any():  # Controleer of er überhaupt True-waarden zijn
-        self.dbase_df.loc[self.dbase_df['ALG_TRIAXIAAL'], 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL'] = self.dbase_df.apply(
+    if self.dbase_df['ALG__TRIAXIAAL'].any():  # Controleer of er überhaupt True-waarden zijn
+        self.dbase_df.loc[self.dbase_df['ALG__TRIAXIAAL'], 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL'] = self.dbase_df.apply(
             lambda row: 'OC' if row['ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING'] / row['ANA_TERREINSPANNING'] <= 1.3
             else 'NC', axis=1
         )
@@ -47,8 +47,8 @@ def add_dss_consol_type(self: Dbase):
     """Geeft een voorstel voor het consolidatietype van de DSS-proef. Indien de maximale consolidatiespanning niet
     meer dan 30% afwijkt van de terreinspanning wordt het consolidatietype OC aangenomen, anders wordt het
     consolidatietype NC aangenomen."""
-    if self.dbase_df['ALG_DSS'].any():
-        self.dbase_df.loc[self.dbase_df['ALG_DSS'], 'ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL'] = self.dbase_df.apply(
+    if self.dbase_df['ALG__DSS'].any():
+        self.dbase_df.loc[self.dbase_df['ALG__DSS'], 'ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL'] = self.dbase_df.apply(
             lambda row: 'OC' if row['ANA_DSS_MAX_CONSOLIDATIE_SPANNING'] / row['ANA_TERREINSPANNING'] <= 1.3
             else 'NC', axis=1
         )
