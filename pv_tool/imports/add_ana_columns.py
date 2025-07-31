@@ -11,11 +11,25 @@ def add_terreinspanning(self: Dbase):  # TODO: test!!
     columns = ['SD_TERREINSPANNING', 'CRS_TERREINSPANNING', 'DSS_TERREINSPANNING', 'TXT_SS_TERREINSPANNING']
     self.dbase_df['ANA_TERREINSPANNING'] = self.dbase_df[columns].max(axis=1, skipna=True)
 
+def add_txt_max_vert_consol_sp(self: Dbase):
+    """Deze functie berekend de maximale verticale consolidatiespanning van de triaxiaalproef."""
+    product1 = self.dbase_df["TXT_SS_S'_MAX_CONSOLIDATIE"] + self.dbase_df['TXT_SS_T_MAX_CONSOLIDATIE']
+    product2 = self.dbase_df["TXT_SS_S'_EIND_CONSOLIDATIE"] + self.dbase_df['TXT_SS_T_EIND_CONSOLIDATIE']
+    self.dbase_df['ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING'] = np.maximum(product1, product2)
+
+
+def add_dss_max_consol_sp(self: Dbase):
+    """Deze functie berekend de maximale verticale consolidatiespanning van de DSS-proef."""
+    self.dbase_df['ANA_DSS_MAX_CONSOLIDATIE_SPANNING'] = self.dbase_df[
+        ['DSS_MAX_EFF_VERT_SPANNING_CONSOLIDATIE', 'DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE']].max(axis=1)
+
+
 
 def add_txt_consol_type(self: Dbase):
     """Geeft een voorstel voor het consolidatietype van de triaxiaalproef. Indien de maximale consolidatiespanning
     niet meer dan 30% afwijkt van de terreinspanning wordt het consolidatietype OC aangenomen, anders wordt het
     consolidatietype NC aangenomen."""
+
     if self.dbase_df['ALG__TRIAXIAAL'].any():  # Controleer of er überhaupt True-waarden zijn
         self.dbase_df.loc[self.dbase_df['ALG__TRIAXIAAL'], 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL'] = self.dbase_df.apply(
             lambda row: 'OC' if row['ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING'] / row['ANA_TERREINSPANNING'] <= 1.3
@@ -55,7 +69,7 @@ def add_grensspanning_proef(self: Dbase):
 
 def calc_pop_veld(self):
     """Calculates the POP in the field while taking the sample"""
-    self.dbase_df['ANA_POP_VELD'] = self.dbase_df['ANA_GRENSSPANNING'] - self.dbase_df['ANA_TERREINSPANNING']
+    self.dbase_df['ANA_POP_VELD'] = self.dbase_df['ANA_GRENSSPANNING_PROEF'] - self.dbase_df['ANA_TERREINSPANNING']
 
 
 def calc_pop_average(self):
@@ -76,33 +90,68 @@ def add_grensspanning_handmatig(self: Dbase):
 
 def calc_grensspanning_reken(self: Dbase):
     """Berekend de rekenwaarde van de grensspanning."""
-    if self.dbase_df['ANA_GRENSSPANNING_HANDMATIG']:
+    if 'ANA_GRENSSPANNING_HANDMATIG' in self.dbase_df.columns:
         self.dbase_df['ANA_GRENSSPANNING_REKEN'] = self.dbase_df['ANA_GRENSSPANNING_HANDMATIG']
     else:
         self.dbase_df['ANA_GRENSSPANNING_REKEN'] = self.dbase_df['ANA_GRENSSPANNING_VOORSTEL']
 
 
-def calc_ocr_txt(self: Dbase):
+def calc_ocr_txt(self: Dbase):  # TODO check voor alle waardes!
+    ocr_txt = []
+
     if self.dbase_df['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'] is not None:
-        if self.dbase_df['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'] == 'OC':
-            self.dbase_df['OCR_TXT'] = self.dbase_df['ANA_GRENSSPANNING_REKEN'] / self.dbase_df['ANA_TERREINSPANNING']
-        else:
-            self.dbase_df['OCR_TXT'] = 1.0
+        con_handmatig_list = self.dbase_df['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'].tolist()
+        grensspanning_reken_list = self.dbase_df['ANA_GRENSSPANNING_REKEN'].tolist()
+        terreinspanning_reken_list = self.dbase_df['ANA_TERREINSPANNING'].tolist()
+        for i in range(len(con_handmatig_list)):
+            if con_handmatig_list[i] == 'OC':
+                ocr_txt.append(grensspanning_reken_list[i] / terreinspanning_reken_list[i])
+            else:
+                ocr_txt.append(1.0)
     else:
-        if self.dbase_df['ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL'] == 'OC':
-            self.dbase_df['OCR_TXT'] = self.dbase_df['ANA_GRENSSPANNING_REKEN'] / self.dbase_df['ANA_TERREINSPANNING']
-        else:
-            self.dbase_df['OCR_TXT'] = 1.0
+        con_voorstel_list = self.dbase_df['ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL'].tolist()
+        grensspanning_reken_list = self.dbase_df['ANA_GRENSSPANNING_REKEN'].tolist()
+        terreinspanning_reken_list = self.dbase_df['ANA_TERREINSPANNING'].tolist()
+        for i in range(len(con_voorstel_list)):
+            if con_voorstel_list[i] == 'OC':
+                ocr_txt.append(grensspanning_reken_list[i] / terreinspanning_reken_list[i])
+            else:
+                ocr_txt.append(1.0)
+    self.dbase_df['OCR_TXT'] = ocr_txt
 
 
-def calc_ocr_dss(self: Dbase):
-    if self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] is not None:
-        if self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] == 'OC':
-            self.dbase_df['OCR_DSS'] = self.dbase_df['ANA_GRENSSPANNING_REKEN'] / self.dbase_df['ANA_TERREINSPANNING']
-        else:
-            self.dbase_df['OCR_DSS'] = 1.0
+def calc_ocr_dss(self: Dbase): # TODO check voor alle waardes! gebruik functie hieronder als voorbeeld
+    ocr_dss = []
+
+    if self.dbase_df['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'] is not None:
+        con_handmatig_list = self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'].tolist()
+        grensspanning_reken_list = self.dbase_df['ANA_GRENSSPANNING_REKEN'].tolist()
+        terreinspanning_reken_list = self.dbase_df['ANA_TERREINSPANNING'].tolist()
+        for i in range(len(con_handmatig_list)):
+            if con_handmatig_list[i] == 'OC':
+                ocr_dss.append(grensspanning_reken_list[i] / terreinspanning_reken_list[i])
+            else:
+                ocr_dss.append(1.0)
     else:
-        if self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL'] == 'OC':
-            self.dbase_df['OCR_DSS'] = self.dbase_df['ANA_GRENSSPANNING_REKEN'] / self.dbase_df['ANA_TERREINSPANNING']
-        else:
-            self.dbase_df['OCR_DSS'] = 1.0
+        con_voorstel_list = self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL'].tolist()
+        grensspanning_reken_list = self.dbase_df['ANA_GRENSSPANNING_REKEN'].tolist()
+        terreinspanning_reken_list = self.dbase_df['ANA_TERREINSPANNING'].tolist()
+        for i in range(len(con_voorstel_list)):
+            if con_voorstel_list[i] == 'OC':
+                ocr_dss.append(grensspanning_reken_list[i] / terreinspanning_reken_list[i])
+            else:
+                ocr_dss.append(1.0)
+    self.dbase_df['OCR_DSS'] = ocr_dss
+
+
+# def calc_ocr_dss(self: Dbase):
+#     if self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] is not None:
+#         if self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] == 'OC':
+#             self.dbase_df['OCR_DSS'] = self.dbase_df['ANA_GRENSSPANNING_REKEN'] / self.dbase_df['ANA_TERREINSPANNING']
+#         else:
+#             self.dbase_df['OCR_DSS'] = 1.0
+#     else:
+#         if self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL'] == 'OC':
+#             self.dbase_df['OCR_DSS'] = self.dbase_df['ANA_GRENSSPANNING_REKEN'] / self.dbase_df['ANA_TERREINSPANNING']
+#         else:
+#             self.dbase_df['OCR_DSS'] = 1.0

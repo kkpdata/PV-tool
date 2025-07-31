@@ -51,6 +51,8 @@ dbase = Dbase()
 dbase.import_data_and_validate(source='PV-tool', source_dir=path_to_data, export_path=save_test)  # TODO: als hier de dbase wordt ingeladen gaat het fout
 
 print(dbase.dbase_df)
+print(dbase.dbase_df['OCR_TXT'].loc['21.0_B02_21'])
+
 
 ##
 # CPHI-analyse
@@ -67,18 +69,18 @@ analyse.save_to_excel(path=analyse_path)
 
 
 ##
+#
+# analyse.apply_settings(alpha=Alpha.LOCAL)
+# analyse.show_figure()
 
-analyse.apply_settings(alpha=Alpha.LOCAL)
-analyse.show_figure()
-
-##
-print(analyse.cohesie_gem_handmatig)
-
-analyse.apply_parameters(cohesie_gem=15)
-analyse.show_figure()
-print(analyse.cohesie_gem_handmatig)
-
-##
-analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
-analyse.show_figure()
+# ##
+# print(analyse.cohesie_gem_handmatig)
+#
+# analyse.apply_parameters(cohesie_gem=15)
+# analyse.show_figure()
+# print(analyse.cohesie_gem_handmatig)
+#
+# ##
+# analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
+# analyse.show_figure()
 

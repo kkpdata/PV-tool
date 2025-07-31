@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 from pv_tool.imports.globals import (PV_TOOL_DBASE_COLUMNS, CLAS_COLUMNS, CRS_COLUMNS, SD_COLUMNS, DSS_COLUMNS,
                                      TXT_COLUMNS)
-from pv_tool.imports.add_ana_columns import (add_terreinspanning, add_txt_consol_type, add_txt_consol_type_handmatig,
+from pv_tool.imports.add_ana_columns import (add_terreinspanning, add_txt_max_vert_consol_sp, add_dss_max_consol_sp,
+                                             add_txt_consol_type, add_txt_consol_type_handmatig,
                                              add_dss_consol_type, add_dss_consol_type_handmatig,
                                              add_grensspanning_proef, calc_pop_veld, calc_pop_average,
                                              add_grensspanning_voorstel, add_grensspanning_handmatig,
@@ -46,6 +47,8 @@ def alg_columns(self):
 def add_ana_columns(self):  # TODO: Dit is de volgorde die Leo wil. check of functie werkt.
     """Voegt ANA-kolommen toe aan het dataframe"""
     add_terreinspanning(self)
+    add_txt_max_vert_consol_sp(self)
+    add_dss_max_consol_sp(self)
     add_txt_consol_type(self)
     add_txt_consol_type_handmatig(self)
     add_dss_consol_type(self)
