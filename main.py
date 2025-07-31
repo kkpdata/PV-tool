@@ -89,8 +89,8 @@ from pv_tool.analysis.c_phi_analysis import *
 from pv_tool.analysis.variables import *
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
                       analysis_type='TXT_CPhi')
-
-analyse.factsheet()
+analyse.set_figure(plot_extra_dataset=['klei_zwaar'])
+analyse.show_results()
 analyse.show_figure()
 ##
 
