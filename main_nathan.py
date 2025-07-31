@@ -42,14 +42,13 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
 from pv_tool.imports.import_options import *
 from pv_tool.imports.import_data import Dbase
 
-# path_to_data = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm")
-# path_to_data = Path(
-#     r"C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm")
-path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
+
+#path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
+path_to_data = Path(get_repo_root()) / "example_files" / "Dbase-template.xlsx"
 save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
 dbase = Dbase()
-dbase.import_data_and_validate(source='PV-tool', source_dir=path_to_data, export_path=save_test)
+dbase.import_data_and_validate(source='Dbase', source_dir=path_to_data, export_path=save_test)
 
 print(dbase.dbase_df)
 
@@ -63,6 +62,9 @@ analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16
 
 analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_zwaar'])
 analyse.show_results()
+analyse_path = save_test / f"analyse_output_{analyse.investigation_groups[0]}.xlsx"
+analyse.save_to_excel(path=analyse_path)
+
 
 ##
 

@@ -1,5 +1,5 @@
 from typing import Optional, List, Literal
-from pandas import DataFrame
+from pandas import DataFrame, ExcelWriter
 from pv_tool.analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES)
 from pv_tool.imports.import_data import Dbase
 from enum import Enum
@@ -191,6 +191,19 @@ class CPhiAnalyse:
         analyse_output_df['phi [-]'] = [self.phi_gem, self.phi_kar, self.phi_d, self.st_dev_phi]
         analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
         print(analyse_output_df)
+        return analyse_output_df
+
+    def save_to_excel(self, path):
+        sheet_name = f"{self.analysis_type}_{self.effective_stress}"
+        df = self.show_results()
+        try:
+            with ExcelWriter(path, engine='openpyxl', mode='a') as writer:
+                if writer.book and sheet_name in writer.book.sheetnames:
+                    raise ValueError(f"Sheet '{sheet_name}' already exists in the Excel file.")
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
+        except FileNotFoundError:
+            with ExcelWriter(path, engine='openpyxl') as writer:
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
 
 
 # voorbeeld uitvoer
