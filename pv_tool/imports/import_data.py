@@ -43,7 +43,10 @@ class Dbase:
             import_dbase(self, dbase_dir=source_dir)
         try:
             self.validation.validation_log(export_path=export_path)
-        # except Exception 'validatie gefaald'  # TODO: print van aantal fouten
+        except Exception as e:
+            print(f'validatie gefaald')# TODO: print van aantal fouten
+            raise e
+
         self._create_dbase(source=source)
         return self.dbase_df
 
@@ -52,5 +55,5 @@ class Dbase:
         :param export_dir: Het pad naar de directory waarin het bestand wordt opgeslagen.
         :param filename: De naam van het bestand. Standaard: 'Dbase-template.xlsx."""
         export_path = export_dir / filename
-        self.dbase_df.to_excel(export_path, index=False)
+        self.dbase_df.to_excel(export_path, sheet_name='Dbase5_0', index=False)
         print(f"Excel-bestand geëxporteerd naar: {export_path}")

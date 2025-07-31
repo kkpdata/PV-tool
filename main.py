@@ -38,14 +38,23 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
 from pathlib import Path
 import os
 from pv_tool.imports.import_data import Dbase
+from pv_tool.imports.import_options import import_pv_tool
 import git
 
 # de grote test van importeren.py
 
-# import pv_tool
-# path_pv_tool = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
-# dbase = Dbase()
-# dbase.import_data_and_validate(source='PV-tool', source_dir=path_pv_tool)
+import pv_tool
+path_pv_tool = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
+export_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
+dbase = Dbase()
+
+dbase.import_pv_tool()
+
+dbase.import_pv_tool(self, pv_dir=source_dir)
+dbase.select_columns(self)
+dbasealg_columns(self)
+
+dbase.import_data_and_validate(source='PV-tool', source_dir=path_pv_tool, export_path=export_dir)
 
 #import stowa
 # dir_stowa = Path(get_repo_root()) / "example_files" / "23ZP0747_STOWA-definitief.xlsx"
@@ -58,13 +67,16 @@ import git
 # dbase2.dbase_df.to_excel(export_dir)
 
 #import dbase
-dbase_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
-dbase = Dbase()
-dbase.import_data_and_validate(source_dir=dbase_dir, source='Dbase')
-
-print(dbase.dbase_df)
-
-##
+# dbase_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
+# dbase = Dbase()
+# dbase.import_data_and_validate(source_dir=dbase_dir, source='Dbase')
+#
+# print(dbase.dbase_df)
+# export_dir = Path(get_repo_root()) / "example_files"
+# dbase = Dbase()
+# dbase.import_data_and_validate(source_dir=dbase_dir, source='Dbase', export_path=export_dir)
+#
+# print(dbase.dbase_df)
 
 
 
@@ -77,7 +89,7 @@ from pv_tool.analysis.c_phi_analysis import *
 from pv_tool.analysis.variables import *
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
                       analysis_type='TXT_CPhi')
-
+analyse.set_figure(plot_extra_dataset=['klei_zwaar'])
 analyse.show_results()
 analyse.show_figure()
 ##
