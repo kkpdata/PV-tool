@@ -196,14 +196,12 @@ class CPhiAnalyse:
     def save_to_excel(self, path):
         sheet_name = f"{self.analysis_type}_{self.effective_stress}"
         df = self.show_results()
-        try:
-            with ExcelWriter(path, engine='openpyxl', mode='a') as writer:
-                if writer.book and sheet_name in writer.book.sheetnames:
-                    raise ValueError(f"Sheet '{sheet_name}' already exists in the Excel file.")
-                df.to_excel(writer, sheet_name=sheet_name, index=False)
-        except FileNotFoundError:
-            with ExcelWriter(path, engine='openpyxl') as writer:
-                df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+        with ExcelWriter(path, engine='openpyxl') as writer:
+            if writer.book and sheet_name in writer.book.sheetnames:
+                print(f"Sheet '{sheet_name}' already exists in the Excel file so Excel file is overwritten")
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
+
 
 
 # voorbeeld uitvoer
