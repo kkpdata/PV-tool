@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 from pv_tool.analysis.variables import *
 from scipy.stats import linregress
 
+# TODO: ergens gaat het fout met uitrekenen parameters. checken!
 
 def calc_phi_gem(self: CPhiAnalyse):
     """Geeft een eerste benadering voor de gemiddelde phi."""
