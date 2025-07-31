@@ -103,14 +103,17 @@ class CPhiAnalyse:
                          cohesie_kar: Optional[float] = None):
         """Met deze functie kan je de parameters aanpassen."""
         if cohesie_gem is not None:
+            print('moet cohesie_gem aanpassen want ingevuld')
             self.cohesie_gem_handmatig = cohesie_gem
             self.cohesie_gem_set = True
+            print(f"na apply parameters: {self.cohesie_gem_handmatig}")
         if phi_kar is not None:
             self.phi_kar_handmatig = phi_kar
             self.phi_kar_set = True
         if cohesie_kar is not None:
             self.cohesie_kar_handmatig = cohesie_kar
             self.cohesie_kar_set = True
+        print(f"na apply parameters buiten if statements: {self.cohesie_gem_handmatig}")
 
     def expand_analysis_df(self):
         """Deze functie berekend alle benodigde parameters per monster voor de analyse."""
@@ -127,8 +130,8 @@ class CPhiAnalyse:
     def eerste_benadering(self):
         """Deze functie maakt een eerste benadering voor de gemiddelde cohesie en phi."""
         if not self.cohesie_gem_set:
-            calc_tan_phi_gem(self)
             self.cohesie_gem_handmatig = calc_cohesie_gem(self)
+        print(f"na eerste benadering: {self.cohesie_gem_handmatig}")
 
     def eerste_benadering_deel2(self):
         """Deze functie maakt een eerste benadering voor de karakteristieke cohesie en phi"""
@@ -151,6 +154,8 @@ class CPhiAnalyse:
         self.phi_gem = calc_phi_gem(self)
         self.tan_phi_gem = calc_tan_phi_gem(self)
         self.c_gem = calc_c_gem(self)
+        print(f"c gem handmatig na result values: {self.cohesie_gem_handmatig}")
+        print(f"c gem na result values: {self.c_gem}")
         self.tan_phi_kar = calc_tan_phi_kar(self)
         self.phi_kar = calc_phi_kar(self)
         self.c_kar = calc_c_kar(self)
@@ -206,6 +211,8 @@ class CPhiAnalyse:
         return analyse_output_df
 
     def save_to_excel(self, path):
+
+
         sheet_name = f"{self.analysis_type}_{self.effective_stress}"
         df = self.show_results()
 
@@ -213,3 +220,8 @@ class CPhiAnalyse:
             if writer.book and sheet_name in writer.book.sheetnames:
                 print(f"Sheet '{sheet_name}' already exists in the Excel file so Excel file is overwritten")
             df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+    def save_total_to_excel(self, path):
+        df_totaal = self.cphi_analyses_data_df
+        with ExcelWriter(path, engine='openpyxl') as writer:
+            df_totaal.to_excel(writer)
