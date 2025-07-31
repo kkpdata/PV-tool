@@ -18,7 +18,7 @@ from pv_tool.analysis.visualization import (add_proefresultaten, add_extra_proef
                                             set_layout)
 from pv_tool.analysis.calc_parameters import (calc_tan_phi_gem, calc_cohesie_gem, calc_phi_kar, calc_cohesie_kar,
                                               calc_phi_gem, calc_c_gem, calc_tan_phi_kar, calc_c_kar,
-                                              calc_tan_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c)
+                                              calc_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c)
 
 
 class Alpha(Enum):  # TODO: dit gaat weg en wordt een input van de class cphianalyse
@@ -131,7 +131,7 @@ class CPhiAnalyse:
     def eerste_benadering_deel2(self):
         """Deze functie maakt een eerste benadering voor de karakteristieke cohesie en phi"""
         if not self.phi_kar_set:
-            self.phi_kar_handmatig = calc_phi_kar(self)
+            self.phi_kar_handmatig = calc_tan_phi_kar(self)
         if not self.cohesie_kar_set:
             self.cohesie_kar_handmatig = calc_cohesie_kar(self)
 
@@ -151,7 +151,8 @@ class CPhiAnalyse:
         self.c_gem = calc_c_gem(self)
         self.tan_phi_kar = calc_tan_phi_kar(self)
         self.c_kar = calc_c_kar(self)
-        self.tan_phi_d = calc_tan_phi_d(self)
+        self.phi_d = calc_phi_d(self)
+        self.tan_phi_d = math.tan(self.phi_d)
         self.c_d = calc_c_d(self)
         self.st_dev_phi = calc_st_dev_phi(self)
         self.st_dev_c = calc_st_dev_c(self)
@@ -188,15 +189,15 @@ class CPhiAnalyse:
     def show_results(self):
         """Deze functie presenteert alle resultaten."""
         self._run()
-        self.phi_gem = 180/math.pi * math.atan(self.tan_phi_gem)  # TODO omdat tan phi is phi klopt dit niet - fix na variabelen aanpassen
-        self.phi_kar = 180/math.pi * math.atan(self.tan_phi_kar)
-        self.phi_d = 180/math.pi * math.atan(self.tan_phi_d)
+        # self.phi_gem = 180/math.pi * math.atan(self.tan_phi_gem)  # TODO omdat tan phi is phi klopt dit niet - fix na variabelen aanpassen
+        # self.phi_kar = 180/math.pi * math.atan(self.tan_phi_kar)
+        # self.phi_d = 180/math.pi * math.atan(self.tan_phi_d)
 
         index = ['verwachtingswaarde', 'karakteristieke waarde', 'rekenwaarde', 'standaarddeviatie']
         columns = ['tan phi [-]', 'phi [graden]', 'cohesie [kPa]']
         analyse_output_df = DataFrame(index=index, columns=columns)
         analyse_output_df['tan phi [-]'] = [self.tan_phi_gem, self.tan_phi_kar, self.tan_phi_d, '[-]']
-        analyse_output_df['phi [-]'] = [self.phi_gem, self.phi_kar, self.phi_d, self.st_dev_phi]
+        analyse_output_df['phi [graden]'] = [self.phi_gem, self.phi_kar, self.phi_d, self.st_dev_phi]
         analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
         print(analyse_output_df)
         return analyse_output_df
