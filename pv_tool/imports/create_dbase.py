@@ -42,7 +42,7 @@ def alg_columns(self):
     self.dbase_df['ALG__SONDEERWAARDE'] = pd.NA
 
 
-def add_ana_columns(self):
+def add_ana_columns(self):  # TODO: Verander volgorde kolommen volgens wensen Leo
     """Voegt ANA-kolommen toe aan het dataframe"""
     add_terreinspanning(self)
     add_txt_consol_type_handmatig(self)

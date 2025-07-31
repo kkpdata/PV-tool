@@ -67,6 +67,9 @@ class CPhiAnalyse:
         self.st_dev_phi: Optional[float] = None
         self.st_dev_c: Optional[float] = None
 
+        self.a1: Optional[float] = None
+        self.a2: Optional[float] = None
+
         # Figure
         self.figure = go.Figure()
 
@@ -152,6 +155,8 @@ class CPhiAnalyse:
         self.c_d = calc_c_d(self)
         self.st_dev_phi = calc_st_dev_phi(self)
         self.st_dev_c = calc_st_dev_c(self)
+        self.a1 = ...  # TODO: waar wordt dit berekend?
+        self.a2 = ...  # TODO: waar wordt dit berekend?
 
     def _run(self):
         """Deze functie zorgt ervoor dat zodra er iets veranderd in de bron-data alles opnieuw wordt berekend."""
