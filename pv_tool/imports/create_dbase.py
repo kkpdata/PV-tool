@@ -3,10 +3,11 @@ import pandas as pd
 import numpy as np
 from pv_tool.imports.globals import (PV_TOOL_DBASE_COLUMNS, CLAS_COLUMNS, CRS_COLUMNS, SD_COLUMNS, DSS_COLUMNS,
                                      TXT_COLUMNS)
-from pv_tool.imports.add_ana_columns import (add_terreinspanning, add_grensspanning, add_txt_max_vert_consol_sp,
-                                             add_dss_max_consol_sp, add_txt_consol_type, add_dss_consol_type,
-                                             add_txt_consol_type_handmatig, add_dss_consol_type_handmatig,
-                                             add_max_vert_spanning, add_ocr_txt, add_ocr_dss)
+from pv_tool.imports.add_ana_columns import (add_terreinspanning, add_txt_consol_type, add_txt_consol_type_handmatig,
+                                             add_dss_consol_type, add_dss_consol_type_handmatig,
+                                             add_grensspanning_proef, calc_pop_veld, calc_pop_average,
+                                             add_grensspanning_voorstel, add_grensspanning_handmatig,
+                                             calc_grensspanning_reken, calc_ocr_txt, calc_ocr_dss)
 
 
 def add_missing_columns(self):
@@ -42,22 +43,22 @@ def alg_columns(self):
     self.dbase_df['ALG__SONDEERWAARDE'] = pd.NA
 
 
-def add_ana_columns(self):  # TODO: Verander volgorde kolommen volgens wensen Leo
+def add_ana_columns(self):  # TODO: Dit is de volgorde die Leo wil. check of functie werkt.
     """Voegt ANA-kolommen toe aan het dataframe"""
     add_terreinspanning(self)
-    add_txt_consol_type_handmatig(self)
-    add_dss_consol_type_handmatig(self)
-    add_grensspanning(self)  # TODO: zoals in mockup
-
-    add_txt_max_vert_consol_sp(self)
-    add_dss_max_consol_sp(self)
-    add_max_vert_spanning(self)
-
     add_txt_consol_type(self)
+    add_txt_consol_type_handmatig(self)
     add_dss_consol_type(self)
-
-    add_ocr_txt(self)
-    add_ocr_dss(self)
+    add_dss_consol_type_handmatig(self)
+    add_grensspanning_proef(self)
+    calc_pop_veld(self)
+    calc_pop_average(self)
+    add_grensspanning_voorstel(self)
+    add_grensspanning_handmatig(self)
+    calc_grensspanning_reken(self)
+    calc_ocr_txt(self)
+    calc_ocr_dss(self)
+    add_terreinspanning(self)
 
 
 def add_pv_naam(self):
