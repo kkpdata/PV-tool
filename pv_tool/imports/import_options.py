@@ -21,8 +21,7 @@ def import_pv_tool(self: Dbase, pv_dir: Path):
         '').astype(str)
     pv['ALG__BORING_MONSTERNR_ID'] = pv[['ALG__REGEL', 'BORING_NUMMER', 'MONSTER_ID']].apply('_'.join, axis=1)
     pv = pv.set_index('ALG__BORING_MONSTERNR_ID')
-    self.
-    = pv
+    self.pv_tool = pv
     return self.pv_tool
 
 
