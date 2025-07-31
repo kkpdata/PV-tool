@@ -33,29 +33,20 @@ class CPhiAnalyse:
         self.cohesie_gem_handmatig: Optional[float] = None
         self.phi_kar_handmatig: Optional[float] = None
         self.cohesie_kar_handmatig: Optional[float] = None
-
-        #test
         self.cohesie_gem_set = False
         self.phi_kar_set = False
         self.cohesie_kar_set = False
 
-
         # Placeholder
         self.cphi_analyses_data_df: Optional[DataFrame] = None
 
-
         # Results
         self.tan_phi_gem: Optional[float] = None
-        self.phi_gem: Optional[float] = None
         self.c_gem: Optional[float] = None
         self.tan_phi_kar: Optional[float] = None
-        self.phi_kar: Optional[float] = None
         self.c_kar: Optional[float] = None
         self.tan_phi_d: Optional[float] = None
-        self.phi_d: Optional[float] = None
         self.c_d: Optional[float] = None
-        self.st_dev_phi: Optional[float] = None
-        self.st_dev_c: Optional[float] = None
 
         # Figure
         self.figure = go.Figure()
@@ -129,7 +120,7 @@ class CPhiAnalyse:
         calculate_s_ty_ondergrens_correctie_c(self)
         calculate_kappa_2_ondergrens_correctie_c(self)
 
-    def result_values(self):
+    def result_values(self):  # TODO: voeg nog st.dev. toe
         """Berekend de resultaten van de analyse."""
         self.tan_phi_gem = calc_tan_phi_gem(self)
         self.c_gem = calc_c_gem(self)
@@ -137,8 +128,6 @@ class CPhiAnalyse:
         self.c_kar = calc_c_kar(self)
         self.tan_phi_d = calc_tan_phi_d(self)
         self.c_d = calc_c_d(self)
-        self.st_dev_phi = calc_st_dev_phi(self)
-        self.st_dev_c = calc_st_dev_c(self)
 
     def _run(self):
         """Deze functie zorgt ervoor dat zodra er iets veranderd in de bron-data alles opnieuw wordt berekend."""
@@ -149,14 +138,10 @@ class CPhiAnalyse:
         self.eerste_benadering_deel2()
         self.result_values()
 
-    def set_figure(self, plot_extra_dataset: Optional[List] = None):  # TODO: mogelijkheid inbouwen om meer proefresultaten te laten zien uit een andere set
+    def set_figure(self):  # TODO: mogelijkheid inbouwen om meer proefresultaten te laten zien uit een andere set.
         """Deze functie maakt alle invoer voor het figuur."""
-
         add_proefresultaten(self)
         add_5pr_bovengrens(self)  # TODO: 5% ondergrens lijntje toevoegen.
-        if plot_extra_dataset is not None:
-            add_extra_proefresultaten(self)
-        add_5pr_bovengrens(self)
         add_fysische_realiseerbare_ondergrens(self)
         add_gemiddelde(self)
         set_layout(self)
@@ -168,29 +153,17 @@ class CPhiAnalyse:
         self.set_figure()
         self.figure.show()
 
-    def show_results(self):
+    def factsheet(self):  # TODO: specifiek maken voor hoe we de resultaten willen presenteren. dataframe?
         """Deze functie presenteert alle resultaten."""
         self._run()
         print('df =', self.cphi_analyses_data_df)
         print('Results')
-        # print('tan(phi)_gem = ', self.tan_phi_gem)
-        # print('c_gem = ', self.c_gem)
-        # print('tan(phi)_kar)', self.tan_phi_kar)
-        # print('c_kar', self.c_kar)
-        # print('tan(phi)_d', self.tan_phi_d)
-        # print('c_d', self.c_d)
-
-        self.phi_gem = 180/math.pi * math.atan(self.tan_phi_gem)
-        self.phi_kar = 180/math.pi * math.atan(self.tan_phi_kar)
-        self.phi_d = 180/math.pi * math.atan(self.tan_phi_d)
-
-        index = ['verwachtingswaarde', 'karakteristieke waarde', 'rekenwaarde', 'standaarddeviatie']
-        columns = ['tan phi [-]', 'phi [graden]', 'cohesie [kPa]']
-        analyse_output_df = DataFrame(index=index, columns=columns)
-        analyse_output_df['tan phi [-]'] = [self.tan_phi_gem, self.tan_phi_kar, self.tan_phi_d, '[-]']
-        analyse_output_df['phi [-]'] = [self.phi_gem, self.phi_kar, self.phi_d, self.st_dev_phi]
-        analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
-        print(analyse_output_df)
+        print('tan(phi)_gem = ', self.tan_phi_gem)
+        print('c_gem = ', self.c_gem)
+        print('tan(phi)_kar)', self.tan_phi_kar)
+        print('c_kar', self.c_kar)
+        print('tan(phi)_d', self.tan_phi_d)
+        print('c_d', self.c_d)
 
 
 # voorbeeld uitvoer
