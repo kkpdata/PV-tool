@@ -45,67 +45,40 @@ import git
 
 import pv_tool
 path_pv_tool = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
+# path_pv_tool = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n_test_zonder_zonder_functies.xlsm"
 export_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
 dbase = Dbase()
-
-dbase.import_pv_tool()
-
-dbase.import_pv_tool(self, pv_dir=source_dir)
-dbase.select_columns(self)
-dbasealg_columns(self)
-
 dbase.import_data_and_validate(source='PV-tool', source_dir=path_pv_tool, export_path=export_dir)
-
-#import stowa
-# dir_stowa = Path(get_repo_root()) / "example_files" / "23ZP0747_STOWA-definitief.xlsx"
-# dbase2 = Dbase()
-# dbase2.import_data_and_validate(source_dir=dir_stowa, source='Stowa')
-#
-# print(dbase2.dbase_df.columns)
-
-# export_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
-# dbase2.dbase_df.to_excel(export_dir)
-
-#import dbase
-# dbase_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
-# dbase = Dbase()
-# dbase.import_data_and_validate(source_dir=dbase_dir, source='Dbase')
-#
-# print(dbase.dbase_df)
-# export_dir = Path(get_repo_root()) / "example_files"
-# dbase = Dbase()
-# dbase.import_data_and_validate(source_dir=dbase_dir, source='Dbase', export_path=export_dir)
-#
-# print(dbase.dbase_df)
-
-
-
-
-
 
 
 ## CPHI-analyse
-from pv_tool.analysis.c_phi_analysis import *
-from pv_tool.analysis.variables import *
+from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
                       analysis_type='TXT_CPhi')
-analyse.set_figure(plot_extra_dataset=['klei_zwaar'])
+
 analyse.show_results()
-analyse.show_figure()
 ##
+# print('alpha =', analyse.alpha)
+#
+# print('c_gem_hand', analyse.cohesie_gem_handmatig)
+# print('phi_kar_hand', analyse.phi_kar_handmatig)
+# print('c_kar_hand', analyse.cohesie_kar_handmatig)
+#
+# # gaat goed tot hier
 
-analyse.apply_settings(alpha=Alpha.LOCAL)
-analyse.show_figure()
-
-##
-print(analyse.cohesie_gem_handmatig)
-
-analyse.apply_parameters(cohesie_gem=15)
-analyse.show_figure()
-print(analyse.cohesie_gem_handmatig)
 
 ##
-analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
-analyse.show_figure()
+analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=2.45)
+print('c_gem_hand', analyse.cohesie_gem_handmatig)
+print('phi_kar_hand', analyse.phi_kar_handmatig)
+print('c_kar_hand', analyse.cohesie_kar_handmatig)
+analyse.show_results()
+
 
 ##
+
+
+##
+
+
+
