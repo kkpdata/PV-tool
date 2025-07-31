@@ -42,72 +42,44 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
 from pv_tool.imports.import_options import *
 from pv_tool.imports.import_data import Dbase
 
-# path_to_data = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm")
-# path_to_data = Path(
-#     r"C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm")
+
 path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
+save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
+# path_to_data = Path(get_repo_root()) / "example_files" / "Dbase-template.xlsx"
 save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
 dbase = Dbase()
-dbase.import_data_and_validate(source='PV-tool', source_dir=path_to_data, export_path=save_test)
+dbase.import_data_and_validate(source='PV-tool', source_dir=path_to_data, export_path=save_test)  # TODO: als hier de dbase wordt ingeladen gaat het fout
 
+print(dbase.dbase_df)
 
+##
+# CPHI-analyse
+from pv_tool.analysis.c_phi_analysis import *
+from pv_tool.analysis.variables import *
 
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
+                      analysis_type='TXT_CPhi')
 
-
-
+analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_zwaar'])
+analyse.show_results()
+analyse_path = save_test / f"analyse_output_{analyse.investigation_groups[0]}.xlsx"
+analyse.save_to_excel(path=analyse_path)
 
 
 ##
-#
-# validatie = Validation(dbase=dbase)
-# # validatie.split_dbase()
-# # dfs = validatie.dataframes
-# #
-# # validatie.validation_selection(category='Classificatie')
-# #
-# # dfs2 = validatie.dataframes
-# #
-# validatie.validation_log(export_path=save_test)
-#
-# dfs3 = validatie.total_error_log
-# print(dfs3)
 
+analyse.apply_settings(alpha=Alpha.LOCAL)
+analyse.show_figure()
 
+##
+print(analyse.cohesie_gem_handmatig)
 
+analyse.apply_parameters(cohesie_gem=15)
+analyse.show_figure()
+print(analyse.cohesie_gem_handmatig)
 
-# ##
-# path_to_export_warnings = Path(
-#     r"C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output\validation_output_warnings.xlsx")
-# path_to_export_critical = Path(
-#     r"C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output\validation_output_critical.xlsx")
-#
-# validate_w = Validation(dbase=dbase, critical=False)
-# validate_c = Validation(dbase=dbase, critical=True)
-#
-# val_warning = validate_w.validation_log(save_path=path_to_export_warnings)
-# val_crit = validate_c.validation_log(save_path=path_to_export_critical)
-#
-# test_output_warnings = val_warning[0]
-# names_output_warnings = val_warning[1]
-# dfs_warnings = val_warning[2]
-#
-# test_output_critical = val_crit[0]
-# names_output_critical = val_crit[1]
-# dfs_critical = val_crit[2]
-#
-# for i in range(len(names_output_warnings)):
-#     c = names_output_warnings[i]
-#     e = 0
-#     for error in test_output_warnings[i]:
-#         e += 1
-#         print(f"waarschuwing in categorie {c} in row {error[0]} in column {error[1]}: {error[2]}")
-#     print(f"in categorie {c} zijn {e} waarschuwingen gevonden")
-#
-# for i in range(len(names_output_critical)):
-#     c = names_output_critical[i]
-#     e = 0
-#     for error in test_output_critical[i]:
-#         e += 1
-#         print(f"kritieke fout in category {c} in row {error[0]} in column {error[1]}: {error[2]}")
-#     print(f"in categorie {c} zijn {e} fatale errors gevonden")
+##
+analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
+analyse.show_figure()
+
