@@ -41,12 +41,8 @@ class Dbase:
             self.dbase_df = self.pv_tool
         elif source == 'Dbase':
             import_dbase(self, dbase_dir=source_dir)
-        try:
-            self.validation.validation_log(export_path=export_path)
-        except Exception as e:
-            print(f'validatie gefaald')# TODO: print van aantal fouten
-            raise e
-
+        self.validation.validation_export(export_path=export_path)
+        self.validation.print_critical_errors()
         self._create_dbase(source=source)
         return self.dbase_df
 

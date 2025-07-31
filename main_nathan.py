@@ -44,6 +44,7 @@ from pv_tool.imports.import_data import Dbase
 
 
 path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
+save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 # path_to_data = Path(get_repo_root()) / "example_files" / "Dbase-template.xlsx"
 save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
