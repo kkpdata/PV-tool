@@ -3,7 +3,6 @@ from pandas import DataFrame, ExcelWriter
 from pv_tool.analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES)
 from pv_tool.imports.import_data import Dbase
 import math
-from enum import Enum
 import plotly.graph_objects as go
 from pv_tool.analysis.expand_analysis_df import (calculate_s_tt, calculate_s_ty, calculate_kappa_2,
                                                  calculate_s, calculate_5pr_ondergrens, calculate_5pr_bovengrens,
@@ -21,11 +20,6 @@ from pv_tool.analysis.calc_parameters import (calc_tan_phi_gem, calc_cohesie_gem
                                               calc_tan_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c)
 
 
-class Alpha(Enum):  # TODO: dit gaat weg en wordt een input van de class cphianalyse
-    LOCAL = 1.0
-    REGIONAL = 0.75
-
-
 class CPhiAnalyse:
     def __init__(self, dbase: Dbase,
                  analysis_type: Literal['TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH'],
@@ -39,7 +33,7 @@ class CPhiAnalyse:
         self.effective_stress = effective_stress
 
         # Settings
-        self.alpha: Alpha = Alpha.REGIONAL
+        self.alpha: Optional[float] = 0.75
         self.material_cohesie: Optional[float] = 1.0
         self.material_tan_phi: Optional[float] = 1.0
 
@@ -67,8 +61,8 @@ class CPhiAnalyse:
         self.st_dev_phi: Optional[float] = None
         self.st_dev_c: Optional[float] = None
 
-        self.a1: Optional[float] = None
-        self.a2: Optional[float] = None
+        self.gem_a1: Optional[float] = None
+        self.gem_a2: Optional[float] = None
 
         # Figure
         self.figure = go.Figure()
@@ -86,7 +80,7 @@ class CPhiAnalyse:
         self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
 
-    def apply_settings(self, alpha: Optional[Alpha] = None,
+    def apply_settings(self, alpha: Optional[float] = None,
                        material_factor_cohesion: Optional[float] = None,
                        material_factor_tan_phi: Optional[float] = None):
         """Met deze functie kan je de alpha en materiaalfactoren opgeven."""
@@ -144,7 +138,7 @@ class CPhiAnalyse:
         calculate_s_ty_ondergrens_correctie_c(self)
         calculate_kappa_2_ondergrens_correctie_c(self)
 
-    def result_values(self):  # TODO: voeg nog st.dev. toe
+    def result_values(self):
         """Berekend de resultaten van de analyse."""
         self.phi_gem = calc_phi_gem(self)
         self.tan_phi_gem = calc_tan_phi_gem(self)
@@ -155,8 +149,6 @@ class CPhiAnalyse:
         self.c_d = calc_c_d(self)
         self.st_dev_phi = calc_st_dev_phi(self)
         self.st_dev_c = calc_st_dev_c(self)
-        self.a1 = ...  # TODO: waar wordt dit berekend?
-        self.a2 = ...  # TODO: waar wordt dit berekend?
 
     def _run(self):
         """Deze functie zorgt ervoor dat zodra er iets veranderd in de bron-data alles opnieuw wordt berekend."""
