@@ -31,6 +31,10 @@ def calc_tan_phi_kar(self: CPhiAnalyse):
         tan_phi_kar = a2_kar(self)
     return tan_phi_kar
 
+def calc_tan_phi_d(self: CPhiAnalyse):
+    tan_phi_d = calc_tan_phi_kar(self)/self.material_tan_phi
+    return tan_phi_d
+
 
 def calc_cohesie_kar(self: CPhiAnalyse):
     """Geeft een eerste benadering voor de karakteristieke cohesie."""
@@ -75,19 +79,13 @@ def calc_st_dev_phi(self: CPhiAnalyse):
         print(f"Ongeldige waarde phi: phi_gem={calc_phi_gem(self)}, phi_d={calc_phi_d(self)}. "
               f"Nieuwe waardes worden vastgezet op: phi_gem={phi_gem}, phi_d={phi_d}")
 
-    print('dit gaat in de wortel:')
-    print((norm.ppf(0.05) * 2) ** 2 + 8 * (math.log(phi_gem) - math.log(phi_d)))
-    print('norm ppf: ', norm.ppf(0.05))
-    print('math.log(phi_gem): ', math.log(phi_gem))
-    print('math.log(phi_d): ', math.log(phi_d))
-
     st_dev = phi_gem * math.sqrt(math.exp((((norm.ppf(0.05) * 2) + math.sqrt((norm.ppf(0.05) * 2) ** 2 +
                                                                              8 * (math.log(phi_gem) - math.log(phi_d))))
                                            / 2) ** 2) - 1)
     return st_dev
 
 
-def calc_st_dev_c(self: CPhiAnalyse):
+def calc_st_dev_c(self: CPhiAnalyse):  # TODO er komt een te grote stdev uit - checken
     c_gem = calc_c_gem(self)
     c_d = calc_c_d(self)
     if c_gem <= 0 or c_d <= 0:

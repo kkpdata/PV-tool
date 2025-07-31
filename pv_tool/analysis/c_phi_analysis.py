@@ -1,5 +1,7 @@
 from typing import Optional, List, Literal
 from pandas import DataFrame, ExcelWriter
+
+from analysis.calc_parameters import calc_tan_phi_d
 from pv_tool.analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES)
 from pv_tool.imports.import_data import Dbase
 import math
@@ -150,9 +152,10 @@ class CPhiAnalyse:
         self.tan_phi_gem = calc_tan_phi_gem(self)
         self.c_gem = calc_c_gem(self)
         self.tan_phi_kar = calc_tan_phi_kar(self)
+        self.phi_kar = calc_phi_kar(self)
         self.c_kar = calc_c_kar(self)
         self.phi_d = calc_phi_d(self)
-        self.tan_phi_d = math.tan(self.phi_d)
+        self.tan_phi_d = calc_tan_phi_d(self)
         self.c_d = calc_c_d(self)
         self.st_dev_phi = calc_st_dev_phi(self)
         self.st_dev_c = calc_st_dev_c(self)
