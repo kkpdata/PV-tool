@@ -6,17 +6,21 @@ if TYPE_CHECKING:
     from pv_tool.imports.import_data import Dbase
 
 
+def add_columns(self: Dbase):
+    """Voegt de kolommen toe in de gewenste volgorde zodat ze later gevuld kunnen worden."""
+    columns = ['ANA_TERREINSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
+               'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL',
+               'ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL',
+               'ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_GRENSSPANNING_PROEF', 'ANA_POP_VELD',
+               'ANA_POP_VELD_GEMIDDELD', 'ANA_GRENSSPANNING_VOORSTEL', 'ANA_GRENSSPANNING_HANDMATIG',  # TODO: ANA_GRENSSPANNING_HANDMATIG wordt al eerder ingeladen vanaf de import. Dus volgorde op andere manier veranderen, want ANA_GRENSSPANNING_HANDMATIG staat nu nog niet op de juiste plek
+               'ANA_GRENSSPANNING_REKEN', 'OCR_TXT', 'OCR_DSS']
+    self.dbase_df[columns] = None
+
+
 def add_terreinspanning(self: Dbase):
     """deze functie berekend de terreinspanning."""
     columns = ['SD_TERREINSPANNING', 'CRS_TERREINSPANNING', 'DSS_TERREINSPANNING', 'TXT_SS_TERREINSPANNING']
     self.dbase_df['ANA_TERREINSPANNING'] = self.dbase_df[columns].max(axis=1, skipna=True)
-
-
-def add_grensspanning(self: Dbase):
-    """Deze functie berekend de grensspanning."""
-    columns = ['CRS_GRENSSPANNING_A', 'SD_ISOTACHE_GRENSSPANNING_A', 'ANA_GRENSSPANNING_HANDMATIG']
-    grens_values = self.dbase_df[columns].max(axis=1)
-    self.dbase_df['ANA_GRENSSPANNING'] = grens_values
 
 
 def add_txt_max_vert_consol_sp(self: Dbase):
@@ -36,7 +40,8 @@ def add_txt_consol_type(self: Dbase):
     """Geeft een voorstel voor het consolidatietype van de triaxiaalproef. Indien de maximale consolidatiespanning
     niet meer dan 30% afwijkt van de terreinspanning wordt het consolidatietype OC aangenomen, anders wordt het
     consolidatietype NC aangenomen."""
-    if self.dbase_df['ALG__TRIAXIAAL'].any():  # Controleer of er überhaupt True-waarden zijn
+
+    if self.dbase_df['ALG__TRIAXIAAL'].any():
         self.dbase_df.loc[self.dbase_df['ALG__TRIAXIAAL'], 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL'] = self.dbase_df.apply(
             lambda row: 'OC' if row['ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING'] / row['ANA_TERREINSPANNING'] <= 1.3
             else 'NC', axis=1
@@ -54,38 +59,87 @@ def add_dss_consol_type(self: Dbase):
         )
 
 
-def add_txt_consol_type_handmatig(self: Dbase):
-    """Met deze functie wordt een kolom aangemaakt waarin je handmatig het consolidatietype van de triaxiaalproef
-    kan aanpassen."""
-    self.dbase_df['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'] = None
+def add_grensspanning_proef(self: Dbase):
+    """Deze functie bepaald de grensspanning."""
+    columns = ['CRS_GRENSSPANNING_A', 'SD_ISOTACHE_GRENSSPANNING_A', 'ANA_GRENSSPANNING_HANDMATIG']
+    grens_values = self.dbase_df[columns].max(axis=1)
+    self.dbase_df['ANA_GRENSSPANNING_PROEF'] = grens_values
 
 
-def add_dss_consol_type_handmatig(self: Dbase):
-    """Met deze functie wordt een kolom aangemaakt waarin je handmatig het consolidatietype van de DSS-proef
-    kan aanpassen."""
-    self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] = None
+def calc_pop_veld(self):
+    """Berekend de POP in het veld"""
+    self.dbase_df['ANA_POP_VELD'] = self.dbase_df['ANA_GRENSSPANNING_PROEF'] - self.dbase_df['ANA_TERREINSPANNING']
 
 
-def add_max_vert_spanning(self: Dbase):
-    """Deze functie bepaald de maximale ondervonden verticale spanning van het monster."""
-    selected_cols = ['ANA_GRENSSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
-                     'ANA_DSS_MAX_CONSOLIDATIE_SPANNING']
-    values = self.dbase_df[selected_cols].max(axis=1)
-    self.dbase_df['ANA_MAX_VERTICALE_SPANNING'] = values
+def calc_pop_average(self):
+    """Berekend de gemiddelde POP van een monster. Aangenomen wordt dat de POP gelijk blijft in de diepte."""
+    self.dbase_df['ANA_POP_VELD_GEMIDDELD'] = self.dbase_df.groupby('BORING_NUMMER')['ANA_POP_VELD'].transform(
+        'mean')
 
 
-def add_ocr_txt(self: Dbase):
-    """Deze functie berekend de OCR van de triaxiaalproef"""
-    func = self.dbase_df['ANA_MAX_VERTICALE_SPANNING'] / (
-            self.dbase_df["TXT_SS_S'_EIND_CONSOLIDATIE"] + self.dbase_df['TXT_SS_T_EIND_CONSOLIDATIE'])
-    ocr = self.dbase_df['TXT_SS_OCR'].copy()
-    vert_sp = self.dbase_df['ANA_MAX_VERTICALE_SPANNING'].copy()
-    self.dbase_df['ANA_OCR_TXT_MONSTER'] = np.maximum(func, ocr, vert_sp)
+def add_grensspanning_voorstel(self: Dbase):
+    self.dbase_df['ANA_GRENSSPANNING_VOORSTEL'] = (self.dbase_df['ANA_TERREINSPANNING'] +
+                                                   self.dbase_df['ANA_POP_VELD_GEMIDDELD'])
 
 
-def add_ocr_dss(self: Dbase):
-    """Deze functie berekend de OCR van de DSS-proef."""
-    product = self.dbase_df['ANA_MAX_VERTICALE_SPANNING'] / self.dbase_df[
-        'DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE']
-    ocr = self.dbase_df['DSS_OCR']
-    self.dbase_df['ANA_OCR_DSS_MONSTER'] = np.maximum(product, ocr)
+def calc_grensspanning_reken(self: Dbase):  # klopt
+    """
+    Berekent de rekenwaarde van de grensspanning per rij.
+    """
+    def calculate_row(row):
+        if 'ANA_GRENSSPANNING_HANDMATIG' in row and row['ANA_GRENSSPANNING_HANDMATIG'] is not None:
+            return row['ANA_GRENSSPANNING_HANDMATIG']
+        elif 'ANA_GRENSSPANNING_VOORSTEL' in row:
+            return row['ANA_GRENSSPANNING_VOORSTEL']
+        return None
+    if 'ANA_GRENSSPANNING_HANDMATIG' in self.dbase_df.columns or 'ANA_GRENSSPANNING_VOORSTEL' in self.dbase_df.columns:
+        self.dbase_df['ANA_GRENSSPANNING_REKEN'] = self.dbase_df.apply(calculate_row, axis=1)
+    else:
+        self.dbase_df['ANA_GRENSSPANNING_REKEN'] = None
+
+
+def calc_ocr_txt(self: Dbase):
+    """Deze functie berekent de OCR van de triaxiaalproeven per rij."""
+    def calculate_row(row):
+        if row['ALG__TRIAXIAAL']:
+            grensspanning_reken = row['ANA_GRENSSPANNING_REKEN']
+            terreinspanning = row['ANA_TERREINSPANNING']
+
+            if grensspanning_reken is not None and terreinspanning is not None:
+                if row['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'] == 'OC':
+                    return grensspanning_reken / terreinspanning
+                elif row['ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL'] == 'OC':
+                    return grensspanning_reken / terreinspanning
+                else:
+                    return 1.0
+            return None
+        return None
+
+    if 'ALG__TRIAXIAAL' in self.dbase_df.columns:
+        self.dbase_df['OCR_TXT'] = self.dbase_df.apply(calculate_row, axis=1)
+    else:
+        self.dbase_df['OCR_TXT'] = None
+
+
+def calc_ocr_dss(self: Dbase):
+    """Deze functie berekent de OCR van de DSS-proeven."""
+    def calculate_row(row):
+        if row['ALG__DSS']:
+            grensspanning_reken = row['ANA_GRENSSPANNING_REKEN']
+            terreinspanning = row['ANA_TERREINSPANNING']
+
+            if grensspanning_reken is not None and terreinspanning is not None:
+                if row['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] == 'OC':
+                    return grensspanning_reken / terreinspanning
+                elif row['ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL'] == 'OC':
+                    return grensspanning_reken / terreinspanning
+                else:
+                    return 1.0
+            else:
+                return None
+        return None
+
+    if 'ALG__DSS' in self.dbase_df.columns:
+        self.dbase_df['OCR_DSS'] = self.dbase_df.apply(calculate_row, axis=1)
+    else:
+        self.dbase_df['OCR_DSS'] = None
