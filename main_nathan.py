@@ -49,7 +49,7 @@ save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 
 save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
 dbase = Dbase()
-dbase.import_data_and_validate(source='PV-tool', source_dir=path_to_data, export_path=save_test)  # TODO: als hier de dbase wordt ingeladen gaat het fout
+dbase.import_data_and_validate(source='PV-tool', source_dir=path_to_data, export_path=save_test)
 
 print(dbase.dbase_df)
 

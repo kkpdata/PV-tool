@@ -98,7 +98,7 @@ def calc_grensspanning_reken(self: Dbase):  # klopt
         self.dbase_df['ANA_GRENSSPANNING_REKEN'] = None
 
 
-def calc_ocr_txt(self: Dbase):  # TODO check voor alle waardes!
+def calc_ocr_txt(self: Dbase):
     """Deze functie berekent de OCR van de triaxiaalproeven per rij."""
     def calculate_row(row):
         if row['ALG__TRIAXIAAL']:
