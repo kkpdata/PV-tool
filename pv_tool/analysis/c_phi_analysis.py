@@ -16,7 +16,8 @@ from pv_tool.analysis.visualization import (add_proefresultaten, add_extra_proef
                                             set_layout)
 from pv_tool.analysis.calc_parameters import (calc_a2_phi_gem, calc_cohesie_gem, calc_phi_kar, calc_cohesie_kar,
                                               calc_phi_gem, calc_c_gem, calc_tan_phi_kar, calc_c_kar, calc_tan_phi_d,
-                                              calc_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c)
+                                              calc_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c,
+                                              calc_tan_phi_gem, calc_tan_phi_kar2, helling_gecorrigeerd)
 
 
 class CPhiAnalyse:
@@ -42,6 +43,7 @@ class CPhiAnalyse:
         self.eerste_benadering_a1_gem: Optional[float] = None  # cohesie_gem
         self.eerste_benadering_a1_kar: Optional[float] = None  # cohesie_kar
 
+        self.helling_gecorrigeerd: Optional[float] = None
         self.cohesie_gem_handmatig: Optional[float] = None
         self.phi_kar_handmatig: Optional[float] = None
         self.cohesie_kar_handmatig: Optional[float] = None
@@ -98,6 +100,7 @@ class CPhiAnalyse:
             self.phi_kar_handmatig = phi_kar
         if cohesie_kar is not None:
             self.cohesie_kar_handmatig = cohesie_kar
+        self._run()  # TODO: is dit de goede plek?
 
     def expand_analysis_df(self):
         """Deze functie berekend alle benodigde parameters per monster voor de analyse."""
@@ -132,15 +135,15 @@ class CPhiAnalyse:
 
     def result_values(self):
         """Berekend de resultaten van de analyse."""
+        self.helling_gecorrigeerd = helling_gecorrigeerd(self)
         self.phi_gem = calc_phi_gem(self)
-        # self.tan_phi_gem = ...
-        self.tan_phi_gem = calc_a2_phi_gem(self)  # niet de goede formule
+        self.tan_phi_gem = calc_tan_phi_gem(self)
         self.c_gem = calc_c_gem(self)
-        self.tan_phi_kar = calc_tan_phi_kar(self)
+        self.tan_phi_kar = calc_tan_phi_kar2(self)
         self.phi_kar = calc_phi_kar(self)
         self.c_kar = calc_c_kar(self)
-        self.phi_d = calc_phi_d(self)
-        self.tan_phi_d = calc_tan_phi_d(self)
+        self.phi_d = calc_phi_d(self)  # gaat niet goed
+        self.tan_phi_d = calc_tan_phi_d(self)  # gaat niet goed bij eerste benadering
         self.c_d = calc_c_d(self)
         self.st_dev_phi = calc_st_dev_phi(self)
         self.st_dev_c = calc_st_dev_c(self)

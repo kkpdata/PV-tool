@@ -145,13 +145,17 @@ def sigma_a1_gecorrigeerd(self: CPhiAnalyse):
 
 
 def helling_gecor(self: CPhiAnalyse):
+    # = @ALS(ISGETAL(D80) ;LIJNSCH(T15: T54; E15: E54; 0;);F60 / E59)
+    # =@ALS(ISGETAL(D80) ;LIJNSCH(T15: T54; E15: E54; 0;);F60 / E59)
     if self.cohesie_gem_handmatig is not None:
         x_values = self.cphi_analyses_data_df['S\'']
         y_values = self.cphi_analyses_data_df['correctie_t']
-        phi_gem = linregress(x=x_values, y=y_values).slope
+        x = np.array(x_values)[:, np.newaxis]
+        helling, _, _, _ = np.linalg.lstsq(x, np.array(y_values))
+        # helling = linregress(x=x_values, y=y_values).slope
     else:
-        phi_gem = sum_s_ty(self) / sum_s_tt(self)
-    return phi_gem
+        helling = sum_s_ty(self) / sum_s_tt(self)
+    return helling
 
 
 def var_tan_phi_gem(self: CPhiAnalyse):

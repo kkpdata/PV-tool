@@ -34,6 +34,7 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     repo = git.Repo(root_search_dir, search_parent_directories=True)
     return repo.working_tree_dir
 
+
 ##
 from pathlib import Path
 import os
@@ -41,44 +42,32 @@ from pv_tool.imports.import_data import Dbase
 from pv_tool.imports.import_options import import_pv_tool
 import git
 
-# de grote test van importeren.py
-
 import pv_tool
-path_pv_tool = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
-# path_pv_tool = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n_test_zonder_zonder_functies.xlsm"
+
+path_pv_tool = Path(
+    get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
 export_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
 dbase = Dbase()
 dbase.import_data_and_validate(source='PV-tool', source_dir=path_pv_tool, export_path=export_dir)
 
-
 ## CPHI-analyse
 from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
+
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
                       analysis_type='TXT_CPhi')
 
 analyse.show_results()
-##
-# print('alpha =', analyse.alpha)
-#
-# print('c_gem_hand', analyse.cohesie_gem_handmatig)
-# print('phi_kar_hand', analyse.phi_kar_handmatig)
-# print('c_kar_hand', analyse.cohesie_kar_handmatig)
-#
-# # gaat goed tot hier
+print('phi_gem_benadering =', analyse.eerste_benadering_a2_gem)
+print('c_gem_benadering =', analyse.eerste_benadering_a1_gem)
+print('phi_kar_benadering =', analyse.eerste_benadering_a2_kar)
+print('c_kar_benadering =', analyse.eerste_benadering_a1_kar)
+# eerste benadering gaat goed!
 
 
 ##
 analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=2.45)
-print('c_gem_hand', analyse.cohesie_gem_handmatig)
-print('phi_kar_hand', analyse.phi_kar_handmatig)
-print('c_kar_hand', analyse.cohesie_kar_handmatig)
+print('helling_gecor =', analyse.helling_gecorrigeerd)
+print('c_gem_hand =', analyse.cohesie_gem_handmatig)
+print('phi_kar_hand =', analyse.phi_kar_handmatig)
+print('c_kar_hand =', analyse.cohesie_kar_handmatig)
 analyse.show_results()
-
-
-##
-
-
-##
-
-
-
