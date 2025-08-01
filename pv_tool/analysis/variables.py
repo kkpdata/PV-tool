@@ -5,7 +5,6 @@ if TYPE_CHECKING:
     from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
 import numpy as np
 from scipy.stats import t
-from scipy.stats import linregress
 
 
 def count_s(self: CPhiAnalyse):
@@ -130,12 +129,6 @@ def var_a1_gecorrigeerd(self: CPhiAnalyse):
     return formule
 
 
-def cov_a1_a2_gecorrigeerd(self: CPhiAnalyse):
-    formule = (-(sum_s(self) / (count_s(self) * sum_s_tt(self))) *
-               sum_kappa_2_2pr_gecorrigeerd(self) / (count_s(self) - 2))
-    return formule
-
-
 def sigma_a2_gecorrigeerd(self: CPhiAnalyse):
     return np.sqrt(var_a2_gecorrigeerd(self))
 
@@ -145,14 +138,11 @@ def sigma_a1_gecorrigeerd(self: CPhiAnalyse):
 
 
 def helling_gecor(self: CPhiAnalyse):
-    # = @ALS(ISGETAL(D80) ;LIJNSCH(T15: T54; E15: E54; 0;);F60 / E59)
-    # =@ALS(ISGETAL(D80) ;LIJNSCH(T15: T54; E15: E54; 0;);F60 / E59)
     if self.cohesie_gem_handmatig is not None:
         x_values = self.cphi_analyses_data_df['S\'']
         y_values = self.cphi_analyses_data_df['correctie_t']
         x = np.array(x_values)[:, np.newaxis]
         helling, _, _, _ = np.linalg.lstsq(x, np.array(y_values))
-        # helling = linregress(x=x_values, y=y_values).slope
     else:
         helling = sum_s_ty(self) / sum_s_tt(self)
     return helling

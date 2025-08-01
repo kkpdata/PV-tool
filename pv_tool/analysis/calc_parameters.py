@@ -3,8 +3,6 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 if TYPE_CHECKING:
     from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
 from pv_tool.analysis.variables import *
@@ -21,9 +19,6 @@ def calc_a2_phi_gem(self: CPhiAnalyse):
 
 def calc_tan_phi_gem(self: CPhiAnalyse):
     """Berekend de gemiddelde tan phi"""
-    # =$C$89 / WORTEL(1 -$C$89 ^ 2)
-    # =$C$89 / WORTEL(1 -$C$89 ^ 2)
-    # C89=D79=helling_gecorrigeerd
     return helling_gecor(self) / np.sqrt(1 - helling_gecor(self)**2)
 
 
@@ -31,12 +26,12 @@ def helling_gecorrigeerd(self: CPhiAnalyse):
     return helling_gecor(self)
 
 
-def calc_cohesie_gem(self: CPhiAnalyse):
+def calc_a1_c_gem(self: CPhiAnalyse):
     """Geeft een eerste benadering voor de gemiddelde cohesie."""
     return (sum_t(self) - sum_s(self) * e_a2(self)) / count_s(self)
 
 
-def calc_tan_phi_kar(self: CPhiAnalyse):
+def calc_a2_kar(self: CPhiAnalyse):
     """Geeft een eerste benadering voor de karakteristieke phi."""
     if self.cohesie_gem_handmatig is not None:
         tan_phi_kar = a2_kar_gecorrigeerd(self)
@@ -46,10 +41,7 @@ def calc_tan_phi_kar(self: CPhiAnalyse):
 
 
 def calc_tan_phi_d(self: CPhiAnalyse):
-    # =$C$99 /$C$115
-    # C99 = tan_phi_kar
-    # C115 = materiaalfactor tan phi
-    tan_phi_d = calc_tan_phi_kar2(self)/self.material_tan_phi
+    tan_phi_d = calc_tan_phi_kar(self)/self.material_tan_phi
     return tan_phi_d
 
 
@@ -58,7 +50,6 @@ def calc_cohesie_kar(self: CPhiAnalyse):
     if self.cohesie_gem_handmatig is not None:
         cohesie_kar = a1_kar_gecorrigeerd(self)
     else:
-        # =(M58 - L57 * L62) / L56
         cohesie_kar = a1_kar(self)
     return cohesie_kar
 
@@ -92,8 +83,6 @@ def calc_c_kar(self: CPhiAnalyse):
 
 
 def calc_phi_d(self: CPhiAnalyse):
-    # =BOOGTAN($C$102)*180 / PI()
-    # C102 = tan_phi_d
     return math.atan(calc_tan_phi_d(self))*180 / np.pi
 
 
@@ -101,38 +90,32 @@ def calc_c_d(self: CPhiAnalyse):
     return calc_c_kar(self) / self.material_cohesie
 
 
-def calc_st_dev_phi(self: CPhiAnalyse):  # TODO: check of het klopt als de rest klopt
+def calc_st_dev_phi(self: CPhiAnalyse):
     phi_gem = calc_phi_gem(self)
     phi_d = calc_phi_d(self)
     if phi_gem <= 0 or phi_d <= 0:
         phi_gem = max(phi_gem, 0.1)
         phi_d = max(phi_d, 0.1)
-        print(f"Ongeldige waarde phi: phi_gem={calc_phi_gem(self)}, phi_d={calc_phi_d(self)}. "
-              f"Nieuwe waardes worden vastgezet op: phi_gem={phi_gem}, phi_d={phi_d}")
-
     st_dev = phi_gem * math.sqrt(math.exp((((norm.ppf(0.05) * 2) + math.sqrt((norm.ppf(0.05) * 2) ** 2 +
                                                                              8 * (math.log(phi_gem) - math.log(phi_d))))
                                            / 2) ** 2) - 1)
     return st_dev
 
 
-def calc_st_dev_c(self: CPhiAnalyse):  # TODO: check of het klopt als de rest klopt.
+def calc_st_dev_c(self: CPhiAnalyse):
     c_gem = calc_c_gem(self)
     c_d = calc_c_d(self)
     if c_gem <= 0 or c_d <= 0:
         c_gem = max(c_gem, 0.1)
         c_d = max(c_d, 0.1)
-
     st_dev = c_gem * math.sqrt(math.exp((((norm.ppf(0.05) * 2) + math.sqrt((norm.ppf(0.05) * 2) ** 2 +
                                                                            8 * (math.log(c_gem) - math.log(c_d)))) / 2)
                                         ** 2) - 1)
     return st_dev
 
 
-def calc_tan_phi_kar2(self: CPhiAnalyse):
+def calc_tan_phi_kar(self: CPhiAnalyse):
     """Berekend de karakteristieke tan phi"""
-    # =$C$92 / WORTEL(1 -$C$92 ^ 2)
-    # C92=D81=phi_karakteristiek_handmatig
     if self.phi_kar_handmatig is not None:
         phi_kar = self.phi_kar_handmatig
     else:

@@ -71,3 +71,15 @@ print('c_gem_hand =', analyse.cohesie_gem_handmatig)
 print('phi_kar_hand =', analyse.phi_kar_handmatig)
 print('c_kar_hand =', analyse.cohesie_kar_handmatig)
 analyse.show_results()
+
+##
+
+ondergr_cor = analyse.cphi_analyses_data_df['5pr_bovengrens_cor']
+print(ondergr_cor)
+
+
+
+##
+
+analyse_path = Path(get_repo_root()) / "example_files" / "test2.xlsx"
+analyse.save_total_to_excel(path=analyse_path)
