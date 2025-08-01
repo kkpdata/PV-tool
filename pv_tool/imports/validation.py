@@ -28,7 +28,7 @@ class Validation:
         self.total_error_log: Optional[List] = None
         self.critical_error_log: Optional[List] = None
         self.warning_error_log: Optional[List] = None
-        self.error_totals: Optional[List] = None
+        self.error_totals: Optional[List] = []
 
     def split_dbase(self):
         """Deze functie verdeelt het invoer-dataframe in kleinere dataframes op basis van categorie."""
@@ -100,7 +100,6 @@ class Validation:
         This function is called in each individual validation function, where the schema is made for each category
         NB in error log and validation_df, the rows in which there are only errors or no errors are deleted
         """
-        # Define dataframe and schema columns;
         # Filter the DataFrame to only include columns present in both the schema and DataFrame
         df = self.split_dbase().get(category, pd.DataFrame())
 
@@ -214,7 +213,6 @@ class Validation:
         validation_results = {}
         error_logs = []
 
-
         try:
             for func_name, func in validation_mapping.items():
                 validation_df, error_log = func(self)
@@ -236,15 +234,14 @@ class Validation:
         return error_logs
 
     def validation_export(self, export_path: Path):
-        """Hier gaat twee keer de functie validation_log worden aangeroepen
-        eenmaal voor de kritieke fouten en eenmaal voor de waarschuwingen. Er wordt tweemaal Excel weggeschreven"""
+        """Hier worden twee exports gemaakt van de validatie.
+        1 voor de kritieke fouten en 1 voor de waarschuwingen."""
         self.critical_error_log = self.validation_log(export_path, critical=True)
         self.warning_error_log = self.validation_log(export_path, critical=False)
         self.total_error_log = [self.critical_error_log, self.warning_error_log]
 
     def print_critical_errors(self):
+        """"Print de errors uit de import."""
         errors = self.error_totals
         for error in errors:
             print(error)
-
-

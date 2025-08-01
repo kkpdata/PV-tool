@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import math
+import numpy as np
+from scipy.stats import linregress, norm
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
-from pv_tool.analysis.variables import *
-from scipy.stats import linregress, norm
+from pv_tool.analysis.variables import (count_s, sum_s, sum_t, e_a2, a2_kar, a1_kar, a2_kar_gecorrigeerd,
+                                        a1_kar_gecorrigeerd, helling_gecor, var_tan_phi_gem, var_tan_phi_kar)
 
 
 def calc_a2_phi_gem(self: CPhiAnalyse):

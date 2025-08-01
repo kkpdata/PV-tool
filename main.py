@@ -50,6 +50,21 @@ export_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
 dbase = Dbase()
 dbase.import_data_and_validate(source='PV-tool', source_dir=path_pv_tool, export_path=export_dir)
 
+##
+df = dbase.dbase_df
+print(df)
+
+
+
+
+
+
+
+
+
+
+
+
 ## CPHI-analyse
 from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
 
