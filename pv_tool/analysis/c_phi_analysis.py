@@ -2,8 +2,6 @@ from typing import Optional, List, Literal
 from pandas import DataFrame, ExcelWriter
 from pv_tool.analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES)
 from pv_tool.imports.import_data import Dbase
-import math
-from enum import Enum
 import plotly.graph_objects as go
 from pv_tool.analysis.expand_analysis_df import (calculate_s_tt, calculate_s_ty, calculate_kappa_2,
                                                  calculate_s, calculate_5pr_ondergrens, calculate_5pr_bovengrens,
@@ -16,14 +14,10 @@ from pv_tool.analysis.expand_analysis_df import (calculate_s_tt, calculate_s_ty,
 from pv_tool.analysis.visualization import (add_proefresultaten, add_extra_proefresultaten, add_5pr_bovengrens,
                                             add_5pr_ondergrens, add_fysische_realiseerbare_ondergrens, add_gemiddelde,
                                             set_layout)
-from pv_tool.analysis.calc_parameters import (calc_tan_phi_gem, calc_cohesie_gem, calc_phi_kar, calc_cohesie_kar,
-                                              calc_phi_gem, calc_c_gem, calc_tan_phi_kar, calc_c_kar,
-                                              calc_tan_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c)
-
-
-class Alpha(Enum):  # TODO: dit gaat weg en wordt een input van de class cphianalyse
-    LOCAL = 1.0
-    REGIONAL = 0.75
+from pv_tool.analysis.calc_parameters import (calc_a2_phi_gem, calc_phi_kar, calc_cohesie_kar,
+                                              calc_phi_gem, calc_c_gem, calc_a2_kar, calc_c_kar, calc_tan_phi_d,
+                                              calc_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c,
+                                              calc_tan_phi_gem, calc_tan_phi_kar, helling_gecorrigeerd, calc_a1_c_gem)
 
 
 class CPhiAnalyse:
@@ -39,17 +33,20 @@ class CPhiAnalyse:
         self.effective_stress = effective_stress
 
         # Settings
-        self.alpha: Alpha = Alpha.REGIONAL
+        self.alpha: Optional[float] = 0.75
         self.material_cohesie: Optional[float] = 1.0
         self.material_tan_phi: Optional[float] = 1.0
 
         # Parameters
+        self.eerste_benadering_a2_gem: Optional[float] = None  # phi_gem
+        self.eerste_benadering_a2_kar: Optional[float] = None  # phi_kar
+        self.eerste_benadering_a1_gem: Optional[float] = None  # cohesie_gem
+        self.eerste_benadering_a1_kar: Optional[float] = None  # cohesie_kar
+
+        self.helling_gecorrigeerd: Optional[float] = None
         self.cohesie_gem_handmatig: Optional[float] = None
         self.phi_kar_handmatig: Optional[float] = None
         self.cohesie_kar_handmatig: Optional[float] = None
-        self.cohesie_gem_set = False
-        self.phi_kar_set = False
-        self.cohesie_kar_set = False
 
         # Placeholder
         self.cphi_analyses_data_df: Optional[DataFrame] = None
@@ -67,9 +64,6 @@ class CPhiAnalyse:
         self.st_dev_phi: Optional[float] = None
         self.st_dev_c: Optional[float] = None
 
-        self.a1: Optional[float] = None
-        self.a2: Optional[float] = None
-
         # Figure
         self.figure = go.Figure()
 
@@ -86,7 +80,7 @@ class CPhiAnalyse:
         self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
 
-    def apply_settings(self, alpha: Optional[Alpha] = None,
+    def apply_settings(self, alpha: Optional[float] = None,
                        material_factor_cohesion: Optional[float] = None,
                        material_factor_tan_phi: Optional[float] = None):
         """Met deze functie kan je de alpha en materiaalfactoren opgeven."""
@@ -102,13 +96,11 @@ class CPhiAnalyse:
         """Met deze functie kan je de parameters aanpassen."""
         if cohesie_gem is not None:
             self.cohesie_gem_handmatig = cohesie_gem
-            self.cohesie_gem_set = True
         if phi_kar is not None:
             self.phi_kar_handmatig = phi_kar
-            self.phi_kar_set = True
         if cohesie_kar is not None:
             self.cohesie_kar_handmatig = cohesie_kar
-            self.cohesie_kar_set = True
+        self._run()
 
     def expand_analysis_df(self):
         """Deze functie berekend alle benodigde parameters per monster voor de analyse."""
@@ -124,16 +116,14 @@ class CPhiAnalyse:
 
     def eerste_benadering(self):
         """Deze functie maakt een eerste benadering voor de gemiddelde cohesie en phi."""
-        if not self.cohesie_gem_set:
-            calc_tan_phi_gem(self)
-            self.cohesie_gem_handmatig = calc_cohesie_gem(self)
+        # self.eerste_benadering_a1_gem = calc_cohesie_gem(self)
+        self.eerste_benadering_a1_gem = calc_a1_c_gem(self)
+        self.eerste_benadering_a2_gem = calc_a2_phi_gem(self)
 
     def eerste_benadering_deel2(self):
         """Deze functie maakt een eerste benadering voor de karakteristieke cohesie en phi"""
-        if not self.phi_kar_set:
-            self.phi_kar_handmatig = calc_phi_kar(self)
-        if not self.cohesie_kar_set:
-            self.cohesie_kar_handmatig = calc_cohesie_kar(self)
+        self.eerste_benadering_a2_kar = calc_a2_kar(self)
+        self.eerste_benadering_a1_kar = calc_cohesie_kar(self)
 
     def expand_analysis_df_corrected(self):
         """Voegt aanvullende kolommen toe aan het dataframe."""
@@ -144,19 +134,20 @@ class CPhiAnalyse:
         calculate_s_ty_ondergrens_correctie_c(self)
         calculate_kappa_2_ondergrens_correctie_c(self)
 
-    def result_values(self):  # TODO: voeg nog st.dev. toe
+    def result_values(self):
         """Berekend de resultaten van de analyse."""
+        self.helling_gecorrigeerd = helling_gecorrigeerd(self)
         self.phi_gem = calc_phi_gem(self)
         self.tan_phi_gem = calc_tan_phi_gem(self)
         self.c_gem = calc_c_gem(self)
         self.tan_phi_kar = calc_tan_phi_kar(self)
+        self.phi_kar = calc_phi_kar(self)
         self.c_kar = calc_c_kar(self)
+        self.phi_d = calc_phi_d(self)
         self.tan_phi_d = calc_tan_phi_d(self)
         self.c_d = calc_c_d(self)
         self.st_dev_phi = calc_st_dev_phi(self)
         self.st_dev_c = calc_st_dev_c(self)
-        self.a1 = ...  # TODO: waar wordt dit berekend?
-        self.a2 = ...  # TODO: waar wordt dit berekend?
 
     def _run(self):
         """Deze functie zorgt ervoor dat zodra er iets veranderd in de bron-data alles opnieuw wordt berekend."""
@@ -188,20 +179,15 @@ class CPhiAnalyse:
     def show_results(self):
         """Deze functie presenteert alle resultaten."""
         self._run()
-        self.phi_gem = 180/math.pi * math.atan(self.tan_phi_gem)  # TODO omdat tan phi is phi klopt dit niet - fix na variabelen aanpassen
-        self.phi_kar = 180/math.pi * math.atan(self.tan_phi_kar)
-        self.phi_d = 180/math.pi * math.atan(self.tan_phi_d)
-
         index = ['verwachtingswaarde', 'karakteristieke waarde', 'rekenwaarde', 'standaarddeviatie']
         columns = ['tan phi [-]', 'phi [graden]', 'cohesie [kPa]']
         analyse_output_df = DataFrame(index=index, columns=columns)
         analyse_output_df['tan phi [-]'] = [self.tan_phi_gem, self.tan_phi_kar, self.tan_phi_d, '[-]']
-        analyse_output_df['phi [-]'] = [self.phi_gem, self.phi_kar, self.phi_d, self.st_dev_phi]
+        analyse_output_df['phi [graden]'] = [self.phi_gem, self.phi_kar, self.phi_d, self.st_dev_phi]
         analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
-        print(analyse_output_df)
         return analyse_output_df
 
-    def save_to_excel(self, path):
+    def save_to_excel(self, path):  # TODO: voeg een naam toe voor de export, je wil alleen het pad naar de map opgeven.
         sheet_name = f"{self.analysis_type}_{self.effective_stress}"
         df = self.show_results()
 
@@ -209,3 +195,8 @@ class CPhiAnalyse:
             if writer.book and sheet_name in writer.book.sheetnames:
                 print(f"Sheet '{sheet_name}' already exists in the Excel file so Excel file is overwritten")
             df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+    def save_total_to_excel(self, path):  # TODO: idem als hierboven
+        df_totaal = self.cphi_analyses_data_df
+        with ExcelWriter(path, engine='openpyxl') as writer:
+            df_totaal.to_excel(writer)

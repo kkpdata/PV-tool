@@ -67,19 +67,29 @@ analyse_path = save_test / f"analyse_output_{analyse.investigation_groups[0]}.xl
 analyse.save_to_excel(path=analyse_path)
 
 
-##
 
-analyse.apply_settings(alpha=Alpha.LOCAL)
-analyse.show_figure()
+## Forceer parameters test
+analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
+analyse_path = save_test / f"c_phi_export_test.xlsx"
 
-##
-print(analyse.cohesie_gem_handmatig)
+analyse.show_results()
+analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_zwaar'])
 
-analyse.apply_parameters(cohesie_gem=15)
-analyse.show_figure()
-print(analyse.cohesie_gem_handmatig)
+analyse.save_total_to_excel(path=analyse_path)
 
 ##
-analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
-analyse.show_figure()
 
+# analyse.apply_settings(alpha=Alpha.LOCAL)
+# analyse.show_figure()
+#
+# ##
+# print(analyse.cohesie_gem_handmatig)
+#
+# analyse.apply_parameters(cohesie_gem=15)
+# analyse.show_figure()
+# print(analyse.cohesie_gem_handmatig)
+#
+# ##
+# analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
+# analyse.show_figure()
+#
