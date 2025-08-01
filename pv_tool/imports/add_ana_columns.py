@@ -6,10 +6,22 @@ if TYPE_CHECKING:
     from pv_tool.imports.import_data import Dbase
 
 
-def add_terreinspanning(self: Dbase):  # TODO: test!!
+def add_columns(self: Dbase):
+    """Voegt de kolommen toe in de gewenste volgorde zodat ze later gevuld kunnen worden."""
+    columns = ['ANA_TERREINSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
+               'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL',
+               'ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL',
+               'ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_GRENSSPANNING_PROEF', 'ANA_POP_VELD',
+               'ANA_POP_VELD_GEMIDDELD', 'ANA_GRENSSPANNING_VOORSTEL', 'ANA_GRENSSPANNING_HANDMATIG',  # TODO: ANA_GRENSSPANNING_HANDMATIG wordt al eerder ingeladen vanaf de import. Dus volgorde op andere manier veranderen, want ANA_GRENSSPANNING_HANDMATIG staat nu nog niet op de juiste plek
+               'ANA_GRENSSPANNING_REKEN', 'OCR_TXT', 'OCR_DSS']
+    self.dbase_df[columns] = None
+
+
+def add_terreinspanning(self: Dbase):
     """deze functie berekend de terreinspanning."""
     columns = ['SD_TERREINSPANNING', 'CRS_TERREINSPANNING', 'DSS_TERREINSPANNING', 'TXT_SS_TERREINSPANNING']
     self.dbase_df['ANA_TERREINSPANNING'] = self.dbase_df[columns].max(axis=1, skipna=True)
+
 
 def add_txt_max_vert_consol_sp(self: Dbase):
     """Deze functie berekend de maximale verticale consolidatiespanning van de triaxiaalproef."""
@@ -24,23 +36,16 @@ def add_dss_max_consol_sp(self: Dbase):
         ['DSS_MAX_EFF_VERT_SPANNING_CONSOLIDATIE', 'DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE']].max(axis=1)
 
 
-
 def add_txt_consol_type(self: Dbase):
     """Geeft een voorstel voor het consolidatietype van de triaxiaalproef. Indien de maximale consolidatiespanning
     niet meer dan 30% afwijkt van de terreinspanning wordt het consolidatietype OC aangenomen, anders wordt het
     consolidatietype NC aangenomen."""
 
-    if self.dbase_df['ALG__TRIAXIAAL'].any():  # Controleer of er überhaupt True-waarden zijn
+    if self.dbase_df['ALG__TRIAXIAAL'].any():
         self.dbase_df.loc[self.dbase_df['ALG__TRIAXIAAL'], 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL'] = self.dbase_df.apply(
             lambda row: 'OC' if row['ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING'] / row['ANA_TERREINSPANNING'] <= 1.3
             else 'NC', axis=1
         )
-
-
-def add_txt_consol_type_handmatig(self: Dbase):
-    """Met deze functie wordt een kolom aangemaakt waarin je handmatig het consolidatietype van de triaxiaalproef
-    kan aanpassen."""
-    self.dbase_df['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'] = None
 
 
 def add_dss_consol_type(self: Dbase):
@@ -54,12 +59,6 @@ def add_dss_consol_type(self: Dbase):
         )
 
 
-def add_dss_consol_type_handmatig(self: Dbase):
-    """Met deze functie wordt een kolom aangemaakt waarin je handmatig het consolidatietype van de DSS-proef
-    kan aanpassen."""
-    self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] = None
-
-
 def add_grensspanning_proef(self: Dbase):
     """Deze functie bepaald de grensspanning."""
     columns = ['CRS_GRENSSPANNING_A', 'SD_ISOTACHE_GRENSSPANNING_A', 'ANA_GRENSSPANNING_HANDMATIG']
@@ -68,12 +67,12 @@ def add_grensspanning_proef(self: Dbase):
 
 
 def calc_pop_veld(self):
-    """Calculates the POP in the field while taking the sample"""
+    """Berekend de POP in het veld"""
     self.dbase_df['ANA_POP_VELD'] = self.dbase_df['ANA_GRENSSPANNING_PROEF'] - self.dbase_df['ANA_TERREINSPANNING']
 
 
 def calc_pop_average(self):
-    """Calculates the average POP of the sample. Here is assumed that the POP stays the same with depth"""
+    """Berekend de gemiddelde POP van een monster. Aangenomen wordt dat de POP gelijk blijft in de diepte."""
     self.dbase_df['ANA_POP_VELD_GEMIDDELD'] = self.dbase_df.groupby('BORING_NUMMER')['ANA_POP_VELD'].transform(
         'mean')
 
@@ -83,75 +82,64 @@ def add_grensspanning_voorstel(self: Dbase):
                                                    self.dbase_df['ANA_POP_VELD_GEMIDDELD'])
 
 
-def add_grensspanning_handmatig(self: Dbase):
-    """Maakt een kolom voor het handmatig invullen van de grensspanning."""
-    self.dbase_df['ANA_GRENSSPANNING_HANDMATIG'] = None
-
-
-def calc_grensspanning_reken(self: Dbase):
-    """Berekend de rekenwaarde van de grensspanning."""
-    if 'ANA_GRENSSPANNING_HANDMATIG' in self.dbase_df.columns:
-        self.dbase_df['ANA_GRENSSPANNING_REKEN'] = self.dbase_df['ANA_GRENSSPANNING_HANDMATIG']
+def calc_grensspanning_reken(self: Dbase):  # klopt
+    """
+    Berekent de rekenwaarde van de grensspanning per rij.
+    """
+    def calculate_row(row):
+        if 'ANA_GRENSSPANNING_HANDMATIG' in row and row['ANA_GRENSSPANNING_HANDMATIG'] is not None:
+            return row['ANA_GRENSSPANNING_HANDMATIG']
+        elif 'ANA_GRENSSPANNING_VOORSTEL' in row:
+            return row['ANA_GRENSSPANNING_VOORSTEL']
+        return None
+    if 'ANA_GRENSSPANNING_HANDMATIG' in self.dbase_df.columns or 'ANA_GRENSSPANNING_VOORSTEL' in self.dbase_df.columns:
+        self.dbase_df['ANA_GRENSSPANNING_REKEN'] = self.dbase_df.apply(calculate_row, axis=1)
     else:
-        self.dbase_df['ANA_GRENSSPANNING_REKEN'] = self.dbase_df['ANA_GRENSSPANNING_VOORSTEL']
+        self.dbase_df['ANA_GRENSSPANNING_REKEN'] = None
 
 
 def calc_ocr_txt(self: Dbase):  # TODO check voor alle waardes!
-    ocr_txt = []
+    """Deze functie berekent de OCR van de triaxiaalproeven per rij."""
+    def calculate_row(row):
+        if row['ALG__TRIAXIAAL']:
+            grensspanning_reken = row['ANA_GRENSSPANNING_REKEN']
+            terreinspanning = row['ANA_TERREINSPANNING']
 
-    if self.dbase_df['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'] is not None:
-        con_handmatig_list = self.dbase_df['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'].tolist()
-        grensspanning_reken_list = self.dbase_df['ANA_GRENSSPANNING_REKEN'].tolist()
-        terreinspanning_reken_list = self.dbase_df['ANA_TERREINSPANNING'].tolist()
-        for i in range(len(con_handmatig_list)):
-            if con_handmatig_list[i] == 'OC':
-                ocr_txt.append(grensspanning_reken_list[i] / terreinspanning_reken_list[i])
-            else:
-                ocr_txt.append(1.0)
+            if grensspanning_reken is not None and terreinspanning is not None:
+                if row['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'] == 'OC':
+                    return grensspanning_reken / terreinspanning
+                elif row['ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL'] == 'OC':
+                    return grensspanning_reken / terreinspanning
+                else:
+                    return 1.0
+            return None
+        return None
+
+    if 'ALG__TRIAXIAAL' in self.dbase_df.columns:
+        self.dbase_df['OCR_TXT'] = self.dbase_df.apply(calculate_row, axis=1)
     else:
-        con_voorstel_list = self.dbase_df['ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL'].tolist()
-        grensspanning_reken_list = self.dbase_df['ANA_GRENSSPANNING_REKEN'].tolist()
-        terreinspanning_reken_list = self.dbase_df['ANA_TERREINSPANNING'].tolist()
-        for i in range(len(con_voorstel_list)):
-            if con_voorstel_list[i] == 'OC':
-                ocr_txt.append(grensspanning_reken_list[i] / terreinspanning_reken_list[i])
+        self.dbase_df['OCR_TXT'] = None
+
+
+def calc_ocr_dss(self: Dbase):
+    """Deze functie berekent de OCR van de DSS-proeven."""
+    def calculate_row(row):
+        if row['ALG__DSS']:
+            grensspanning_reken = row['ANA_GRENSSPANNING_REKEN']
+            terreinspanning = row['ANA_TERREINSPANNING']
+
+            if grensspanning_reken is not None and terreinspanning is not None:
+                if row['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] == 'OC':
+                    return grensspanning_reken / terreinspanning
+                elif row['ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL'] == 'OC':
+                    return grensspanning_reken / terreinspanning
+                else:
+                    return 1.0
             else:
-                ocr_txt.append(1.0)
-    self.dbase_df['OCR_TXT'] = ocr_txt
+                return None
+        return None
 
-
-def calc_ocr_dss(self: Dbase): # TODO check voor alle waardes! gebruik functie hieronder als voorbeeld
-    ocr_dss = []
-
-    if self.dbase_df['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'] is not None:
-        con_handmatig_list = self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'].tolist()
-        grensspanning_reken_list = self.dbase_df['ANA_GRENSSPANNING_REKEN'].tolist()
-        terreinspanning_reken_list = self.dbase_df['ANA_TERREINSPANNING'].tolist()
-        for i in range(len(con_handmatig_list)):
-            if con_handmatig_list[i] == 'OC':
-                ocr_dss.append(grensspanning_reken_list[i] / terreinspanning_reken_list[i])
-            else:
-                ocr_dss.append(1.0)
+    if 'ALG__DSS' in self.dbase_df.columns:
+        self.dbase_df['OCR_DSS'] = self.dbase_df.apply(calculate_row, axis=1)
     else:
-        con_voorstel_list = self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL'].tolist()
-        grensspanning_reken_list = self.dbase_df['ANA_GRENSSPANNING_REKEN'].tolist()
-        terreinspanning_reken_list = self.dbase_df['ANA_TERREINSPANNING'].tolist()
-        for i in range(len(con_voorstel_list)):
-            if con_voorstel_list[i] == 'OC':
-                ocr_dss.append(grensspanning_reken_list[i] / terreinspanning_reken_list[i])
-            else:
-                ocr_dss.append(1.0)
-    self.dbase_df['OCR_DSS'] = ocr_dss
-
-
-# def calc_ocr_dss(self: Dbase):
-#     if self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] is not None:
-#         if self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] == 'OC':
-#             self.dbase_df['OCR_DSS'] = self.dbase_df['ANA_GRENSSPANNING_REKEN'] / self.dbase_df['ANA_TERREINSPANNING']
-#         else:
-#             self.dbase_df['OCR_DSS'] = 1.0
-#     else:
-#         if self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL'] == 'OC':
-#             self.dbase_df['OCR_DSS'] = self.dbase_df['ANA_GRENSSPANNING_REKEN'] / self.dbase_df['ANA_TERREINSPANNING']
-#         else:
-#             self.dbase_df['OCR_DSS'] = 1.0
+        self.dbase_df['OCR_DSS'] = None

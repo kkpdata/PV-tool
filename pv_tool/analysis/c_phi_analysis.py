@@ -2,7 +2,6 @@ from typing import Optional, List, Literal
 from pandas import DataFrame, ExcelWriter
 from pv_tool.analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES)
 from pv_tool.imports.import_data import Dbase
-import math
 import plotly.graph_objects as go
 from pv_tool.analysis.expand_analysis_df import (calculate_s_tt, calculate_s_ty, calculate_kappa_2,
                                                  calculate_s, calculate_5pr_ondergrens, calculate_5pr_bovengrens,
@@ -15,13 +14,8 @@ from pv_tool.analysis.expand_analysis_df import (calculate_s_tt, calculate_s_ty,
 from pv_tool.analysis.visualization import (add_proefresultaten, add_extra_proefresultaten, add_5pr_bovengrens,
                                             add_5pr_ondergrens, add_fysische_realiseerbare_ondergrens, add_gemiddelde,
                                             set_layout)
-from pv_tool.analysis.calc_parameters import (calc_a2_phi_gem, calc_phi_kar, calc_cohesie_kar,
-                                              calc_phi_gem, calc_c_gem, calc_a2_kar, calc_c_kar, calc_tan_phi_d,
-                                              calc_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c,
-                                              calc_tan_phi_gem, calc_tan_phi_kar, helling_gecorrigeerd, calc_a1_c_gem)
-
-
-from pv_tool.analysis.calc_parameters import (calc_tan_phi_gem, calc_cohesie_gem, calc_phi_kar, calc_cohesie_kar,
+from pv_tool.analysis.calc_parameters import (calc_a2_phi_gem,  calc_a2_kar, calc_phi_d, helling_gecorrigeerd,
+                                              calc_a1_c_gem, calc_tan_phi_gem, calc_phi_kar, calc_cohesie_kar,
                                               calc_phi_gem, calc_c_gem, calc_tan_phi_kar, calc_c_kar,
                                               calc_tan_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c)
 
