@@ -44,6 +44,7 @@ from pv_tool.imports.import_data import Dbase
 
 
 path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
+save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 # path_to_data = Path(get_repo_root()) / "example_files" / "Dbase-template.xlsx"
 save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
@@ -51,8 +52,6 @@ dbase = Dbase()
 dbase.import_data_and_validate(source='PV-tool', source_dir=path_to_data, export_path=save_test)  # TODO: als hier de dbase wordt ingeladen gaat het fout
 
 print(dbase.dbase_df)
-print(dbase.dbase_df['OCR_TXT'].loc['21.0_B02_21'])
-
 
 ##
 # CPHI-analyse
@@ -68,11 +67,21 @@ analyse_path = save_test / f"analyse_output_{analyse.investigation_groups[0]}.xl
 analyse.save_to_excel(path=analyse_path)
 
 
+
+## Forceer parameters test
+analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
+analyse_path = save_test / f"c_phi_export_test.xlsx"
+
+analyse.show_results()
+analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_zwaar'])
+
+analyse.save_total_to_excel(path=analyse_path)
+
 ##
-#
+
 # analyse.apply_settings(alpha=Alpha.LOCAL)
 # analyse.show_figure()
-
+#
 # ##
 # print(analyse.cohesie_gem_handmatig)
 #
@@ -83,4 +92,4 @@ analyse.save_to_excel(path=analyse_path)
 # ##
 # analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
 # analyse.show_figure()
-
+#
