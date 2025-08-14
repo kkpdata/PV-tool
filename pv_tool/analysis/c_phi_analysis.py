@@ -1,5 +1,5 @@
 from typing import Optional, List, Literal
-from pandas import DataFrame, ExcelWriter
+from pandas import DataFrame, ExcelWriter, concat, read_excel
 from pv_tool.analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES)
 from pv_tool.imports.import_data import Dbase
 import plotly.graph_objects as go
@@ -18,6 +18,7 @@ from pv_tool.analysis.calc_parameters import (calc_a2_phi_gem,  calc_a2_kar, cal
                                               calc_a1_c_gem, calc_tan_phi_gem, calc_phi_kar, calc_cohesie_kar,
                                               calc_phi_gem, calc_c_gem, calc_tan_phi_kar, calc_c_kar,
                                               calc_tan_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c)
+from openpyxl import load_workbook
 
 
 class CPhiAnalyse:
@@ -191,16 +192,92 @@ class CPhiAnalyse:
         analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
         return analyse_output_df
 
-    def save_to_excel(self, path):  # TODO: voeg een naam toe voor de export, je wil alleen het pad naar de map opgeven.
+    def add_results_to_dbase(self, path):
+        """
+        Deze functie voegt de resultaten toe aan de dbase Excel export,
+        die gegenereerd is met de functie export_dbase_to_excel in import_data.
+        Dit gebeurt in een los tabblad genaamd 'Resultaten'.
+        """
+        file_name = 'Template_PVtool5_0.xlsx'
+        file_path = f"{path}/{file_name}"  # Combineer het pad en de bestandsnaam handmatig
+
+        # Check of het bestand bestaat
+        try:
+            with open(file_path, 'r'):
+                pass
+        except FileNotFoundError:
+            raise FileNotFoundError("Er is geen dbase aanwezig onder de naam Template_PVtool5_0.xlsx")
+
+        # Verwachte kolommen definiëren
+        expected_columns = [
+            'PV_RESULTAAT_ID', 'PVNAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE',
+            'PV_A1_COH_GEM [kPa]', 'PV_A2_TAN_PHI_GEM [-]', 'PV_A1_COH_KAR [kPa]', 'PV_A2_TAN_PHI_KAR [-]',
+            'PV_PARTPHI', 'PV_PARTCOH', 'PV_TYPEVERZAMELING', 'PV_COH_GEM [kPa]', 'PV_PHI_GEM [graden]',
+            'PV_COH_KAR [kPa]', 'PV_PHI_KAR [graden]', 'PV_COH_SD_DSTAB [-]', 'PV_PHI_SD_DSTAB [-]',
+            'PV_VGWNAT_GEM', 'PV_VGWNAT_SD', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD'
+        ]
+
+        # Nieuwe rij aanmaken
+        new_row = {
+            'PVNAAM': self.investigation_groups,
+            'PV_REK': self.effective_stress,
+            'PV_TYPE_PROEF': self.analysis_type.split('_')[0],
+            'PV_ANALYSE': self.analysis_type.split('_')[1],
+            'PV_RESULTAAT_ID': f"{self.investigation_groups}_{self.effective_stress}_{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
+            'PV_TYPEVERZAMELING': self.alpha,
+            'PV_A1_COH_GEM [kPa]': self.eerste_benadering_a1_gem,
+            'PV_A2_TAN_PHI_GEM [-]': self.eerste_benadering_a2_gem,
+            'PV_A1_COH_KAR [kPa]': self.eerste_benadering_a1_kar,
+            'PV_A2_TAN_PHI_KAR [-]': self.eerste_benadering_a2_kar,
+            'PV_COH_GEM [kPa]': self.c_gem if self.c_gem > 0 else f"{self.c_gem} (kan niet - aanpassen!)",
+            'PV_PHI_GEM [graden]': self.phi_gem,
+            'PV_COH_KAR [kPa]': self.c_kar if self.c_kar > 0 else f"{self.c_kar} (kan niet - aanpassen!)",
+            'PV_PHI_KAR [graden]': self.phi_kar,
+            'PV_COH_SD_DSTAB [-]': self.st_dev_c if self.c_gem > 0 and self.c_kar > 0 else "[-] (c < 0)",
+            'PV_PHI_SD_DSTAB [-]': self.st_dev_phi,
+            'PV_PARTPHI': None,
+            'PV_PARTCOH': None,
+            'PV_VGWNAT_GEM': None,
+            'PV_VGWNAT_SD': None,
+            'PV_WATERGEHALTE_GEM': None,
+            'PV_WATERGEHALTE_SD': None
+        }
+
+        # Laad het bestaande Excel-bestand
+        workbook = load_workbook(file_path)
+
+        if 'Resultaten' in workbook.sheetnames:  # TODO dit gaat nog niet goed want hij vind dat resultaten nog niet bestaat terwijl die wel bestaat dus hij overschrijft de rij
+            # Sheet 'Resultaten' bestaat al, laad de bestaande data
+            print('resultaten bestaat al!')
+            df_exist = read_excel(file_path, sheet_name='Resultaten')
+
+            # Voeg de nieuwe rij toe aan de bestaande DataFrame
+            df_exist = concat([df_exist, DataFrame([new_row])], ignore_index=True)
+        else:
+            # Sheet 'Resultaten' bestaat nog niet, maak een nieuwe DataFrame
+            print('resultaten bestaat nog niet....')
+            df_exist = DataFrame([new_row], columns=expected_columns)
+
+        # Sla de bijgewerkte DataFrame op in het Excel-bestand
+        with ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+            df_exist.to_excel(writer, sheet_name='Resultaten', index=False)
+
+
+    def save_to_excel(self, path):
+        file_name = f"analyse_output_{self.investigation_groups[0]}.xlsx"
+        file_path = f"{path}/{file_name}"
         sheet_name = f"{self.analysis_type}_{self.effective_stress}"
         df = self.show_results()
 
-        with ExcelWriter(path, engine='openpyxl') as writer:
+        with ExcelWriter(file_path, engine='openpyxl') as writer:
             if writer.book and sheet_name in writer.book.sheetnames:
-                print(f"Sheet '{sheet_name}' already exists in the Excel file so Excel file is overwritten")  # TODO Dit werkt niet en boeit ook niet - doe zoals Leo wil
+                print(f"Sheet '{sheet_name}' already exists in the Excel file so Excel file is overwritten")  # TODO Dit werkt niet en boeit ook niet - doe zoals in de functie hierboven dan kan dit weg
             df.to_excel(writer, sheet_name=sheet_name, index=False)
 
-    def save_total_to_excel(self, path):  # TODO: idem als hierboven
+    def save_total_to_excel(self, path):
+
+        file_name = f"c_phi_export_test_{self.investigation_groups[0]}.xlsx"
+        file_path = f"{path}/{file_name}"
         df_totaal = self.cphi_analyses_data_df
-        with ExcelWriter(path, engine='openpyxl') as writer:
+        with ExcelWriter(file_path, engine='openpyxl') as writer:
             df_totaal.to_excel(writer)
