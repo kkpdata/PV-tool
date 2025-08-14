@@ -55,16 +55,6 @@ df = dbase.dbase_df
 print(df)
 
 
-
-
-
-
-
-
-
-
-
-
 ## CPHI-analyse
 from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
 

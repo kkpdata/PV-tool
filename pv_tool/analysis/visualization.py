@@ -108,8 +108,22 @@ def add_fysische_realiseerbare_ondergrens(self: CPhiAnalyse):
     raaklijn_kar_x1 = 0
     raaklijn_kar_x2 = self.cphi_analyses_data_df['S\''].max() + 5
 
-    raaklijn_kar_y1 = self.cohesie_kar_handmatig + (raaklijn_kar_x1 * self.phi_kar_handmatig)
-    raaklijn_kar_y2 = self.cohesie_kar_handmatig + (self.phi_kar_handmatig * raaklijn_kar_x2)
+    if self.phi_kar_handmatig and self.cohesie_kar_handmatig:
+        raaklijn_kar_y1 = self.cohesie_kar_handmatig + (raaklijn_kar_x1 * self.phi_kar_handmatig)
+        raaklijn_kar_y2 = self.cohesie_kar_handmatig + (self.phi_kar_handmatig * raaklijn_kar_x2)
+        print('fysisch realiseerbare ondergrens gebaseerd op phi kar handmatig en cohesie kar handmatig')
+    elif not self.phi_kar_handmatig and self.cohesie_kar_handmatig:
+        raaklijn_kar_y1 = self.cohesie_kar_handmatig + (raaklijn_kar_x1 * self.eerste_benadering_a2_kar)
+        raaklijn_kar_y2 = self.cohesie_kar_handmatig + (self.eerste_benadering_a2_kar * raaklijn_kar_x2)
+        print('fysisch realiseerbare ondergrens gebaseerd op eerste benadering a2 kar en cohesie handmatig')
+    elif self.phi_kar_handmatig and not self.cohesie_kar_handmatig:
+        raaklijn_kar_y1 = self.eerste_benadering_a1_kar + (raaklijn_kar_x1 * self.phi_kar_handmatig)
+        raaklijn_kar_y2 = self.eerste_benadering_a1_kar + (self.phi_kar_handmatig * raaklijn_kar_x2)
+        print('fysisch realiseerbare ondergrens gebaseerd op phi kar handmatig en eerste benadering a1')
+    else:
+        raaklijn_kar_y1 = self.eerste_benadering_a1_kar + (raaklijn_kar_x1 * self.eerste_benadering_a2_kar)
+        raaklijn_kar_y2 = self.eerste_benadering_a1_kar + (self.eerste_benadering_a2_kar * raaklijn_kar_x2)
+        print('fysisch realiseerbare ondergrens gebaseerd op eerste benadering a1 en eerste benadering a2')
 
     x = [raaklijn_kar_x1, raaklijn_kar_x2]
     y = [raaklijn_kar_y1, raaklijn_kar_y2]
@@ -129,8 +143,12 @@ def add_gemiddelde(self: CPhiAnalyse):
     x1 = self.cphi_analyses_data_df['S\''].min() + 5
     x2 = self.cphi_analyses_data_df['S\''].max() + 5
 
-    y1 = x1 * helling_gecor(self) + self.cohesie_gem_handmatig
-    y2 = x2 * helling_gecor(self) + self.cohesie_gem_handmatig
+    if self.cohesie_gem_handmatig:
+        y1 = x1 * helling_gecor(self) + self.cohesie_gem_handmatig
+        y2 = x2 * helling_gecor(self) + self.cohesie_gem_handmatig
+    else:
+        y1 = x1 * helling_gecor(self) + self.eerste_benadering_a1_gem
+        y2 = x2 * helling_gecor(self) + self.eerste_benadering_a1_gem
 
     x = [x1, x2]
     y = [y1, y2]

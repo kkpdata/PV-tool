@@ -44,8 +44,9 @@ from pv_tool.imports.import_data import Dbase
 
 
 path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
-save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
+# path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n_test_zonder_functies.xlsm"
 # path_to_data = Path(get_repo_root()) / "example_files" / "Dbase-template.xlsx"
+
 save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
 dbase = Dbase()
@@ -61,8 +62,11 @@ from pv_tool.analysis.variables import *
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
                       analysis_type='TXT_CPhi')
 
-analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_zwaar'])  # TODO deze gaat nog steeds niet goed?
+#analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_zwaar'])  # TODO deze gaat nog steeds niet goed?
+
+#analyse.apply_parameters(cohesie_gem=9, phi_kar=0.6, cohesie_kar=7)
 analyse.show_results()
+analyse.show_figure() # TODO figuur gaat niet goed zonder de parameters hard vast te zetten omdat er geen self.phi_kar_handmatig is
 analyse_path = save_test / f"analyse_output_{analyse.investigation_groups[0]}.xlsx"
 analyse.save_to_excel(path=analyse_path)
 
@@ -73,7 +77,7 @@ analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
 analyse_path = save_test / f"c_phi_export_test.xlsx"
 
 analyse.show_results()
-analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_zwaar'])
+analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_licht_12_16'])
 
 analyse.save_total_to_excel(path=analyse_path)
 

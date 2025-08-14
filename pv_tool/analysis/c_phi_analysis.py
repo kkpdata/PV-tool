@@ -163,9 +163,10 @@ class CPhiAnalyse:
 
     def set_figure(self, plot_extra_dataset: Optional[List] = None):
         """Deze functie maakt alle invoer voor het figuur."""
+
+        add_proefresultaten(self)
         if plot_extra_dataset is not None:
             add_extra_proefresultaten(self, plot_extra_dataset)
-        add_proefresultaten(self)
         add_5pr_bovengrens(self)
         add_5pr_ondergrens(self)
         add_fysische_realiseerbare_ondergrens(self)
