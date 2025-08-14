@@ -62,15 +62,11 @@ from pv_tool.analysis.variables import *
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
                       analysis_type='TXT_CPhi')
 
-#analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_zwaar'])  # TODO deze gaat nog steeds niet goed?
-
 #analyse.apply_parameters(cohesie_gem=9, phi_kar=0.6, cohesie_kar=7)
 analyse.show_results()
-analyse.show_figure() # TODO figuur gaat niet goed zonder de parameters hard vast te zetten omdat er geen self.phi_kar_handmatig is
+analyse.show_figure()
 analyse_path = save_test / f"analyse_output_{analyse.investigation_groups[0]}.xlsx"
 analyse.save_to_excel(path=analyse_path)
-
-
 
 ## Forceer parameters test
 analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
@@ -80,20 +76,3 @@ analyse.show_results()
 analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_licht_12_16'])
 
 analyse.save_total_to_excel(path=analyse_path)
-
-##
-
-# analyse.apply_settings(alpha=Alpha.LOCAL)
-# analyse.show_figure()
-#
-# ##
-# print(analyse.cohesie_gem_handmatig)
-#
-# analyse.apply_parameters(cohesie_gem=15)
-# analyse.show_figure()
-# print(analyse.cohesie_gem_handmatig)
-#
-# ##
-# analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
-# analyse.show_figure()
-#

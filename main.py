@@ -46,7 +46,7 @@ import pv_tool
 
 path_pv_tool = Path(
     get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
-export_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
+export_dir = Path(get_repo_root()) / "example_files"
 dbase = Dbase()
 dbase.import_data_and_validate(source='PV-tool', source_dir=path_pv_tool, export_path=export_dir)
 
