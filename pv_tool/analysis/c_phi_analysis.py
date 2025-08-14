@@ -197,7 +197,7 @@ class CPhiAnalyse:
 
         with ExcelWriter(path, engine='openpyxl') as writer:
             if writer.book and sheet_name in writer.book.sheetnames:
-                print(f"Sheet '{sheet_name}' already exists in the Excel file so Excel file is overwritten")
+                print(f"Sheet '{sheet_name}' already exists in the Excel file so Excel file is overwritten")  # TODO Dit werkt niet en boeit ook niet - doe zoals Leo wil
             df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     def save_total_to_excel(self, path):  # TODO: idem als hierboven
