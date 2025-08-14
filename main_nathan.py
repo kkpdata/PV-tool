@@ -61,7 +61,7 @@ from pv_tool.analysis.variables import *
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
                       analysis_type='TXT_CPhi')
 
-analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_zwaar'])
+analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_zwaar'])  # TODO deze gaat nog steeds niet goed?
 analyse.show_results()
 analyse_path = save_test / f"analyse_output_{analyse.investigation_groups[0]}.xlsx"
 analyse.save_to_excel(path=analyse_path)
