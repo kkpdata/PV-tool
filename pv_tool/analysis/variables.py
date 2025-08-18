@@ -5,7 +5,6 @@ if TYPE_CHECKING:
     from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
 import numpy as np
 from scipy.stats import t
-from scipy.stats import linregress
 
 
 def count_s(self: CPhiAnalyse):
@@ -105,7 +104,7 @@ def sum_5_pr_ondergrens_gecorrigeerd(self: CPhiAnalyse):
 
 
 def sum_s_ty_ondergrens_gecorrigeerd(self: CPhiAnalyse):
-    return self.cphi_analyses_data_df['s_ty_ondergrens'].sum()
+    return self.cphi_analyses_data_df['s_ty_ondergrens_cor'].sum()  # Deze terug aangepast want eerst stond er niet _cor
 
 
 def a2_kar_gecorrigeerd(self: CPhiAnalyse):
@@ -130,12 +129,6 @@ def var_a1_gecorrigeerd(self: CPhiAnalyse):
     return formule
 
 
-def cov_a1_a2_gecorrigeerd(self: CPhiAnalyse):
-    formule = (-(sum_s(self) / (count_s(self) * sum_s_tt(self))) *
-               sum_kappa_2_2pr_gecorrigeerd(self) / (count_s(self) - 2))
-    return formule
-
-
 def sigma_a2_gecorrigeerd(self: CPhiAnalyse):
     return np.sqrt(var_a2_gecorrigeerd(self))
 
@@ -148,10 +141,11 @@ def helling_gecor(self: CPhiAnalyse):
     if self.cohesie_gem_handmatig is not None:
         x_values = self.cphi_analyses_data_df['S\'']
         y_values = self.cphi_analyses_data_df['correctie_t']
-        phi_gem = linregress(x=x_values, y=y_values).slope
+        x = np.array(x_values)[:, np.newaxis]
+        helling, _, _, _ = np.linalg.lstsq(x, np.array(y_values))
     else:
-        phi_gem = sum_s_ty(self) / sum_s_tt(self)
-    return phi_gem
+        helling = sum_s_ty(self) / sum_s_tt(self)
+    return helling
 
 
 def var_tan_phi_gem(self: CPhiAnalyse):
@@ -159,4 +153,8 @@ def var_tan_phi_gem(self: CPhiAnalyse):
 
 
 def var_tan_phi_kar(self: CPhiAnalyse):
-    return self.phi_kar_handmatig / np.sqrt(1 - self.phi_kar_handmatig**2)
+    if self.phi_kar_handmatig is not None:
+        phi_kar = self.phi_kar_handmatig
+    else:
+        phi_kar = self.eerste_benadering_a2_kar
+    return phi_kar / np.sqrt(1 - phi_kar**2)

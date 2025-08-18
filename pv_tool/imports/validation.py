@@ -26,6 +26,9 @@ class Validation:
         self.dataframes: Optional[Dict] = None
         self.critical = critical
         self.total_error_log: Optional[List] = None
+        self.critical_error_log: Optional[List] = None
+        self.warning_error_log: Optional[List] = None
+        self.error_totals: Optional[List] = []
 
     def split_dbase(self):
         """Deze functie verdeelt het invoer-dataframe in kleinere dataframes op basis van categorie."""
@@ -97,7 +100,6 @@ class Validation:
         This function is called in each individual validation function, where the schema is made for each category
         NB in error log and validation_df, the rows in which there are only errors or no errors are deleted
         """
-        # Define dataframe and schema columns;
         # Filter the DataFrame to only include columns present in both the schema and DataFrame
         df = self.split_dbase().get(category, pd.DataFrame())
 
@@ -182,10 +184,14 @@ class Validation:
         validation_df.index = new_index
         return validation_df, error_log
 
-    def validation_log(self, export_path: Path):  # TODO: is dit het uiteindelijk format? Hierin kunnen we nog wel verbeteren
+    def validation_log(self, export_path: Path, critical: Optional[bool] = True):
         """ Voert alle validaties uit en genereert een Excel-bestand (logbestand)."""
+        self.critical = critical
+
+        c = 'critical_errors' if self.critical else 'warnings'
+
         if export_path.is_dir():
-            file_name = f"validation_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+            file_name = f"validation_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{c}.xlsx"
             export_path = export_path / file_name
         elif export_path.suffix != ".xlsx":
             raise ValueError("Als save_path een bestandspad is, moet het de extensie '.xlsx' bevatten.")
@@ -211,6 +217,7 @@ class Validation:
             for func_name, func in validation_mapping.items():
                 validation_df, error_log = func(self)
                 validation_results[func_name] = validation_df
+                self.error_totals.append(f"number of {c} in {func_name} = {len(error_log)}")
                 error_logs.extend(error_log)
 
             sheet_names_print = []
@@ -220,8 +227,21 @@ class Validation:
                     sheet_names_print.append(sheet_name)
                     validation_df.to_excel(writer, sheet_name=sheet_name, index=True)
 
-            self.total_error_log = error_logs
-
         except Exception as e:
             print(f"Er trad een fout op tijdens validatie of het schrijven van Excel: {str(e)}")
             raise e
+
+        return error_logs
+
+    def validation_export(self, export_path: Path):
+        """Hier worden twee exports gemaakt van de validatie.
+        1 voor de kritieke fouten en 1 voor de waarschuwingen."""
+        self.critical_error_log = self.validation_log(export_path, critical=True)
+        self.warning_error_log = self.validation_log(export_path, critical=False)
+        self.total_error_log = [self.critical_error_log, self.warning_error_log]
+
+    def print_critical_errors(self):
+        """"Print de errors uit de import."""
+        errors = self.error_totals
+        for error in errors:
+            print(error)

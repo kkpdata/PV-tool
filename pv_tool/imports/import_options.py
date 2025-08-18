@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 def import_dbase(self: Dbase, dbase_dir: Path):
     """Importeert de Dbase-df (template)."""
-    dbase = pd.read_excel(dbase_dir, index_col='ALG__BORING_MONSTERNR_ID')
+    dbase = pd.read_excel(dbase_dir, sheet_name='Dbase5_0', index_col='ALG__BORING_MONSTERNR_ID')
     self.dbase_df = dbase
     return self.dbase_df
 
