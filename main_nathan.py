@@ -43,7 +43,7 @@ from pv_tool.imports.import_options import *
 from pv_tool.imports.import_data import Dbase
 
 
-path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
+path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n_test_zonder_functies.xlsm"
 # path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n_test_zonder_functies.xlsm"
 # path_to_data = Path(get_repo_root()) / "example_files" / "Dbase-template.xlsx"
 
@@ -62,21 +62,22 @@ print('Unieke verzamelingen:')
 for pvnaam in dbase.dbase_df['PV_NAAM'].unique():
     print(pvnaam)
 
+
+
+
 ##
-
-
 # CPHI-analyse
 from pv_tool.analysis.c_phi_analysis import *
 from pv_tool.analysis.variables import *
 
-analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
-                      analysis_type='TXT_CPhi')
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='15% rek',
+                      analysis_type='DSS_CPhi')
 
 #analyse.apply_parameters(cohesie_gem=9, phi_kar=0.6, cohesie_kar=7)
 # analyse.show_results()
 # analyse.show_figure()
 
-
+analyse.get_cphi_data()
 
 ## Forceer parameters test
 # analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)

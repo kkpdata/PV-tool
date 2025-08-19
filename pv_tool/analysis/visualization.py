@@ -21,7 +21,7 @@ def add_proefresultaten(self: CPhiAnalyse):
             x=x_proefresultaten,
             y=y_proefresultaten,
             mode='markers',
-            name=f'Geanalyseerde dataset: {self.investigation_groups}',
+            name=f'Geanalyseerd: {self.investigation_groups[0]}',
             text=boring_monsternummer,
             hoverinfo='text'
         )
@@ -56,7 +56,7 @@ def add_extra_proefresultaten(self: CPhiAnalyse, extra_groepen: Optional[List]):
             x=x_extra_proefresultaten,
             y=y_extra_proefresultaten,
             mode='markers',
-            name=f'Extra dataset: {extra_groepen}',
+            name=f'Extra: {extra_groepen[0]}',
             text=boring_monsternummer,
             hoverinfo='text'
         )

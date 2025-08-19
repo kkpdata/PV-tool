@@ -80,9 +80,16 @@ class CPhiAnalyse:
         elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__DSS']]
         self.cphi_analyses_data_df = self.cphi_analyses_data_df[self.cphi_analyses_data_df['PV_NAAM'].isin(
-            self.investigation_groups)]
+            self.investigation_groups)]  # TODO should have selectie veranderen in de dbase en daarmee verder
+
+        print(self.cphi_analyses_data_df)
+        print(self.cphi_analyses_data_df.columns)
+
         self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
+
+        print(self.cphi_analyses_data_df)
+        print(self.cphi_analyses_data_df.columns)
 
     def apply_settings(self, alpha: Optional[float] = None,
                        material_factor_cohesion: Optional[float] = None,
@@ -107,7 +114,7 @@ class CPhiAnalyse:
         self._run()
 
     def expand_analysis_df(self):
-        """Deze functie berekend alle benodigde parameters per monster voor de analyse."""
+        """Deze functie berekent alle benodigde parameters per monster voor de analyse."""
         calculate_s_tt(self)
         calculate_s_ty(self)
         calculate_kappa_2(self)
@@ -201,14 +208,12 @@ class CPhiAnalyse:
         file_name = 'Template_PVtool5_0.xlsx'
         file_path = f"{path}/{file_name}"  # Combineer het pad en de bestandsnaam handmatig
 
-        # Check of het bestand bestaat
         try:
             with open(file_path, 'r'):
                 pass
         except FileNotFoundError:
             raise FileNotFoundError("Er is geen dbase aanwezig onder de naam Template_PVtool5_0.xlsx")
 
-        # Verwachte kolommen definiëren
         expected_columns = [
             'PV_RESULTAAT_ID', 'PVNAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE',
             'PV_A1_COH_GEM [kPa]', 'PV_A2_TAN_PHI_GEM [-]', 'PV_A1_COH_KAR [kPa]', 'PV_A2_TAN_PHI_KAR [-]',
@@ -217,7 +222,6 @@ class CPhiAnalyse:
             'PV_VGWNAT_GEM', 'PV_VGWNAT_SD', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD'
         ]
 
-        # Nieuwe rij aanmaken
         new_row = {
             'PVNAAM': self.investigation_groups,
             'PV_REK': self.effective_stress,
@@ -243,22 +247,17 @@ class CPhiAnalyse:
             'PV_WATERGEHALTE_SD': None
         }
 
-        # Laad het bestaande Excel-bestand
         workbook = load_workbook(file_path)
 
         if 'Resultaten' in workbook.sheetnames:  # TODO dit gaat nog niet goed want hij vind dat resultaten nog niet bestaat terwijl die wel bestaat dus hij overschrijft de rij
-            # Sheet 'Resultaten' bestaat al, laad de bestaande data
             print('resultaten bestaat al!')
             df_exist = read_excel(file_path, sheet_name='Resultaten')
 
-            # Voeg de nieuwe rij toe aan de bestaande DataFrame
             df_exist = concat([df_exist, DataFrame([new_row])], ignore_index=True)
         else:
-            # Sheet 'Resultaten' bestaat nog niet, maak een nieuwe DataFrame
             print('resultaten bestaat nog niet....')
             df_exist = DataFrame([new_row], columns=expected_columns)
 
-        # Sla de bijgewerkte DataFrame op in het Excel-bestand
         with ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
             df_exist.to_excel(writer, sheet_name='Resultaten', index=False)
 
