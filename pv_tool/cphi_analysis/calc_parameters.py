@@ -6,10 +6,33 @@ from scipy.stats import linregress, norm
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
-from pv_tool.analysis.variables import (count_s, sum_s, sum_t, e_a2, a2_kar, a1_kar, a2_kar_gecorrigeerd,
+    from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
+from pv_tool.cphi_analysis.variables import (count_s, sum_s, sum_t, e_a2, a2_kar, a1_kar, a2_kar_gecorrigeerd,
                                         a1_kar_gecorrigeerd, helling_gecor, var_tan_phi_gem, var_tan_phi_kar)
 
+def calc_watergehalte_gem(self: CPhiAnalyse):
+    """Geeft gemiddelde watergehalte bij de geselecteerde pvnaam"""
+    column_name = self.cphi_analyses_data_df.filter(like='WATERGEHALTE_VOOR').columns[0]
+    watergehalte = self.cphi_analyses_data_df[column_name]
+    return watergehalte.mean()
+
+def calc_watergehalte_sd(self: CPhiAnalyse):
+    """Geeft standaard deviatie watergehalte bij de geselecteerde pvnaam"""
+    column_name = self.cphi_analyses_data_df.filter(like='WATERGEHALTE_VOOR').columns[0]
+    watergehalte = self.cphi_analyses_data_df[column_name]
+    return watergehalte.std()
+
+def calc_vgwnat_gem(self: CPhiAnalyse):
+    """Geeft gemiddelde nat volumegewicht bij de geselecteerde pvnaam [[[VOLUMEGEWICHT_NAT]]]"""
+    column_name = self.cphi_analyses_data_df.filter(like='VOLUMEGEWICHT_NAT').columns[0]
+    vgwnat = self.cphi_analyses_data_df[column_name]
+    return vgwnat.mean()
+
+def calc_vgwnat_sd(self: CPhiAnalyse):
+    """Geeft standaard deviatie nat volumegewicht bij de geselecteerde pvnaam"""
+    column_name = self.cphi_analyses_data_df.filter(like='VOLUMEGEWICHT_NAT').columns[0]
+    vgwnat = self.cphi_analyses_data_df[column_name]
+    return vgwnat.std()
 
 def calc_a2_phi_gem(self: CPhiAnalyse):
     """Geeft een eerste benadering voor de gemiddelde phi."""

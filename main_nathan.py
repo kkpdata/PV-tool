@@ -63,14 +63,14 @@ for pvnaam in dbase.dbase_df['PV_NAAM'].unique():
 
 ##
 # CPHI-analyse
-from pv_tool.analysis.c_phi_analysis import *
-from pv_tool.analysis.variables import *
+from pv_tool.cphi_analysis.c_phi_analysis import *
+from pv_tool.cphi_analysis.variables import *
 
-analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
-                      analysis_type='DSS_CPhi')
+# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
+#                       analysis_type='DSS_CPhi')
 
-# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
-#                       analysis_type='TXT_CPhi')
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
+                      analysis_type='TXT_CPhi')
 
 
 #analyse.apply_parameters(cohesie_gem=9, phi_kar=0.6, cohesie_kar=7)
@@ -80,9 +80,10 @@ analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effec
 analyse.get_cphi_data()
 
 ##
-# analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
+analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
+#analyse.apply_parameters(cohesie_gem=10.96, phi_kar=0.476, cohesie_kar=4.16)
 
-analyse.apply_settings(alpha=1.0)
+analyse.apply_settings(alpha=0.75)
 analyse.print_short_results()
 analyse.show_figure()
 

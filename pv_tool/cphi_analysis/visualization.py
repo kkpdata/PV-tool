@@ -2,11 +2,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
+    from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 import plotly.graph_objects as go
-from pv_tool.analysis.calc_parameters import *
+from pv_tool.cphi_analysis.calc_parameters import *
 from typing import Optional, List
-from pv_tool.analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES)
+from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES)
 
 
 def add_proefresultaten(self: CPhiAnalyse):

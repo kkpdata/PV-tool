@@ -2,8 +2,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
-from pv_tool.analysis.variables import *
+    from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
+from pv_tool.cphi_analysis.variables import *
 
 
 def calculate_s_tt(self: CPhiAnalyse):

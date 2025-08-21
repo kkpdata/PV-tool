@@ -2,11 +2,11 @@ from typing import Optional, List, Literal
 from datetime import datetime
 from pandas import DataFrame, ExcelWriter, concat, read_excel
 
-from pv_tool.cphi-analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS)
+from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS)
 
 from pv_tool.imports.import_data import Dbase
 import plotly.graph_objects as go
-from pv_tool.analysis.expand_analysis_df import (calculate_s_tt, calculate_s_ty, calculate_kappa_2,
+from pv_tool.cphi_analysis.expand_analysis_df import (calculate_s_tt, calculate_s_ty, calculate_kappa_2,
                                                  calculate_s, calculate_5pr_ondergrens, calculate_5pr_bovengrens,
                                                  calculate_s_tt_ondergrens, calculate_s_ty_ondergrens,
                                                  calculate_kappa_2_ondergrens, calculate_correctie_t, kappa_2_2pr_cor,
@@ -14,13 +14,14 @@ from pv_tool.analysis.expand_analysis_df import (calculate_s_tt, calculate_s_ty,
                                                  calculate_5pr_bovengrens_correctie_c,
                                                  calculate_s_ty_ondergrens_correctie_c,
                                                  calculate_kappa_2_ondergrens_correctie_c)
-from pv_tool.analysis.visualization import (add_proefresultaten, add_extra_proefresultaten, add_5pr_bovengrens,
+from pv_tool.cphi_analysis.visualization import (add_proefresultaten, add_extra_proefresultaten, add_5pr_bovengrens,
                                             add_5pr_ondergrens, add_fysische_realiseerbare_ondergrens, add_gemiddelde,
                                             set_layout)
-from pv_tool.analysis.calc_parameters import (calc_a2_phi_gem,  calc_a2_kar, calc_phi_d, helling_gecorrigeerd,
-                                              calc_a1_c_gem, calc_tan_phi_gem, calc_phi_kar, calc_cohesie_kar,
-                                              calc_phi_gem, calc_c_gem, calc_tan_phi_kar, calc_c_kar,
-                                              calc_tan_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c)
+from pv_tool.cphi_analysis.calc_parameters import (calc_watergehalte_gem, calc_watergehalte_sd, calc_vgwnat_gem,
+                                                   calc_vgwnat_sd, calc_a2_phi_gem,  calc_a2_kar, calc_phi_d,
+                                                   helling_gecorrigeerd, calc_a1_c_gem, calc_tan_phi_gem, calc_phi_kar,
+                                                   calc_cohesie_kar, calc_phi_gem, calc_c_gem, calc_tan_phi_kar,
+                                              calc_c_kar, calc_tan_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c)
 from openpyxl import load_workbook
 
 
@@ -60,6 +61,11 @@ class CPhiAnalyse:
         self.phi_kar_handmatig: Optional[float] = None
         self.cohesie_kar_handmatig: Optional[float] = None
 
+        self.calc_watergehalte_gem: Optional[float] = None
+        self.calc_watergehalte_sd: Optional[float] = None
+        self.calc_vgwnat_gem: Optional[float] = None
+        self.calc_vgwnat_sd: Optional[float] = None
+
         # Placeholder
         self.cphi_analyses_data_df: Optional[DataFrame] = None
 
@@ -90,13 +96,20 @@ class CPhiAnalyse:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[self.cphi_analyses_data_df['PV_NAAM'].isin(
                     self.investigation_groups)]  # TODO should have selectie veranderen in de dbase en daarmee verder
+            self.calc_watergehalte_gem = calc_watergehalte_gem(self)
+            self.calc_watergehalte_sd = calc_watergehalte_sd(self)
+            self.calc_vgwnat_gem = calc_vgwnat_gem(self)
+            self.calc_vgwnat_sd = calc_vgwnat_sd(self)
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
-
 
         elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__DSS']]
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[self.cphi_analyses_data_df['PV_NAAM'].isin(
                     self.investigation_groups)]  # TODO should have selectie veranderen in de dbase en daarmee verder
+            self.calc_watergehalte_gem = calc_watergehalte_gem(self)
+            self.calc_watergehalte_sd = calc_watergehalte_sd(self)
+            self.calc_vgwnat_gem = calc_vgwnat_gem(self)
+            self.calc_vgwnat_sd = calc_vgwnat_sd(self)
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])]
 
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
@@ -219,16 +232,14 @@ class CPhiAnalyse:
         a separate sheet called 'Resultaten'.
         """
         file_name = 'Template_PVtool5_0.xlsx'
-        file_path = f"{path}/{file_name}"  # Combine the path and file name manually
+        file_path = f"{path}/{file_name}"
 
-        # Check if the file exists
         try:
             with open(file_path, 'r'):
                 pass
         except FileNotFoundError:
             raise FileNotFoundError("Er is geen dbase aanwezig onder de naam Template_PVtool5_0.xlsx")
 
-        # Expected columns for the "Resultaten" sheet
         expected_columns = [
             'PV_RESULTAAT_ID', 'PVNAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE',
             'PV_A1_COH_GEM [kPa]', 'PV_A2_TAN_PHI_GEM [-]', 'PV_A1_COH_KAR [kPa]', 'PV_A2_TAN_PHI_KAR [-]',
@@ -237,7 +248,6 @@ class CPhiAnalyse:
             'PV_VGWNAT_GEM', 'PV_VGWNAT_SD', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD', 'Timestamp'
         ]
 
-        # Create a new row with the results
         new_row = {
             'PVNAAM': self.investigation_groups,
             'PV_REK': self.effective_stress,
@@ -255,34 +265,28 @@ class CPhiAnalyse:
             'PV_PHI_KAR [graden]': self.phi_kar,
             'PV_COH_SD_DSTAB [-]': self.st_dev_c if self.c_gem > 0 and self.c_kar > 0 else "[-] (c < 0)",
             'PV_PHI_SD_DSTAB [-]': self.st_dev_phi,
-            'PV_PARTPHI': None,
-            'PV_PARTCOH': None,
-            'PV_VGWNAT_GEM': None,
-            'PV_VGWNAT_SD': None,
-            'PV_WATERGEHALTE_GEM': None,
-            'PV_WATERGEHALTE_SD': None,
+            'PV_PARTPHI [-]': self.material_tan_phi,
+            'PV_PARTCOH [-]': self.material_cohesie,
+            'PV_VGWNAT_GEM [kN/m3]': self.calc_vgwnat_gem,
+            'PV_VGWNAT_SD [kN/m3]': self.calc_vgwnat_sd,
+            'PV_WATERGEHALTE_GEM': self.calc_watergehalte_gem,
+            'PV_WATERGEHALTE_SD': self.calc_watergehalte_sd,
             'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
-        # Load the Excel workbook
         workbook = load_workbook(file_path)
 
-        # Check if the "Resultaten" sheet exists
         if 'Resultaten' in workbook.sheetnames:
-            print('Resultaten bestaat al!')
-            # Read the existing data from the "Resultaten" sheet
+            print('Tabblad resultaten in dbase excel bestaat al en wordt aangevuld')
             df_existing = read_excel(file_path, sheet_name='Resultaten')
-
-            # Add the new row to the existing DataFrame
             df_updated = concat([df_existing, DataFrame([new_row])], ignore_index=True)
         else:
-            print('Resultaten bestaat nog niet...')
-            # Create a new DataFrame with the new row
+            print('Tabblad resultaten in dbase excel bestaat nog niet en wordt aangemaakt')
             df_updated = DataFrame([new_row], columns=expected_columns)
 
-        # Write the updated DataFrame back to the Excel file, replacing the "Resultaten" sheet
         with ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
             df_updated.to_excel(writer, sheet_name='Resultaten', index=False)
+        # door de manier van wegschrijven wordt het een beetje raar als je iets in deze code verandert, dus dit kan nog anders
 
         return df_updated
 
