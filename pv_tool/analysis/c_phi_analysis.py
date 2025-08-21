@@ -1,6 +1,6 @@
 from typing import Optional, List, Literal
 from pandas import DataFrame, ExcelWriter, concat, read_excel
-from pv_tool.analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES)
+from pv_tool.analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS)
 from pv_tool.imports.import_data import Dbase
 import plotly.graph_objects as go
 from pv_tool.analysis.expand_analysis_df import (calculate_s_tt, calculate_s_ty, calculate_kappa_2,
@@ -25,7 +25,15 @@ class CPhiAnalyse:
     def __init__(self, dbase: Dbase,
                  analysis_type: Literal['TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH'],
                  investigation_groups: List,
-                 effective_stress: Literal['2% rek', '5% rek', '15% rek', 'pieksterkte', 'eindsterkte']):
+                 effective_stress: Literal['2% rek', '5% rek', '10% rek', '15% rek', '20% rek',
+                                            'pieksterkte', 'eindsterkte']):
+
+        # Validate effective_stress based on analysis_type
+        if analysis_type in ['TXT_CPhi', 'TXT_SH'] and effective_stress in ['10% rek', '20% rek']:
+            raise ValueError(
+                f"De waardes '10% rek' and '20% rek' kunnen alleen gebruikt worden bij de DSS analyse. "
+                f"De gekozen analyse is: '{analysis_type}', en de sterkte is: '{effective_stress}'"
+            )
 
         # Data
         self.dbase_df = dbase.dbase_df
@@ -77,15 +85,17 @@ class CPhiAnalyse:
         """
         if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
+            self.cphi_analyses_data_df = self.cphi_analyses_data_df[self.cphi_analyses_data_df['PV_NAAM'].isin(
+                    self.investigation_groups)]  # TODO should have selectie veranderen in de dbase en daarmee verder
+            self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
+
+
         elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__DSS']]
-        self.cphi_analyses_data_df = self.cphi_analyses_data_df[self.cphi_analyses_data_df['PV_NAAM'].isin(
-            self.investigation_groups)]  # TODO should have selectie veranderen in de dbase en daarmee verder
+            self.cphi_analyses_data_df = self.cphi_analyses_data_df[self.cphi_analyses_data_df['PV_NAAM'].isin(
+                    self.investigation_groups)]  # TODO should have selectie veranderen in de dbase en daarmee verder
+            self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])]
 
-        print(self.cphi_analyses_data_df)
-        print(self.cphi_analyses_data_df.columns)
-
-        self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
 
         print(self.cphi_analyses_data_df)
@@ -222,7 +232,7 @@ class CPhiAnalyse:
             'PV_VGWNAT_GEM', 'PV_VGWNAT_SD', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD'
         ]
 
-        new_row = {
+        new_row = {  # TODO de naam is self.results of zoiets
             'PVNAAM': self.investigation_groups,
             'PV_REK': self.effective_stress,
             'PV_TYPE_PROEF': self.analysis_type.split('_')[0],

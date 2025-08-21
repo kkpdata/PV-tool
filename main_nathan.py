@@ -70,8 +70,12 @@ for pvnaam in dbase.dbase_df['PV_NAAM'].unique():
 from pv_tool.analysis.c_phi_analysis import *
 from pv_tool.analysis.variables import *
 
-analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='15% rek',
-                      analysis_type='DSS_CPhi')
+# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
+#                       analysis_type='DSS_CPhi')
+
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='20% rek',
+                      analysis_type='TXT_CPhi')
+
 
 #analyse.apply_parameters(cohesie_gem=9, phi_kar=0.6, cohesie_kar=7)
 # analyse.show_results()
@@ -79,12 +83,12 @@ analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effec
 
 analyse.get_cphi_data()
 
-## Forceer parameters test
+##
 # analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
 
 analyse.apply_settings(alpha=1.0)
 analyse.show_results()
-analyse.show_figure(plot_extra_dataset=['TXT_SAFE_klei_licht_12_16'])
+analyse.show_figure()  # TODO: als hier een extra dataset wordt geplot komt er nog een error, door het aanmaken van de c phi dataframe wat niet goed gaat
 
 # analyse.save_to_excel(path=save_test) # dit hoeft niet meer want doe je met add_results
 

@@ -149,7 +149,10 @@ def helling_gecor(self: CPhiAnalyse):
 
 
 def var_tan_phi_gem(self: CPhiAnalyse):
-    return helling_gecor(self) / np.sqrt(1 - helling_gecor(self)**2)
+    if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
+        return helling_gecor(self) / np.sqrt(1 - helling_gecor(self)**2)
+    elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+        return helling_gecor(self)
 
 
 def var_tan_phi_kar(self: CPhiAnalyse):
@@ -157,4 +160,7 @@ def var_tan_phi_kar(self: CPhiAnalyse):
         phi_kar = self.phi_kar_handmatig
     else:
         phi_kar = self.eerste_benadering_a2_kar
-    return phi_kar / np.sqrt(1 - phi_kar**2)
+    if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
+        return phi_kar / np.sqrt(1 - phi_kar**2)
+    elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+        return phi_kar

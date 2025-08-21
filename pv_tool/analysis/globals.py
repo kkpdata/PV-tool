@@ -17,3 +17,31 @@ TEXTUAL_NAMES = {
 }
 
 NEW_COLUMN_NAMES = ['PV_NAAM', 'S\'', 'T']
+
+# -------------------------------------- DSS ---------------------------------------
+
+TWO_PERC_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_2%', 'DSS_T_2%']
+
+FIVE_PERC_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_5%', 'DSS_T_5%']
+
+TEN_PERC_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_10%', 'DSS_T_10%']
+
+FIFTEEN_PERC_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_15%', 'DSS_T_15%']
+
+TWENTY_PERC_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_20%', 'DSS_T_20%']
+
+PIEKSTERKTE_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_BIJ_T_MAX', 'DSS_T_MAX']
+
+EINDSTERKTE_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_BIJ_T_EIND', 'DSS_T_EIND']
+
+TEXTUAL_NAMES_DSS = {
+    '2% rek': TWO_PERC_COLUMNS_DSS,
+    '5% rek': FIVE_PERC_COLUMNS_DSS,
+    '10% rek': TEN_PERC_COLUMNS_DSS,
+    '15% rek': FIFTEEN_PERC_COLUMNS_DSS,
+    '20% rek': TWENTY_PERC_COLUMNS_DSS,
+    'pieksterkte': PIEKSTERKTE_COLUMNS_DSS,
+    'eindsterkte': EINDSTERKTE_COLUMNS_DSS,
+}
+
+

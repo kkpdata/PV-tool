@@ -3,6 +3,7 @@ from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
 from typing import Literal, List, Optional
 from pathlib import Path
 
+# TODO: dit is voor de toekomst. was voor nu een idee om de notebook overzichtelijker te maken.
 
 class PVTool:
     def __init__(self):
