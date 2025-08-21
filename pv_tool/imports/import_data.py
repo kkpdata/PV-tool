@@ -1,4 +1,5 @@
-from pandas import DataFrame
+from pandas import DataFrame, read_excel, ExcelWriter
+from datetime import datetime
 from typing import Optional, Literal
 from pathlib import Path
 from pv_tool.imports.create_dbase import add_missing_columns, select_columns, alg_columns, add_ana_columns, add_pv_naam
@@ -46,10 +47,48 @@ class Dbase:
         self._create_dbase(source=source)
         return self.dbase_df
 
+    from datetime import datetime
+    from pandas import read_excel, ExcelWriter
+    import os
+
     def export_dbase_to_excel(self, export_dir: Path, filename: str = 'Template_PVtool5_0.xlsx'):
-        """Exporteert de Dbase-df naar een excel, het template-file
-        :param export_dir: Het pad naar de directory waarin het bestand wordt opgeslagen.
-        :param filename: De naam van het bestand. Standaard: 'Dbase-template.xlsx."""
+        """
+        Exports the Dbase DataFrame to an Excel file.
+        :param export_dir: The directory where the file will be saved.
+        :param filename: The name of the file. Default is 'Template_PVtool5_0.xlsx'.
+        """
         export_path = export_dir / filename
-        self.dbase_df.to_excel(export_path, sheet_name='Dbase5_0', index=True)
-        print(f"Excel-bestand geëxporteerd naar: {export_path}")
+        sheet_name = 'Dbase5_0'
+
+        # Ensure the export directory exists
+        if not export_dir.exists():
+            export_dir.mkdir(parents=True)
+            print(f"Directory created: {export_dir}")
+
+        # Check if the file exists
+        if export_path.exists():
+            print(f"File already exists: {export_path}")
+            try:
+                existing_df = read_excel(export_path, sheet_name=sheet_name)
+                # Compare the existing dataframe with the new dataframe
+                if existing_df.equals(self.dbase_df):
+                    print("Dbase is already present at this location.")
+                    return
+                else:
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    print(f"Template_PVtool5_0.xlsx is already present but the dbase is different. "
+                          f"The sheet 'Dbase5_0' will be overwritten at {timestamp}.")
+            except ValueError:  # Raised if the sheet does not exist
+                print(f"Sheet '{sheet_name}' does not exist in the file. Adding it.")
+        else:
+            print(f"Creating new file: {export_path}")
+            # Ensure the file is created if it doesn't exist
+            with ExcelWriter(export_path, engine='openpyxl', mode='w') as writer:
+                self.dbase_df.to_excel(writer, sheet_name=sheet_name, index=True)
+            print(f"Excel file created: {export_path}")
+            return
+
+        # If the file already exists, append or replace the sheet
+        with ExcelWriter(export_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+            self.dbase_df.to_excel(writer, sheet_name=sheet_name, index=True)
+        print(f"Excel file exported to: {export_path}")

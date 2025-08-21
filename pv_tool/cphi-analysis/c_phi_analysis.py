@@ -1,6 +1,9 @@
 from typing import Optional, List, Literal
+from datetime import datetime
 from pandas import DataFrame, ExcelWriter, concat, read_excel
-from pv_tool.analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS)
+
+from pv_tool.cphi-analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS)
+
 from pv_tool.imports.import_data import Dbase
 import plotly.graph_objects as go
 from pv_tool.analysis.expand_analysis_df import (calculate_s_tt, calculate_s_ty, calculate_kappa_2,
@@ -198,7 +201,7 @@ class CPhiAnalyse:
         self.set_figure(plot_extra_dataset)
         self.figure.show()
 
-    def show_results(self):
+    def print_short_results(self):
         """Deze functie presenteert alle resultaten."""
         self._run()
         index = ['verwachtingswaarde', 'karakteristieke waarde', 'rekenwaarde', 'standaarddeviatie']
@@ -211,28 +214,31 @@ class CPhiAnalyse:
 
     def add_results_to_dbase(self, path):
         """
-        Deze functie voegt de resultaten toe aan de dbase Excel export,
-        die gegenereerd is met de functie export_dbase_to_excel in import_data.
-        Dit gebeurt in een los tabblad genaamd 'Resultaten'.
+        This function adds results to the dbase Excel export, generated with the
+        function `export_dbase_to_excel` in `import_data`. The results are added in
+        a separate sheet called 'Resultaten'.
         """
         file_name = 'Template_PVtool5_0.xlsx'
-        file_path = f"{path}/{file_name}"  # Combineer het pad en de bestandsnaam handmatig
+        file_path = f"{path}/{file_name}"  # Combine the path and file name manually
 
+        # Check if the file exists
         try:
             with open(file_path, 'r'):
                 pass
         except FileNotFoundError:
             raise FileNotFoundError("Er is geen dbase aanwezig onder de naam Template_PVtool5_0.xlsx")
 
+        # Expected columns for the "Resultaten" sheet
         expected_columns = [
             'PV_RESULTAAT_ID', 'PVNAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE',
             'PV_A1_COH_GEM [kPa]', 'PV_A2_TAN_PHI_GEM [-]', 'PV_A1_COH_KAR [kPa]', 'PV_A2_TAN_PHI_KAR [-]',
             'PV_PARTPHI', 'PV_PARTCOH', 'PV_TYPEVERZAMELING', 'PV_COH_GEM [kPa]', 'PV_PHI_GEM [graden]',
             'PV_COH_KAR [kPa]', 'PV_PHI_KAR [graden]', 'PV_COH_SD_DSTAB [-]', 'PV_PHI_SD_DSTAB [-]',
-            'PV_VGWNAT_GEM', 'PV_VGWNAT_SD', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD'
+            'PV_VGWNAT_GEM', 'PV_VGWNAT_SD', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD', 'Timestamp'
         ]
 
-        new_row = {  # TODO de naam is self.results of zoiets
+        # Create a new row with the results
+        new_row = {
             'PVNAAM': self.investigation_groups,
             'PV_REK': self.effective_stress,
             'PV_TYPE_PROEF': self.analysis_type.split('_')[0],
@@ -254,34 +260,32 @@ class CPhiAnalyse:
             'PV_VGWNAT_GEM': None,
             'PV_VGWNAT_SD': None,
             'PV_WATERGEHALTE_GEM': None,
-            'PV_WATERGEHALTE_SD': None
+            'PV_WATERGEHALTE_SD': None,
+            'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
+        # Load the Excel workbook
         workbook = load_workbook(file_path)
 
-        if 'Resultaten' in workbook.sheetnames:  # TODO dit gaat nog niet goed want hij vind dat resultaten nog niet bestaat terwijl die wel bestaat dus hij overschrijft de rij
-            print('resultaten bestaat al!')
-            df_exist = read_excel(file_path, sheet_name='Resultaten')
+        # Check if the "Resultaten" sheet exists
+        if 'Resultaten' in workbook.sheetnames:
+            print('Resultaten bestaat al!')
+            # Read the existing data from the "Resultaten" sheet
+            df_existing = read_excel(file_path, sheet_name='Resultaten')
 
-            df_exist = concat([df_exist, DataFrame([new_row])], ignore_index=True)
+            # Add the new row to the existing DataFrame
+            df_updated = concat([df_existing, DataFrame([new_row])], ignore_index=True)
         else:
-            print('resultaten bestaat nog niet....')
-            df_exist = DataFrame([new_row], columns=expected_columns)
+            print('Resultaten bestaat nog niet...')
+            # Create a new DataFrame with the new row
+            df_updated = DataFrame([new_row], columns=expected_columns)
 
+        # Write the updated DataFrame back to the Excel file, replacing the "Resultaten" sheet
         with ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
-            df_exist.to_excel(writer, sheet_name='Resultaten', index=False)
+            df_updated.to_excel(writer, sheet_name='Resultaten', index=False)
 
+        return df_updated
 
-    def save_to_excel(self, path):
-        file_name = f"analyse_output_{self.investigation_groups[0]}.xlsx"
-        file_path = f"{path}/{file_name}"
-        sheet_name = f"{self.analysis_type}_{self.effective_stress}"
-        df = self.show_results()
-
-        with ExcelWriter(file_path, engine='openpyxl') as writer:
-            if writer.book and sheet_name in writer.book.sheetnames:
-                print(f"Sheet '{sheet_name}' already exists in the Excel file so Excel file is overwritten")  # TODO Dit werkt niet en boeit ook niet - doe zoals in de functie hierboven dan kan dit weg
-            df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     def save_total_to_excel(self, path):
 

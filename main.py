@@ -61,7 +61,7 @@ from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
                       analysis_type='TXT_CPhi')
 
-analyse.show_results()
+analyse.show_results() # deze is eruit
 print('phi_gem_benadering =', analyse.eerste_benadering_a2_gem)
 print('c_gem_benadering =', analyse.eerste_benadering_a1_gem)
 print('phi_kar_benadering =', analyse.eerste_benadering_a2_kar)
@@ -75,7 +75,7 @@ print('helling_gecor =', analyse.helling_gecorrigeerd)
 print('c_gem_hand =', analyse.cohesie_gem_handmatig)
 print('phi_kar_hand =', analyse.phi_kar_handmatig)
 print('c_kar_hand =', analyse.cohesie_kar_handmatig)
-analyse.show_results()
+analyse.show_results() # deze is eruit
 
 ##
 
