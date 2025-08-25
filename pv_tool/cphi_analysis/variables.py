@@ -69,6 +69,16 @@ def t_n_2(self: CPhiAnalyse):
     degrees_of_freedom = count_s(self) - 2
     return t.ppf(1 - significantieniveau / 2, degrees_of_freedom)
 
+def t_n_2_sh(self: CPhiAnalyse):
+    significantieniveau = 0.05
+    degrees_of_freedom = count_s(self) - 1
+    return t.ppf(significantieniveau, degrees_of_freedom)
+
+def gem_ln_tan_a_sh(self: CPhiAnalyse):
+    return self.cphi_analyses_data_df['ln(tan(a))'].mean()
+
+def std_ln_tan_a_sh(self: CPhiAnalyse):
+    return self.cphi_analyses_data_df['ln(tan(a))'].std()
 
 def sum_s2(self: CPhiAnalyse):
     return self.cphi_analyses_data_df['s\''].sum()
@@ -148,14 +158,14 @@ def helling_gecor(self: CPhiAnalyse):
     return helling
 
 
-def var_tan_phi_gem(self: CPhiAnalyse):
+def var_tan_phi_gem(self: CPhiAnalyse):  # TODO toevoegen alternatief voor SH
     if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
         return helling_gecor(self) / np.sqrt(1 - helling_gecor(self)**2)
     elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
         return helling_gecor(self)
 
 
-def var_tan_phi_kar(self: CPhiAnalyse):
+def var_tan_phi_kar(self: CPhiAnalyse):  # TODO toevoegen alternatief voor SH
     if self.phi_kar_handmatig is not None:
         phi_kar = self.phi_kar_handmatig
     else:

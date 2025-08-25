@@ -6,8 +6,9 @@ from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES, TEXT
 
 from pv_tool.imports.import_data import Dbase
 import plotly.graph_objects as go
-from pv_tool.cphi_analysis.expand_analysis_df import (calculate_s_tt, calculate_s_ty, calculate_kappa_2,
-                                                 calculate_s, calculate_5pr_ondergrens, calculate_5pr_bovengrens,
+from pv_tool.cphi_analysis.expand_analysis_df import (calculate_tan_a, calculate_ln_tan_a, calculate_s_tt,
+                                                      calculate_s_ty, calculate_kappa_2, calculate_s,
+                                                      calculate_5pr_ondergrens, calculate_5pr_bovengrens,
                                                  calculate_s_tt_ondergrens, calculate_s_ty_ondergrens,
                                                  calculate_kappa_2_ondergrens, calculate_correctie_t, kappa_2_2pr_cor,
                                                  calculate_5pr_ondergrens_correctie_c,
@@ -21,7 +22,8 @@ from pv_tool.cphi_analysis.calc_parameters import (calc_watergehalte_gem, calc_w
                                                    calc_vgwnat_sd, calc_a2_phi_gem,  calc_a2_kar, calc_phi_d,
                                                    helling_gecorrigeerd, calc_a1_c_gem, calc_tan_phi_gem, calc_phi_kar,
                                                    calc_cohesie_kar, calc_phi_gem, calc_c_gem, calc_tan_phi_kar,
-                                              calc_c_kar, calc_tan_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c)
+                                              calc_c_kar, calc_tan_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c,
+                                                calc_a2_phi_gem_sh, calc_a2_phi_kar_boven_sh, calc_a2_phi_kar_onder_sh)
 from openpyxl import load_workbook
 
 
@@ -84,6 +86,9 @@ class CPhiAnalyse:
 
         self.gem_a1: Optional[float] = None
         self.gem_a2: Optional[float] = None
+
+        self.phi_kar_onder: Optional[float] = None
+        self.phi_kar_boven: Optional[float] = None
 
         # Figure
         self.figure = go.Figure()
@@ -151,6 +156,11 @@ class CPhiAnalyse:
         calculate_s_ty_ondergrens(self)
         calculate_kappa_2_ondergrens(self)
 
+    def expand_analysis_df_sh(self):
+        """Deze functie berekent alle benodigde parameters per monster voor de analyse."""
+        calculate_tan_a(self)
+        calculate_ln_tan_a(self)
+
     def eerste_benadering(self):
         """Deze functie maakt een eerste benadering voor de gemiddelde cohesie en phi."""
         # self.eerste_benadering_a1_gem = calc_cohesie_gem(self)
@@ -161,6 +171,10 @@ class CPhiAnalyse:
         """Deze functie maakt een eerste benadering voor de karakteristieke cohesie en phi"""
         self.eerste_benadering_a2_kar = calc_a2_kar(self)
         self.eerste_benadering_a1_kar = calc_cohesie_kar(self)
+
+    def eerste_benadering_sh(self):
+
+        pass
 
     def expand_analysis_df_corrected(self):
         """Voegt aanvullende kolommen toe aan het dataframe."""
@@ -185,6 +199,11 @@ class CPhiAnalyse:
         self.c_d = calc_c_d(self)
         self.st_dev_phi = calc_st_dev_phi(self)
         self.st_dev_c = calc_st_dev_c(self)
+
+    def result_values_sh(self):
+        self.phi_gem = calc_a2_phi_gem_sh(self)
+        self.phi_kar_onder = calc_a2_phi_kar_onder_sh(self)
+        self.phi_kar_boven = calc_a2_phi_kar_boven_sh(self)
 
     def _run(self):
         """Deze functie zorgt ervoor dat zodra er iets veranderd in de bron-data alles opnieuw wordt berekend."""
@@ -295,6 +314,9 @@ class CPhiAnalyse:
 
         file_name = f"c_phi_export_test_{self.investigation_groups[0]}.xlsx"
         file_path = f"{path}/{file_name}"
+
+        if self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+            self.cphi_analyses_data_df.rename(columns={'S\'': '\u03C3 \'', 'T': '\u03C4 \''})
         df_totaal = self.cphi_analyses_data_df
         with ExcelWriter(file_path, engine='openpyxl') as writer:
             df_totaal.to_excel(writer)

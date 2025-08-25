@@ -7,8 +7,10 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
-from pv_tool.cphi_analysis.variables import (count_s, sum_s, sum_t, e_a2, a2_kar, a1_kar, a2_kar_gecorrigeerd,
-                                        a1_kar_gecorrigeerd, helling_gecor, var_tan_phi_gem, var_tan_phi_kar)
+from pv_tool.cphi_analysis.variables import (count_s, sum_s, sum_t, e_a2, a2_kar, a1_kar, t_n_2, t_n_2_sh,
+                                             gem_ln_tan_a_sh, std_ln_tan_a_sh,
+                                             a2_kar_gecorrigeerd, a1_kar_gecorrigeerd, helling_gecor, var_tan_phi_gem,
+                                             var_tan_phi_kar)
 
 def calc_watergehalte_gem(self: CPhiAnalyse):
     """Geeft gemiddelde watergehalte bij de geselecteerde pvnaam"""
@@ -41,6 +43,22 @@ def calc_a2_phi_gem(self: CPhiAnalyse):
     a2_phi_gem = linregress(x=x_values, y=y_values).slope
     return a2_phi_gem
 
+def calc_a2_phi_gem_sh(self: CPhiAnalyse):
+    """Geeft een eerste benadering voor de gemiddelde phi."""
+    a2_phi_gem = math.exp(gem_ln_tan_a_sh(self))
+    return a2_phi_gem
+
+def calc_a2_phi_kar_onder_sh(self: CPhiAnalyse):
+    """Geeft de karakteristieke phi ondergrens bij schematiseringshandleiding berekening c phi."""
+    a2_phi_kar_onder = math.exp(gem_ln_tan_a_sh(self)+t_n_2_sh(self)*std_ln_tan_a_sh(self)*
+                                math.sqrt((1-self.alpha)+1/count_s(self)))
+    return a2_phi_kar_onder
+
+def calc_a2_phi_kar_boven_sh(self: CPhiAnalyse):
+    """Geeft de karakteristieke phi bovengrens bij schematiseringshandleiding berekening c phi."""
+    a2_phi_kar_boven = math.exp(gem_ln_tan_a_sh(self) - t_n_2_sh(self) * std_ln_tan_a_sh(self) *
+                                math.sqrt((1 - self.alpha) + 1 / count_s(self)))
+    return a2_phi_kar_boven
 
 def calc_tan_phi_gem(self: CPhiAnalyse):
     """Berekend de gemiddelde tan phi"""
