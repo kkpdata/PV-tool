@@ -29,6 +29,16 @@ from pv_tool.cphi_analysis.calc_parameters import (calc_watergehalte_gem, calc_w
 from openpyxl import load_workbook
 
 
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, PageBreak
+)
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+
+
+
+
 class CPhiAnalyse:
     def __init__(self, dbase: Dbase,
                  analysis_type: Literal['TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH'],
@@ -72,6 +82,7 @@ class CPhiAnalyse:
 
         # Placeholder
         self.cphi_analyses_data_df: Optional[DataFrame] = None
+        self.total_cphi_analyses_data_df: Optional[DataFrame] = None
 
         # Results
         self.tan_phi_gem: Optional[float] = None
@@ -110,6 +121,7 @@ class CPhiAnalyse:
             self.calc_watergehalte_sd = calc_watergehalte_sd(self)
             self.calc_vgwnat_gem = calc_vgwnat_gem(self)
             self.calc_vgwnat_sd = calc_vgwnat_sd(self)
+            self.total_cphi_analyses_data_df = self.cphi_analyses_data_df
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
 
         elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
@@ -120,6 +132,7 @@ class CPhiAnalyse:
             self.calc_watergehalte_sd = calc_watergehalte_sd(self)
             self.calc_vgwnat_gem = calc_vgwnat_gem(self)
             self.calc_vgwnat_sd = calc_vgwnat_sd(self)
+            self.total_cphi_analyses_data_df = self.cphi_analyses_data_df
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])]
 
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
@@ -374,3 +387,125 @@ class CPhiAnalyse:
         df_totaal = self.cphi_analyses_data_df
         with ExcelWriter(file_path, engine='openpyxl') as writer:
             df_totaal.to_excel(writer)
+
+    def save_to_pdf(self, path):
+        """
+        Save the results to a PDF according to the provided specifications.
+        """
+        # 1. Prepare PDF filename and path (no os)
+
+        title = f"{self.investigation_groups}_{self.effective_stress}_{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}"
+        file_name = f"c_phi_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf"
+        file_path = f"{path}/{file_name}"
+
+        # 2. Generate and save the figure from plotly
+        fig_path = f"{path}/temp_plot.png"
+        self.show_figure()  # Ensure the figure is generated
+        self.figure.write_image(fig_path, format="png")
+
+        # 3. Prepare DataFrames for tables
+        # Table 1
+        columns_base = [
+            'ALG__BORING_MONSTERNR_ID', 'BORING_POSITIE', 'MONSTER_NIVEAU_NAP_VANAF', 'MONSTER_NIVEAU_NAP_TOT'
+        ]
+        if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
+            columns_extra = ['TXT_SS_VOLUMEGEWICHT_NAT', 'TXT_SS_VOLUMEGEWICHT_DRG', 'TXT_SS_WATERGEHALTE_VOOR']
+        else:
+            columns_extra = ['DSS_VOLUMEGEWICHT_NAT', 'DSS_VOLUMEGEWICHT_DRG', 'DSS_WATERGEHALTE_VOOR']
+        table1_cols = columns_base + columns_extra
+        table1_df = self.total_cphi_analyses_data_df[table1_cols].copy()
+
+        # Table 2
+        table2_df = self.cphi_analyses_data_df.copy()
+
+        # Output table
+        output_table_df = self.print_short_results().copy()
+
+        # Initial values table
+        initial_values = []
+        if self.gem_a1 is not None: initial_values.append(['gem_a1', self.gem_a1])
+        if self.gem_a2 is not None: initial_values.append(['gem_a2', self.gem_a2])
+        if self.kar_a1 is not None: initial_values.append(['kar_a1', self.kar_a1])
+        if self.kar_a2 is not None: initial_values.append(['kar_a2', self.kar_a2])
+        if hasattr(self, 'a2_phi_kar_onder') and self.a2_phi_kar_onder is not None: initial_values.append(
+            ['a2_phi_kar_onder', self.a2_phi_kar_onder])
+        if hasattr(self, 'a2_phi_kar_boven') and self.a2_phi_kar_boven is not None: initial_values.append(
+            ['a2_phi_kar_boven', self.a2_phi_kar_boven])
+
+        # 4. Create PDF document
+        doc = SimpleDocTemplate(file_path, pagesize=A4)
+        styles = getSampleStyleSheet()
+        story = []
+
+        # Title
+        story.append(Paragraph(title, styles['Title']))
+        story.append(Spacer(1, 12))
+
+        # Add graph picture
+        story.append(Paragraph("Figuur:", styles['Heading2']))
+        story.append(Image(fig_path, width=400, height=250))
+        story.append(Spacer(1, 12))
+
+        # Table 1
+        story.append(Paragraph("Invoertabel 1:", styles['Heading2']))
+        t1 = Table([table1_df.columns.tolist()] + table1_df.values.tolist(), repeatRows=1)
+        t1.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ]))
+        story.append(t1)
+        story.append(Spacer(1, 12))
+
+        # Table 2
+        story.append(Paragraph("Invoertabel 2:", styles['Heading2']))
+        t2 = Table([table2_df.columns.tolist()] + table2_df.values.tolist(), repeatRows=1)
+        t2.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ]))
+        story.append(t2)
+        story.append(Spacer(1, 12))
+
+        # Initial values table
+        story.append(Paragraph("Initiële waarden:", styles['Heading2']))
+        t3 = Table([['Parameter', 'Waarde']] + initial_values)
+        t3.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ]))
+        story.append(t3)
+        story.append(Spacer(1, 12))
+
+        # Optional manual values text
+        manual_texts = []
+        if self.cohesie_gem_handmatig is not None:
+            manual_texts.append(f"handmatig opgegeven: cohesie_gem_handmatig = {self.cohesie_gem_handmatig}")
+        if self.phi_kar_handmatig is not None:
+            manual_texts.append(f"handmatig opgegeven: phi_kar_handmatig = {self.phi_kar_handmatig}")
+        if self.cohesie_kar_handmatig is not None:
+            manual_texts.append(f"handmatig opgegeven: cohesie_kar_handmatig = {self.cohesie_kar_handmatig}")
+        if manual_texts:
+            story.append(Paragraph("Handmatig opgegeven waarden:", styles['Heading3']))
+            for txt in manual_texts:
+                story.append(Paragraph(txt, styles['Normal']))
+            story.append(Spacer(1, 12))
+
+        # Output table
+        story.append(Paragraph("Resultaten:", styles['Heading2']))
+        output_table = Table([output_table_df.columns.tolist()] + output_table_df.values.tolist(), repeatRows=1)
+        output_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ]))
+        story.append(output_table)
+
+        # Build PDF
+        doc.build(story)
+
+        # Done
+        print(f"PDF succesvol opgeslagen op: {file_path}")
+        return file_path

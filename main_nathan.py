@@ -66,11 +66,11 @@ for pvnaam in dbase.dbase_df['PV_NAAM'].unique():
 from pv_tool.cphi_analysis.c_phi_analysis import *
 from pv_tool.cphi_analysis.variables import *
 
-analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
-                      analysis_type='DSS_CPhi')
+# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
+#                       analysis_type='DSS_CPhi')
 
-# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
-#                       analysis_type='TXT_CPhi')
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
+                      analysis_type='TXT_CPhi')
 
 # analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
 #                       analysis_type='DSS_SH')
@@ -83,7 +83,7 @@ analyse.get_cphi_data()
 
 ## apply parameters if needed and plot and print
 
-# analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
+analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
 # analyse.apply_parameters(cohesie_gem=10.96, phi_kar=0.476, cohesie_kar=4.16)
 
 analyse.apply_settings(alpha=0.75)
@@ -93,3 +93,5 @@ analyse.show_figure(plot_extra_dataset=['DSS_SAFE_veen_outlier'])
 analyse.save_total_to_excel(path=save_test)
 
 analyse.add_results_to_dbase(path = save_test)
+
+analyse.save_to_pdf(path=save_test)
