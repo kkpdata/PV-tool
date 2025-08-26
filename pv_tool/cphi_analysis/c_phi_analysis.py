@@ -17,13 +17,15 @@ from pv_tool.cphi_analysis.expand_analysis_df import (calculate_tan_a, calculate
                                                  calculate_kappa_2_ondergrens_correctie_c)
 from pv_tool.cphi_analysis.visualization import (add_proefresultaten, add_extra_proefresultaten, add_5pr_bovengrens,
                                             add_5pr_ondergrens, add_fysische_realiseerbare_ondergrens, add_gemiddelde,
-                                            set_layout)
+                                            set_layout, add_gemiddelde_sh, add_raaklijn_kar_boven,
+                                                 add_raaklijn_kar_onder)
 from pv_tool.cphi_analysis.calc_parameters import (calc_watergehalte_gem, calc_watergehalte_sd, calc_vgwnat_gem,
                                                    calc_vgwnat_sd, calc_a2_phi_gem,  calc_a2_kar, calc_phi_d,
                                                    helling_gecorrigeerd, calc_a1_c_gem, calc_tan_phi_gem, calc_phi_kar,
                                                    calc_cohesie_kar, calc_phi_gem, calc_c_gem, calc_tan_phi_kar,
                                               calc_c_kar, calc_tan_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c,
-                                                calc_a2_phi_gem_sh, calc_a2_phi_kar_boven_sh, calc_a2_phi_kar_onder_sh)
+                                                calc_a2_phi_gem_sh, calc_a2_phi_kar_boven_sh, calc_a2_phi_kar_onder_sh,
+                                                   calc_tan_phi_kar_sh)
 from openpyxl import load_workbook
 
 
@@ -87,8 +89,11 @@ class CPhiAnalyse:
         self.gem_a1: Optional[float] = None
         self.gem_a2: Optional[float] = None
 
-        self.phi_kar_onder: Optional[float] = None
-        self.phi_kar_boven: Optional[float] = None
+        self.kar_a1: Optional[float] = None
+        self.kar_a2: Optional[float] = None
+
+        self.a2_phi_kar_onder: Optional[float] = None
+        self.a2_phi_kar_boven: Optional[float] = None
 
         # Figure
         self.figure = go.Figure()
@@ -172,9 +177,6 @@ class CPhiAnalyse:
         self.eerste_benadering_a2_kar = calc_a2_kar(self)
         self.eerste_benadering_a1_kar = calc_cohesie_kar(self)
 
-    def eerste_benadering_sh(self):
-
-        pass
 
     def expand_analysis_df_corrected(self):
         """Voegt aanvullende kolommen toe aan het dataframe."""
@@ -188,22 +190,43 @@ class CPhiAnalyse:
     def result_values(self):
         """Berekend de resultaten van de analyse."""
         self.helling_gecorrigeerd = helling_gecorrigeerd(self)
+
+        self.gem_a1 = calc_a1_c_gem(self)
+        self.gem_a2 = calc_a2_phi_gem(self)
+
+        self.kar_a1 = calc_cohesie_kar(self)
+        self.kar_a2 = self.phi_kar_handmatig if self.phi_kar_handmatig is not None else self.eerste_benadering_a2_kar
+
         self.phi_gem = calc_phi_gem(self)
         self.tan_phi_gem = calc_tan_phi_gem(self)
         self.c_gem = calc_c_gem(self)
+
         self.tan_phi_kar = calc_tan_phi_kar(self)
         self.phi_kar = calc_phi_kar(self)
         self.c_kar = calc_c_kar(self)
+
         self.phi_d = calc_phi_d(self)
         self.tan_phi_d = calc_tan_phi_d(self)
         self.c_d = calc_c_d(self)
+
         self.st_dev_phi = calc_st_dev_phi(self)
         self.st_dev_c = calc_st_dev_c(self)
 
     def result_values_sh(self):
-        self.phi_gem = calc_a2_phi_gem_sh(self)
-        self.phi_kar_onder = calc_a2_phi_kar_onder_sh(self)
-        self.phi_kar_boven = calc_a2_phi_kar_boven_sh(self)
+        self.gem_a2 = calc_a2_phi_gem_sh(self)
+        self.a2_phi_kar_onder = calc_a2_phi_kar_onder_sh(self)
+        self.a2_phi_kar_boven = calc_a2_phi_kar_boven_sh(self)
+        self.kar_a2 = self.a2_phi_kar_onder
+
+        self.tan_phi_gem = calc_tan_phi_gem(self)
+        self.tan_phi_kar = calc_tan_phi_kar_sh(self)
+        self.tan_phi_d = calc_tan_phi_d(self)
+
+        self.phi_gem = calc_phi_gem(self)
+        self.phi_kar = calc_phi_kar(self)
+
+        self.st_dev_phi = calc_st_dev_phi(self)
+
 
     def _run(self):
         """Deze functie zorgt ervoor dat zodra er iets veranderd in de bron-data alles opnieuw wordt berekend."""
@@ -214,34 +237,58 @@ class CPhiAnalyse:
         self.eerste_benadering_deel2()
         self.result_values()
 
+    def _run_sh(self):
+        """Deze functie zorgt ervoor dat zodra er iets veranderd in de bron-data alles opnieuw wordt berekend."""
+        self.get_cphi_data()
+        self.expand_analysis_df_sh()
+        self.result_values_sh()
+
     def set_figure(self, plot_extra_dataset: Optional[List] = None):
         """Deze functie maakt alle invoer voor het figuur."""
 
         add_proefresultaten(self)
         if plot_extra_dataset is not None:
             add_extra_proefresultaten(self, plot_extra_dataset)
-        add_5pr_bovengrens(self)
-        add_5pr_ondergrens(self)
-        add_fysische_realiseerbare_ondergrens(self)
-        add_gemiddelde(self)
+
+        if self.analysis_type in ['TXT_SH', 'DSS_SH']:
+            add_gemiddelde_sh(self)
+            add_raaklijn_kar_onder(self)
+            add_raaklijn_kar_boven(self)
+        else:
+            add_5pr_bovengrens(self)
+            add_5pr_ondergrens(self)
+            add_fysische_realiseerbare_ondergrens(self)
+            add_gemiddelde(self)
+
         set_layout(self)
 
     def show_figure(self, plot_extra_dataset: Optional[List] = None):
         """Deze functie laat het figuur met alle resultaten zien."""
-        self._run()
+        if self.analysis_type in ['TXT_SH', 'DSS_SH']:
+            self._run_sh()
+        else:
+            self._run()
         self.figure = go.Figure()
         self.set_figure(plot_extra_dataset)
         self.figure.show()
 
     def print_short_results(self):
         """Deze functie presenteert alle resultaten."""
-        self._run()
-        index = ['verwachtingswaarde', 'karakteristieke waarde', 'rekenwaarde', 'standaarddeviatie']
-        columns = ['tan phi [-]', 'phi [graden]', 'cohesie [kPa]']
-        analyse_output_df = DataFrame(index=index, columns=columns)
-        analyse_output_df['tan phi [-]'] = [self.tan_phi_gem, self.tan_phi_kar, self.tan_phi_d, '[-]']
-        analyse_output_df['phi [graden]'] = [self.phi_gem, self.phi_kar, self.phi_d, self.st_dev_phi]
-        analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
+        if self.analysis_type in ['TXT_SH', 'DSS_SH']:
+            self._run_sh()
+            index = ['verwachtingswaarde', 'karakteristieke waarde', 'rekenwaarde', 'standaarddeviatie']
+            columns = ['tan phi [-]', 'phi [graden]']
+            analyse_output_df = DataFrame(index=index, columns=columns)
+            analyse_output_df['tan phi [-]'] = [self.tan_phi_gem, self.tan_phi_kar, self.tan_phi_d, '[-]']
+            analyse_output_df['phi [graden]'] = [self.phi_gem, self.phi_kar, self.phi_d, self.st_dev_phi]
+        else:
+            self._run()
+            index = ['verwachtingswaarde', 'karakteristieke waarde', 'rekenwaarde', 'standaarddeviatie']
+            columns = ['tan phi [-]', 'phi [graden]', 'cohesie [kPa]']
+            analyse_output_df = DataFrame(index=index, columns=columns)
+            analyse_output_df['tan phi [-]'] = [self.tan_phi_gem, self.tan_phi_kar, self.tan_phi_d, '[-]']
+            analyse_output_df['phi [graden]'] = [self.phi_gem, self.phi_kar, self.phi_d, self.st_dev_phi]
+            analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
         return analyse_output_df
 
     def add_results_to_dbase(self, path):
@@ -274,13 +321,13 @@ class CPhiAnalyse:
             'PV_ANALYSE': self.analysis_type.split('_')[1],
             'PV_RESULTAAT_ID': f"{self.investigation_groups}_{self.effective_stress}_{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
             'PV_TYPEVERZAMELING': self.alpha,
-            'PV_A1_COH_GEM [kPa]': self.eerste_benadering_a1_gem,
-            'PV_A2_TAN_PHI_GEM [-]': self.eerste_benadering_a2_gem,
-            'PV_A1_COH_KAR [kPa]': self.eerste_benadering_a1_kar,
-            'PV_A2_TAN_PHI_KAR [-]': self.eerste_benadering_a2_kar,
-            'PV_COH_GEM [kPa]': self.c_gem if self.c_gem > 0 else f"{self.c_gem} (kan niet - aanpassen!)",
+            'PV_A1_COH_GEM [kPa]': self.gem_a1,
+            'PV_A2_TAN_PHI_GEM [-]': self.gem_a2,
+            'PV_A1_COH_KAR [kPa]': self.kar_a1,
+            'PV_A2_TAN_PHI_KAR [-]': self.kar_a2,
+            'PV_COH_GEM [kPa]': self.c_gem if self.c_gem > 0 or None else f"{self.c_gem} (kan niet - aanpassen!)",
             'PV_PHI_GEM [graden]': self.phi_gem,
-            'PV_COH_KAR [kPa]': self.c_kar if self.c_kar > 0 else f"{self.c_kar} (kan niet - aanpassen!)",
+            'PV_COH_KAR [kPa]': self.c_kar if self.c_kar > 0 or None else f"{self.c_kar} (kan niet - aanpassen!)",
             'PV_PHI_KAR [graden]': self.phi_kar,
             'PV_COH_SD_DSTAB [-]': self.st_dev_c if self.c_gem > 0 and self.c_kar > 0 else "[-] (c < 0)",
             'PV_PHI_SD_DSTAB [-]': self.st_dev_phi,

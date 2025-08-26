@@ -10,7 +10,8 @@ if TYPE_CHECKING:
 from pv_tool.cphi_analysis.variables import (count_s, sum_s, sum_t, e_a2, a2_kar, a1_kar, t_n_2, t_n_2_sh,
                                              gem_ln_tan_a_sh, std_ln_tan_a_sh,
                                              a2_kar_gecorrigeerd, a1_kar_gecorrigeerd, helling_gecor, var_tan_phi_gem,
-                                             var_tan_phi_kar)
+                                             var_tan_phi_kar, var_tan_phi_kar_sh, var_a2_gem_sh, var_a2_boven_sh,
+                                             var_a2_onder_sh)
 
 def calc_watergehalte_gem(self: CPhiAnalyse):
     """Geeft gemiddelde watergehalte bij de geselecteerde pvnaam"""
@@ -49,24 +50,35 @@ def calc_a2_phi_gem_sh(self: CPhiAnalyse):
     return a2_phi_gem
 
 def calc_a2_phi_kar_onder_sh(self: CPhiAnalyse):
-    """Geeft de karakteristieke phi ondergrens bij schematiseringshandleiding berekening c phi."""
+    """Geeft de benadering van de a2 karakteristieke phi ondergrens bij schematiseringshandleiding berekening c phi."""
     a2_phi_kar_onder = math.exp(gem_ln_tan_a_sh(self)+t_n_2_sh(self)*std_ln_tan_a_sh(self)*
                                 math.sqrt((1-self.alpha)+1/count_s(self)))
     return a2_phi_kar_onder
 
 def calc_a2_phi_kar_boven_sh(self: CPhiAnalyse):
-    """Geeft de karakteristieke phi bovengrens bij schematiseringshandleiding berekening c phi."""
+    """Geeft de benadering van de a2 karakteristieke phi bovengrens bij schematiseringshandleiding berekening c phi."""
     a2_phi_kar_boven = math.exp(gem_ln_tan_a_sh(self) - t_n_2_sh(self) * std_ln_tan_a_sh(self) *
                                 math.sqrt((1 - self.alpha) + 1 / count_s(self)))
     return a2_phi_kar_boven
 
-def calc_tan_phi_gem(self: CPhiAnalyse):
-    """Berekend de gemiddelde tan phi"""
-    if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
-        return helling_gecor(self) / np.sqrt(1 - helling_gecor(self)**2)
-    elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
-        return helling_gecor(self)
+# def calc_tan_phi_kar_onder_sh(self: CPhiAnalyse):
+#     """Geeft de karakteristieke phi ondergrens bij schematiseringshandleiding berekening c phi."""
+#     return calc_a2_phi_kar_onder_sh(self) / np.sqrt(1 - calc_a2_phi_kar_onder_sh(self) ** 2)
+#
+# def calc_tan_phi_kar_boven_sh(self: CPhiAnalyse):
+#     """Geeft de karakteristieke phi bovengrens bij schematiseringshandleiding berekening c phi."""
+#     return calc_a2_phi_kar_boven_sh(self) / np.sqrt(1 - calc_a2_phi_kar_onder_sh(self) ** 2)
 
+def calc_tan_phi_gem(self: CPhiAnalyse):
+    """Berekent de gemiddelde tan phi"""
+    if self.analysis_type == 'TXT_CPhi':
+        return helling_gecor(self) / np.sqrt(1 - helling_gecor(self)**2)
+    elif self.analysis_type == 'DSS_CPhi':
+        return helling_gecor(self)
+    elif self.analysis_type == 'TXT_SH':
+        return calc_a2_phi_gem_sh(self) / np.sqrt(1 - calc_a2_phi_gem_sh(self) ** 2)
+    elif self.analysis_type == 'DSS_SH':
+        return calc_a2_phi_gem_sh(self)
 
 def helling_gecorrigeerd(self: CPhiAnalyse):
     return helling_gecor(self)
@@ -87,7 +99,10 @@ def calc_a2_kar(self: CPhiAnalyse):
 
 
 def calc_tan_phi_d(self: CPhiAnalyse):
-    tan_phi_d = calc_tan_phi_kar(self)/self.material_tan_phi
+    if self.analysis_type in ['TXT_SH', 'DSS_SH']:
+        tan_phi_d = calc_tan_phi_kar_sh(self) / self.material_tan_phi
+    else:
+        tan_phi_d = calc_tan_phi_kar(self)/self.material_tan_phi
     return tan_phi_d
 
 
@@ -109,14 +124,18 @@ def calc_c_gem(self: CPhiAnalyse):
         coh_gem = self.cohesie_gem_handmatig
     else:
         coh_gem = self.eerste_benadering_a1_gem
-    if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
+    if self.analysis_type == 'TXT_CPhi':
         return coh_gem / np.sqrt(1 - helling_gecor(self) ** 2)
-    elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+    elif self.analysis_type == 'DSS_CPhi':
         return coh_gem
+    print('WARNING: analysis type DSS does not include cohesion')
 
 
 def calc_phi_kar(self: CPhiAnalyse):
-    return math.atan(var_tan_phi_kar(self)) * 180 / np.pi
+    if self.analysis_type in ['TXT_SH', 'DSS_SH']:
+        return math.atan(var_tan_phi_kar_sh(self)) * 180 / np.pi
+    else:
+        return math.atan(var_tan_phi_kar(self)) * 180 / np.pi
 
 
 def calc_c_kar(self: CPhiAnalyse):
@@ -128,10 +147,11 @@ def calc_c_kar(self: CPhiAnalyse):
         coh_kar = self.cohesie_kar_handmatig
     else:
         coh_kar = self.eerste_benadering_a1_kar
-    if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
+    if self.analysis_type == 'TXT_CPhi':
         return coh_kar / np.sqrt(1 - phi_kar ** 2)
-    elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+    elif self.analysis_type == 'DSS_CPhi':
         return coh_kar
+    print('WARNING: analysis type DSS does not include cohesion')
 
 
 def calc_phi_d(self: CPhiAnalyse):
@@ -172,9 +192,22 @@ def calc_tan_phi_kar(self: CPhiAnalyse):
         phi_kar = self.phi_kar_handmatig
     else:
         phi_kar = self.eerste_benadering_a2_kar
-    if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
+
+    if self.analysis_type == 'TXT_CPhi':
         return phi_kar / np.sqrt(1 - phi_kar**2)
-    elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+    elif self.analysis_type == 'DSS_CPhi':
         return phi_kar
+    else:
+        print('WARNING: tan phi kar for analysis type in SH is calculated with the function calc_tan_phi_kar_sh')
+
+def calc_tan_phi_kar_sh(self: CPhiAnalyse):
+    if self.analysis_type == 'TXT_SH':
+        return calc_a2_phi_kar_onder_sh(self) / np.sqrt(1 - calc_a2_phi_kar_onder_sh(self) ** 2)
+    elif self.analysis_type == 'DSS_SH':
+        return calc_a2_phi_kar_onder_sh(self)
+    else:
+        print('WARNING: tan phi kar for analysis type in CPhi is calculated with the function calc_tan_phi_kar')
+
+
 
 

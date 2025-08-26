@@ -82,6 +82,24 @@ def add_5pr_bovengrens(self: CPhiAnalyse):
         )
     )
 
+def add_raaklijn_kar_boven(self: CPhiAnalyse):
+    """Deze functie voegt de bovenste raaklijn van de schematiseringshandleiding methode toe aan de figuur."""
+    x1 = 0
+    x2 = self.cphi_analyses_data_df['S\''].max() + 5
+    y1 = x1 * calc_a2_phi_kar_boven_sh(self)
+    y2 = x2 * calc_a2_phi_kar_boven_sh(self)
+
+    x = [x1, x2]
+    y = [y1, y2]
+
+    self.figure.add_trace(
+        go.Scatter(
+            x=x,
+            y=y,
+            mode='lines',
+            name='Raaklijn boven'
+        )
+    )
 
 def add_5pr_ondergrens(self: CPhiAnalyse):
     """Deze functie voegt de 5% bovengrens toe aan de figuur."""
@@ -102,6 +120,24 @@ def add_5pr_ondergrens(self: CPhiAnalyse):
         )
     )
 
+def add_raaklijn_kar_onder(self: CPhiAnalyse):
+    """Deze functie voegt de onderste raaklijn van de schematiseringshandleiding methode toe aan de figuur."""
+    x1 = 0
+    x2 = self.cphi_analyses_data_df['S\''].max() + 5
+    y1 = x1 * calc_a2_phi_kar_onder_sh(self)
+    y2 = x2 * calc_a2_phi_kar_onder_sh(self)
+
+    x = [x1, x2]
+    y = [y1, y2]
+
+    self.figure.add_trace(
+        go.Scatter(
+            x=x,
+            y=y,
+            mode='lines',
+            name='Raaklijn onder'
+        )
+    )
 
 def add_fysische_realiseerbare_ondergrens(self: CPhiAnalyse):
     """Deze functie voegt de fysische realiseerbare ondergrens toe aan de figuur."""
@@ -162,6 +198,24 @@ def add_gemiddelde(self: CPhiAnalyse):
         )
     )
 
+def add_gemiddelde_sh(self: CPhiAnalyse):
+    """Deze functie voegt de gemiddelde waarden toe aan de figuur."""
+    x1 = self.cphi_analyses_data_df['S\''].min() + 5
+    x2 = self.cphi_analyses_data_df['S\''].max() + 5
+    y1 = x1 * calc_a2_phi_gem_sh(self)
+    y2 = x2 * calc_a2_phi_gem_sh(self)
+
+    x = [x1, x2]
+    y = [y1, y2]
+
+    self.figure.add_trace(
+        go.Scatter(
+            x=x,
+            y=y,
+            mode='lines',
+            name='Raaklijn gemiddeld'
+        )
+    )
 
 def set_layout(self: CPhiAnalyse):
     """Voegt een titel en labels toe."""

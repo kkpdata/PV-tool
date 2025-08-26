@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import math
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -80,6 +82,20 @@ def gem_ln_tan_a_sh(self: CPhiAnalyse):
 def std_ln_tan_a_sh(self: CPhiAnalyse):
     return self.cphi_analyses_data_df['ln(tan(a))'].std()
 
+def var_a2_gem_sh(self: CPhiAnalyse):
+    return math.exp(gem_ln_tan_a_sh(self))
+
+def var_a2_onder_sh(self: CPhiAnalyse):
+    a2_phi_kar_onder = math.exp(gem_ln_tan_a_sh(self) + t_n_2_sh(self) * std_ln_tan_a_sh(self) *
+                                math.sqrt((1 - self.alpha) + 1 / count_s(self)))
+    return a2_phi_kar_onder
+
+def var_a2_boven_sh(self: CPhiAnalyse):
+    a2_phi_kar_boven = math.exp(gem_ln_tan_a_sh(self) - t_n_2_sh(self) * std_ln_tan_a_sh(self) *
+                                math.sqrt((1 - self.alpha) + 1 / count_s(self)))
+    return a2_phi_kar_boven
+
+
 def sum_s2(self: CPhiAnalyse):
     return self.cphi_analyses_data_df['s\''].sum()
 
@@ -158,19 +174,29 @@ def helling_gecor(self: CPhiAnalyse):
     return helling
 
 
-def var_tan_phi_gem(self: CPhiAnalyse):  # TODO toevoegen alternatief voor SH
-    if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
+def var_tan_phi_gem(self: CPhiAnalyse):
+    if self.analysis_type == 'TXT_CPhi':
         return helling_gecor(self) / np.sqrt(1 - helling_gecor(self)**2)
-    elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+    elif self.analysis_type == 'DSS_CPhi':
         return helling_gecor(self)
+    elif self.analysis_type == 'TXT_SH':
+        return var_a2_gem_sh(self) / np.sqrt(1 - var_a2_gem_sh(self) ** 2)
+    elif self.analysis_type == 'DSS_SH':
+        return var_a2_gem_sh(self)
 
 
-def var_tan_phi_kar(self: CPhiAnalyse):  # TODO toevoegen alternatief voor SH
+def var_tan_phi_kar(self: CPhiAnalyse):
     if self.phi_kar_handmatig is not None:
         phi_kar = self.phi_kar_handmatig
     else:
         phi_kar = self.eerste_benadering_a2_kar
-    if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
+    if self.analysis_type == 'TXT_CPhi':
         return phi_kar / np.sqrt(1 - phi_kar**2)
-    elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+    elif self.analysis_type == 'DSS_CPhi':
         return phi_kar
+
+def var_tan_phi_kar_sh(self: CPhiAnalyse):
+    if self.analysis_type == 'TXT_SH':
+        return var_a2_onder_sh(self) / np.sqrt(1 - var_a2_onder_sh(self) ** 2)
+    elif self.analysis_type == 'DSS_SH':
+        return var_a2_onder_sh(self)
