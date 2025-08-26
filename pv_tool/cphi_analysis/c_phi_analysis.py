@@ -124,8 +124,6 @@ class CPhiAnalyse:
 
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
 
-        print(self.cphi_analyses_data_df)
-        print(self.cphi_analyses_data_df.columns)
 
     def apply_settings(self, alpha: Optional[float] = None,
                        material_factor_cohesion: Optional[float] = None,
@@ -309,9 +307,9 @@ class CPhiAnalyse:
         expected_columns = [
             'PV_RESULTAAT_ID', 'PVNAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE',
             'PV_A1_COH_GEM [kPa]', 'PV_A2_TAN_PHI_GEM [-]', 'PV_A1_COH_KAR [kPa]', 'PV_A2_TAN_PHI_KAR [-]',
-            'PV_PARTPHI', 'PV_PARTCOH', 'PV_TYPEVERZAMELING', 'PV_COH_GEM [kPa]', 'PV_PHI_GEM [graden]',
+            'PV_PARTPHI [-]', 'PV_PARTCOH [-]', 'PV_TYPEVERZAMELING', 'PV_COH_GEM [kPa]', 'PV_PHI_GEM [graden]',
             'PV_COH_KAR [kPa]', 'PV_PHI_KAR [graden]', 'PV_COH_SD_DSTAB [-]', 'PV_PHI_SD_DSTAB [-]',
-            'PV_VGWNAT_GEM', 'PV_VGWNAT_SD', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD', 'Timestamp'
+            'PV_VGWNAT_GEM', 'PV_VGWNAT_SD', 'PV_WATERGEHALTE_GEM [kN/m3]', 'PV_WATERGEHALTE_SD [kN/m3]', 'Timestamp'
         ]
 
         new_row = {
@@ -325,11 +323,20 @@ class CPhiAnalyse:
             'PV_A2_TAN_PHI_GEM [-]': self.gem_a2,
             'PV_A1_COH_KAR [kPa]': self.kar_a1,
             'PV_A2_TAN_PHI_KAR [-]': self.kar_a2,
-            'PV_COH_GEM [kPa]': self.c_gem if self.c_gem > 0 or None else f"{self.c_gem} (kan niet - aanpassen!)",
+            'PV_COH_GEM [kPa]': (self.c_gem if self.c_gem is not None and self.c_gem > 0
+                                else "[-]" if self.c_gem is None
+                                else f"{self.c_gem} (kan niet - aanpassen!)"
+                                ),
             'PV_PHI_GEM [graden]': self.phi_gem,
-            'PV_COH_KAR [kPa]': self.c_kar if self.c_kar > 0 or None else f"{self.c_kar} (kan niet - aanpassen!)",
+            'PV_COH_KAR [kPa]': (self.c_kar if self.c_kar is not None and self.c_kar > 0
+                                else "[-]" if self.c_kar is None
+                                else f"{self.c_kar} (kan niet - aanpassen!)"
+                                ),
             'PV_PHI_KAR [graden]': self.phi_kar,
-            'PV_COH_SD_DSTAB [-]': self.st_dev_c if self.c_gem > 0 and self.c_kar > 0 else "[-] (c < 0)",
+            'PV_COH_SD_DSTAB [-]': (self.st_dev_c if self.c_gem is not None and self.c_kar is not None
+                                    and self.c_gem > 0 and self.c_kar > 0
+                                    else "[-]" if self.c_gem is None or self.c_kar is None
+                                    else "[-] (c < 0)"),
             'PV_PHI_SD_DSTAB [-]': self.st_dev_phi,
             'PV_PARTPHI [-]': self.material_tan_phi,
             'PV_PARTCOH [-]': self.material_cohesie,
@@ -358,12 +365,12 @@ class CPhiAnalyse:
 
 
     def save_total_to_excel(self, path):
-
-        file_name = f"c_phi_export_test_{self.investigation_groups[0]}.xlsx"
+        effective_stress = str(self.effective_stress).replace('%', 'procent_')
+        effective_stress = str(effective_stress).replace(' ', '')
+        file_name = f"c_phi_export_test_{self.investigation_groups[0]}_{self.analysis_type}_{effective_stress}.xlsx"
         file_path = f"{path}/{file_name}"
-
         if self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
-            self.cphi_analyses_data_df.rename(columns={'S\'': '\u03C3 \'', 'T': '\u03C4 \''})
+            self.cphi_analyses_data_df = self.cphi_analyses_data_df.rename(columns={'S\'': '\u03C3 \'', 'T': '\u03C4'})
         df_totaal = self.cphi_analyses_data_df
         with ExcelWriter(file_path, engine='openpyxl') as writer:
             df_totaal.to_excel(writer)

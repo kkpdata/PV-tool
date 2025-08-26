@@ -77,10 +77,10 @@ def t_n_2_sh(self: CPhiAnalyse):
     return t.ppf(significantieniveau, degrees_of_freedom)
 
 def gem_ln_tan_a_sh(self: CPhiAnalyse):
-    return self.cphi_analyses_data_df['ln(tan(a))'].mean()
+    return self.cphi_analyses_data_df['LN(tan(a))'].mean()
 
 def std_ln_tan_a_sh(self: CPhiAnalyse):
-    return self.cphi_analyses_data_df['ln(tan(a))'].std()
+    return self.cphi_analyses_data_df['LN(tan(a))'].std()
 
 def var_a2_gem_sh(self: CPhiAnalyse):
     return math.exp(gem_ln_tan_a_sh(self))

@@ -53,7 +53,7 @@ dbase = Dbase()
 dbase.import_data_and_validate(source='PV-tool', source_dir=path_to_data, export_path=save_test)
 
 dbase.export_dbase_to_excel(export_dir=save_test)
-print(dbase.dbase_df)
+
 
 ##
 print('Unieke verzamelingen:')
@@ -61,16 +61,16 @@ for pvnaam in dbase.dbase_df['PV_NAAM'].unique():
     print(pvnaam)
 
 
-##
+## initiate cphi or dss analysis with different options
 # CPHI-analyse
 from pv_tool.cphi_analysis.c_phi_analysis import *
 from pv_tool.cphi_analysis.variables import *
 
-# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
-#                       analysis_type='DSS_CPhi')
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
+                      analysis_type='DSS_CPhi')
 
-analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
-                      analysis_type='TXT_CPhi')
+# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
+#                       analysis_type='TXT_CPhi')
 
 # analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
 #                       analysis_type='DSS_SH')
@@ -79,19 +79,16 @@ analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16
 #                       analysis_type='TXT_SH')
 
 
-#analyse.apply_parameters(cohesie_gem=9, phi_kar=0.6, cohesie_kar=7)
-# analyse.show_results()
-# analyse.show_figure()
-
 analyse.get_cphi_data()
 
-##
+## apply parameters if needed and plot and print
+
 # analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
 # analyse.apply_parameters(cohesie_gem=10.96, phi_kar=0.476, cohesie_kar=4.16)
 
 analyse.apply_settings(alpha=0.75)
-analyse.print_short_results()
-analyse.show_figure()
+print(analyse.print_short_results())
+analyse.show_figure(plot_extra_dataset=['DSS_SAFE_veen_outlier'])
 
 analyse.save_total_to_excel(path=save_test)
 

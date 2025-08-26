@@ -128,7 +128,8 @@ def calc_c_gem(self: CPhiAnalyse):
         return coh_gem / np.sqrt(1 - helling_gecor(self) ** 2)
     elif self.analysis_type == 'DSS_CPhi':
         return coh_gem
-    print('WARNING: analysis type DSS does not include cohesion')
+    else:
+        print('WARNING: analysis type SH does not include cohesion')
 
 
 def calc_phi_kar(self: CPhiAnalyse):
@@ -151,7 +152,8 @@ def calc_c_kar(self: CPhiAnalyse):
         return coh_kar / np.sqrt(1 - phi_kar ** 2)
     elif self.analysis_type == 'DSS_CPhi':
         return coh_kar
-    print('WARNING: analysis type DSS does not include cohesion')
+    else:
+        print('WARNING: analysis type SH does not include cohesion')
 
 
 def calc_phi_d(self: CPhiAnalyse):

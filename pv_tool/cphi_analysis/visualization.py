@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 import plotly.graph_objects as go
 from pv_tool.cphi_analysis.calc_parameters import *
 from typing import Optional, List
-from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES)
+from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, TEXTUAL_NAMES_DSS, NEW_COLUMN_NAMES)
 
 
 def add_proefresultaten(self: CPhiAnalyse):
@@ -38,7 +38,13 @@ def get_extra_data(self: CPhiAnalyse, investigationgroups_extra: Optional[List])
 
     dataset_df = dataset_df[
         dataset_df['PV_NAAM'].isin(investigationgroups_extra)]
-    dataset_df = dataset_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
+    print(dataset_df)
+    if self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+        dataset_df = dataset_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])]
+        print(dataset_df)
+    else:
+        dataset_df = dataset_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
+        print(dataset_df)
     dataset_df.columns = NEW_COLUMN_NAMES
     return dataset_df
 
@@ -97,7 +103,12 @@ def add_raaklijn_kar_boven(self: CPhiAnalyse):
             x=x,
             y=y,
             mode='lines',
-            name='Raaklijn boven'
+            name='Raaklijn boven',
+            line=dict(
+                color='black',
+                width=1,
+                dash='dash'
+            )
         )
     )
 
@@ -135,9 +146,15 @@ def add_raaklijn_kar_onder(self: CPhiAnalyse):
             x=x,
             y=y,
             mode='lines',
-            name='Raaklijn onder'
+            name='Raaklijn onder',
+            line = dict(
+                color='black',
+                width=1,
+                dash='dash'
+            )
         )
     )
+
 
 def add_fysische_realiseerbare_ondergrens(self: CPhiAnalyse):
     """Deze functie voegt de fysische realiseerbare ondergrens toe aan de figuur."""
@@ -219,9 +236,13 @@ def add_gemiddelde_sh(self: CPhiAnalyse):
 
 def set_layout(self: CPhiAnalyse):
     """Voegt een titel en labels toe."""
-    title = 'TXT C-Phi analyse'
-    xas_title = 's\' [kPa]'
-    yas_title = 't [kPa]'
+    title = f'{self.analysis_type} analyse met {self.effective_stress} op {self.investigation_groups[0]}'
+    if self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+        xas_title = '\u03C3 \' [kPa]'
+        yas_title = '\u03C4 [kPa]'
+    else:
+        xas_title = 's\' [kPa]'
+        yas_title = 't [kPa]'
     legend_title = 'Legenda'
     self.figure.update_layout(
         width=1200,
