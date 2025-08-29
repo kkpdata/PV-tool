@@ -245,8 +245,8 @@ def set_layout(self: CPhiAnalyse):
         yas_title = 't [kPa]'
     legend_title = 'Legenda'
     self.figure.update_layout(
-        width=1200,
-        height=600,
+        width=1800,
+        height=750,
         title=title,
         xaxis_title=xas_title,
         yaxis_title=yas_title,

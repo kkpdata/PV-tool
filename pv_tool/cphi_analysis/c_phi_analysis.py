@@ -1,3 +1,4 @@
+from operator import index
 from typing import Optional, List, Literal
 from datetime import datetime
 from pandas import DataFrame, ExcelWriter, concat, read_excel
@@ -29,13 +30,10 @@ from pv_tool.cphi_analysis.calc_parameters import (calc_watergehalte_gem, calc_w
 from openpyxl import load_workbook
 
 
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, PageBreak
-)
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
-
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, LongTable, TableStyle, Paragraph, Spacer, Image
 
 
 
@@ -372,7 +370,6 @@ class CPhiAnalyse:
 
         with ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
             df_updated.to_excel(writer, sheet_name='Resultaten', index=False)
-        # door de manier van wegschrijven wordt het een beetje raar als je iets in deze code verandert, dus dit kan nog anders
 
         return df_updated
 
@@ -388,40 +385,47 @@ class CPhiAnalyse:
         with ExcelWriter(file_path, engine='openpyxl') as writer:
             df_totaal.to_excel(writer)
 
+    def df_to_table_with_index(self, df, index_name='Index'):
+        header = [df.index.name or index_name] + df.columns.tolist()
+        data = [[idx] + row.tolist() for idx, row in df.iterrows()]
+        return [header] + data
+
     def save_to_pdf(self, path):
         """
-        Save the results to a PDF according to the provided specifications.
+        Save the results to a PDF
         """
-        # 1. Prepare PDF filename and path (no os)
-
-        title = f"{self.investigation_groups}_{self.effective_stress}_{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}"
+        if len(self.investigation_groups) == 1:
+            title = f"{self.investigation_groups[0]} {self.effective_stress} {self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]}"
+        else:
+            title = f"{self.investigation_groups} {self.effective_stress} {self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]}"
         file_name = f"c_phi_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf"
         file_path = f"{path}/{file_name}"
 
-        # 2. Generate and save the figure from plotly
         fig_path = f"{path}/temp_plot.png"
         self.show_figure()  # Ensure the figure is generated
-        self.figure.write_image(fig_path, format="png")
+        self.figure.write_image(fig_path, scale=8, format="png")
 
-        # 3. Prepare DataFrames for tables
-        # Table 1
+        # Eerste tabel
         columns_base = [
-            'ALG__BORING_MONSTERNR_ID', 'BORING_POSITIE', 'MONSTER_NIVEAU_NAP_VANAF', 'MONSTER_NIVEAU_NAP_TOT'
+            'PV_NAAM', 'BORING_POSITIE', 'MONSTER_NIVEAU_NAP_VANAF', 'MONSTER_NIVEAU_NAP_TOT'
         ]
         if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
             columns_extra = ['TXT_SS_VOLUMEGEWICHT_NAT', 'TXT_SS_VOLUMEGEWICHT_DRG', 'TXT_SS_WATERGEHALTE_VOOR']
         else:
             columns_extra = ['DSS_VOLUMEGEWICHT_NAT', 'DSS_VOLUMEGEWICHT_DRG', 'DSS_WATERGEHALTE_VOOR']
+
+        columns_data = self.cphi_analyses_data_df.iloc[:, 1:3].copy()
         table1_cols = columns_base + columns_extra
         table1_df = self.total_cphi_analyses_data_df[table1_cols].copy()
+        table1_df.columns = ['Groep', 'Positie', 'NAP Vanaf [m]', 'NAP Tot [m]', 'VGW nat', 'VGW droog', 'Watergehalte voor']
+        table1_df = concat([table1_df, columns_data], axis=1)
+        table1_df = table1_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
 
-        # Table 2
-        table2_df = self.cphi_analyses_data_df.copy()
-
-        # Output table
+        # Output tabel
         output_table_df = self.print_short_results().copy()
+        output_table_df = output_table_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
 
-        # Initial values table
+        # Initiële waardes tabel
         initial_values = []
         if self.gem_a1 is not None: initial_values.append(['gem_a1', self.gem_a1])
         if self.gem_a2 is not None: initial_values.append(['gem_a2', self.gem_a2])
@@ -432,44 +436,31 @@ class CPhiAnalyse:
         if hasattr(self, 'a2_phi_kar_boven') and self.a2_phi_kar_boven is not None: initial_values.append(
             ['a2_phi_kar_boven', self.a2_phi_kar_boven])
 
-        # 4. Create PDF document
-        doc = SimpleDocTemplate(file_path, pagesize=A4)
+        # Maak het PDF document
+        doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
         styles = getSampleStyleSheet()
         story = []
-
-        # Title
         story.append(Paragraph(title, styles['Title']))
         story.append(Spacer(1, 12))
 
-        # Add graph picture
-        story.append(Paragraph("Figuur:", styles['Heading2']))
-        story.append(Image(fig_path, width=400, height=250))
+        story.append(Paragraph("Overzichtsfiguur:", styles['Heading2']))
+        story.append(Image(fig_path, width=600, height=400))
         story.append(Spacer(1, 12))
 
-        # Table 1
-        story.append(Paragraph("Invoertabel 1:", styles['Heading2']))
-        t1 = Table([table1_df.columns.tolist()] + table1_df.values.tolist(), repeatRows=1)
+        story.append(Paragraph("Informatietabel invoerselectie:", styles['Heading2']))
+        t1_data = self.df_to_table_with_index(table1_df, index_name="alg_boring_monsternummer_id")
+        t1 = LongTable(t1_data, repeatRows=1)
         t1.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),  # Header font size
+            ('FONTSIZE', (0, 1), (-1, -1), 8),  # Row font size
         ]))
         story.append(t1)
         story.append(Spacer(1, 12))
 
-        # Table 2
-        story.append(Paragraph("Invoertabel 2:", styles['Heading2']))
-        t2 = Table([table2_df.columns.tolist()] + table2_df.values.tolist(), repeatRows=1)
-        t2.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ]))
-        story.append(t2)
-        story.append(Spacer(1, 12))
-
-        # Initial values table
-        story.append(Paragraph("Initiële waarden:", styles['Heading2']))
+        story.append(Paragraph("Initiële waarden a1 en a2:", styles['Heading2']))
         t3 = Table([['Parameter', 'Waarde']] + initial_values)
         t3.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
@@ -479,7 +470,6 @@ class CPhiAnalyse:
         story.append(t3)
         story.append(Spacer(1, 12))
 
-        # Optional manual values text
         manual_texts = []
         if self.cohesie_gem_handmatig is not None:
             manual_texts.append(f"handmatig opgegeven: cohesie_gem_handmatig = {self.cohesie_gem_handmatig}")
@@ -493,9 +483,9 @@ class CPhiAnalyse:
                 story.append(Paragraph(txt, styles['Normal']))
             story.append(Spacer(1, 12))
 
-        # Output table
         story.append(Paragraph("Resultaten:", styles['Heading2']))
-        output_table = Table([output_table_df.columns.tolist()] + output_table_df.values.tolist(), repeatRows=1)
+        output_table_data = self.df_to_table_with_index(output_table_df)
+        output_table = Table(output_table_data, repeatRows=1)
         output_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
@@ -503,9 +493,7 @@ class CPhiAnalyse:
         ]))
         story.append(output_table)
 
-        # Build PDF
         doc.build(story)
 
-        # Done
         print(f"PDF succesvol opgeslagen op: {file_path}")
         return file_path

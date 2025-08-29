@@ -5,23 +5,34 @@ if TYPE_CHECKING:
     from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 from pv_tool.cphi_analysis.variables import *
 
-def calculate_tan_a(self: CPhiAnalyse):
+def calculate_tan_a(self: CPhiAnalyse): # TODO A value is trying to be set on a copy of a slice from a DataFrame
     formule = self.cphi_analyses_data_df['T'] / self.cphi_analyses_data_df['S\'']
     self.cphi_analyses_data_df['tan(a)'] = formule
 
-def calculate_ln_tan_a(self: CPhiAnalyse):
+def calculate_ln_tan_a(self: CPhiAnalyse):  # TODO A value is trying to be set on a copy of a slice from a DataFrame
     self.cphi_analyses_data_df['LN(tan(a))'] = (
         self.cphi_analyses_data_df['tan(a)'].apply
         (lambda x: np.log(x) if x is not None and x > 0 else ""))
 
 def calculate_s_tt(self: CPhiAnalyse):
-    formule = (self.cphi_analyses_data_df['S\''] - sum_s(self) / count_s(self)) ** 2
-    self.cphi_analyses_data_df['s_tt'] = formule
+    # formule = (self.cphi_analyses_data_df['S\''] - sum_s(self) / count_s(self)) ** 2
+    # self.cphi_analyses_data_df['s_tt'] = formule
+    # data = [(i- sum_s(self) / count_s(self)) ** 2 for i in self.cphi_analyses_data_df['S\''].tolist()]
+    # self.cphi_analyses_data_df['s_tt'] = data
+    df = self.cphi_analyses_data_df.copy()
+    df['s_tt'] = (df['S\''] - sum_s(self) / count_s(self)) ** 2
+    self.cphi_analyses_data_df = df
 
+
+# def calculate_s_ty(self: CPhiAnalyse):
+#     formule = (self.cphi_analyses_data_df['S\''] - sum_s(self) / count_s(self)) * self.cphi_analyses_data_df['T']
+#     self.cphi_analyses_data_df['s_ty'] = formule
 
 def calculate_s_ty(self: CPhiAnalyse):
-    formule = (self.cphi_analyses_data_df['S\''] - sum_s(self) / count_s(self)) * self.cphi_analyses_data_df['T']
-    self.cphi_analyses_data_df['s_ty'] = formule
+    df = self.cphi_analyses_data_df.copy()
+    mean_s = sum_s(self) / count_s(self)
+    df['s_ty'] = (df['S\''] - mean_s) * df['T']
+    self.cphi_analyses_data_df = df
 
 
 def calculate_kappa_2(self: CPhiAnalyse):
