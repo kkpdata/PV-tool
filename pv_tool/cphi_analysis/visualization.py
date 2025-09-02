@@ -235,7 +235,11 @@ def add_gemiddelde_sh(self: CPhiAnalyse):
     )
 
 def set_layout(self: CPhiAnalyse):
-    """Voegt een titel en labels toe."""
+    """
+    Stelt de layout van de figuur in met titel en as-labels.
+
+    De figuurgrootte is geoptimaliseerd voor zowel schermdisplay als PDF-export.
+    """
     title = f'{self.analysis_type} analyse met {self.effective_stress} op {self.investigation_groups[0]}'
     if self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
         xas_title = '\u03C3 \' [kPa]'
@@ -245,10 +249,11 @@ def set_layout(self: CPhiAnalyse):
         yas_title = 't [kPa]'
     legend_title = 'Legenda'
     self.figure.update_layout(
-        width=1800,
-        height=750,
+        width=1200,  # Smaller base width for better scaling
+        height=600,  # Adjusted height to maintain aspect ratio
         title=title,
         xaxis_title=xas_title,
         yaxis_title=yas_title,
-        legend_title=legend_title
+        legend_title=legend_title,
+        margin=dict(t=100, r=50, b=100, l=50)  # Adjusted margins for better layout
     )

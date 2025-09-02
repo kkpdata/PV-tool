@@ -38,11 +38,32 @@ from reportlab.platypus import SimpleDocTemplate, Table, LongTable, TableStyle, 
 
 
 class CPhiAnalyse:
+    """
+    Klasse voor het uitvoeren van c-phi analyses op grondmonsters.
+
+    Ondersteunt zowel triaxiaal (TXT) als direct simple shear (DSS) testen,
+    en kan zowel reguliere c-phi als shansep (SH) analyses uitvoeren.
+    """
+
     def __init__(self, dbase: Dbase,
                  analysis_type: Literal['TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH'],
                  investigation_groups: List,
                  effective_stress: Literal['2% rek', '5% rek', '10% rek', '15% rek', '20% rek',
                                             'pieksterkte', 'eindsterkte']):
+        """
+        Initialiseert een nieuwe c-phi analyse.
+
+        Parameters
+        ----------
+        dbase : Dbase
+            Database object met proefresultaten
+        analysis_type : str
+            Type analyse ('TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH')
+        investigation_groups : List
+            Lijst met te analyseren proefgroepen
+        effective_stress : str
+            Rekpercentage of sterkte criterium voor de analyse
+        """
 
         # Validate effective_stress based on analysis_type
         if analysis_type in ['TXT_CPhi', 'TXT_SH'] and effective_stress in ['10% rek', '20% rek']:
@@ -108,8 +129,12 @@ class CPhiAnalyse:
         self.figure = go.Figure()
 
     def get_cphi_data(self):
-        """Deze functie filtert de dbase-dataframe op basis van type analyse, PV_NAAM en de gewenste effectieve stress.
-        Daarnaast worden de kolomnamen aangepast zodat ze ongeacht het rekpercentage allemaal dezelfde kolomnaam hebben.
+        """
+        Filtert de database op basis van analysetype en proefgroepen.
+
+        Selecteert de juiste data voor de analyse op basis van het type test (TXT/DSS),
+        de proefgroepen en het gewenste rekpercentage. Berekent tevens gemiddelde
+        eigenschappen zoals watergehalte.
         """
         if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
@@ -139,7 +164,18 @@ class CPhiAnalyse:
     def apply_settings(self, alpha: Optional[float] = None,
                        material_factor_cohesion: Optional[float] = None,
                        material_factor_tan_phi: Optional[float] = None):
-        """Met deze functie kan je de alpha en materiaalfactoren opgeven."""
+        """
+        Past analyse-instellingen aan.
+
+        Parameters
+        ----------
+        alpha : float, optioneel
+            Alpha-waarde voor de analyse
+        material_factor_cohesion : float, optioneel
+            Materiaalfactor voor cohesie
+        material_factor_tan_phi : float, optioneel
+            Materiaalfactor voor tan(phi)
+        """
         self.alpha = alpha if alpha is not None else self.alpha
         self.material_cohesie = material_factor_cohesion if material_factor_cohesion is not None \
             else self.material_cohesie
@@ -149,7 +185,18 @@ class CPhiAnalyse:
     def apply_parameters(self, cohesie_gem: Optional[float] = None,
                          phi_kar: Optional[float] = None,
                          cohesie_kar: Optional[float] = None):
-        """Met deze functie kan je de parameters aanpassen."""
+        """
+        Past handmatige parameters aan en herberekent de analyse.
+
+        Parameters
+        ----------
+        cohesie_gem : float, optioneel
+            Gemiddelde cohesie
+        phi_kar : float, optioneel
+            Karakteristieke phi-waarde
+        cohesie_kar : float, optioneel
+            Karakteristieke cohesie
+        """
         if cohesie_gem is not None:
             self.cohesie_gem_handmatig = cohesie_gem
         if phi_kar is not None:
@@ -159,7 +206,12 @@ class CPhiAnalyse:
         self._run()
 
     def expand_analysis_df(self):
-        """Deze functie berekent alle benodigde parameters per monster voor de analyse."""
+        """
+        Berekent afgeleide parameters voor de c-phi analyse.
+
+        Voegt kolommen toe aan het dataframe met berekende waarden voor
+        s_tt, s_ty, kappa_2 en verschillende onder- en bovengrenzen.
+        """
         calculate_s_tt(self)
         calculate_s_ty(self)
         calculate_kappa_2(self)
@@ -171,24 +223,36 @@ class CPhiAnalyse:
         calculate_kappa_2_ondergrens(self)
 
     def expand_analysis_df_sh(self):
-        """Deze functie berekent alle benodigde parameters per monster voor de analyse."""
+        """
+        Berekent afgeleide parameters voor de shansep analyse.
+
+        Voegt kolommen toe aan het dataframe met berekende waarden voor
+        tan(alpha) en ln(tan(alpha)).
+        """
         calculate_tan_a(self)
         calculate_ln_tan_a(self)
 
     def eerste_benadering(self):
-        """Deze functie maakt een eerste benadering voor de gemiddelde cohesie en phi."""
+        """
+        Maakt een eerste schatting van de gemiddelde sterkteparameters cohesie (a1) en phi (a2).
+        """
         # self.eerste_benadering_a1_gem = calc_cohesie_gem(self)
         self.eerste_benadering_a1_gem = calc_a1_c_gem(self)
         self.eerste_benadering_a2_gem = calc_a2_phi_gem(self)
 
     def eerste_benadering_deel2(self):
-        """Deze functie maakt een eerste benadering voor de karakteristieke cohesie en phi"""
+        """
+        Maakt een eerste schatting van de karakteristieke sterkteparameters cohesie (a1) en phi (a2).
+        """
         self.eerste_benadering_a2_kar = calc_a2_kar(self)
         self.eerste_benadering_a1_kar = calc_cohesie_kar(self)
 
 
     def expand_analysis_df_corrected(self):
-        """Voegt aanvullende kolommen toe aan het dataframe."""
+        """
+        Voegt gecorrigeerde parameters toe aan de analyse: gecorrigeerde waarden voor
+        onder- en bovengrenzen en kappa_2.
+        """
         calculate_correctie_t(self)
         kappa_2_2pr_cor(self)
         calculate_5pr_ondergrens_correctie_c(self)
@@ -197,7 +261,10 @@ class CPhiAnalyse:
         calculate_kappa_2_ondergrens_correctie_c(self)
 
     def result_values(self):
-        """Berekend de resultaten van de analyse."""
+        """
+        Berekent de definitieve resultaten van de c-phi analyse: gemiddelde, karakteristieke en rekenwaarden voor
+        cohesie en phi, inclusief standaarddeviaties.
+        """
         self.helling_gecorrigeerd = helling_gecorrigeerd(self)
 
         self.gem_a1 = calc_a1_c_gem(self)
@@ -222,6 +289,12 @@ class CPhiAnalyse:
         self.st_dev_c = calc_st_dev_c(self)
 
     def result_values_sh(self):
+        """
+        Berekent de definitieve resultaten van de shansep analyse:
+        gemiddelde, karakteristieke en rekenwaarden voor phi,
+        inclusief standaarddeviatie.
+
+        """
         self.gem_a2 = calc_a2_phi_gem_sh(self)
         self.a2_phi_kar_onder = calc_a2_phi_kar_onder_sh(self)
         self.a2_phi_kar_boven = calc_a2_phi_kar_boven_sh(self)
@@ -233,12 +306,16 @@ class CPhiAnalyse:
 
         self.phi_gem = calc_phi_gem(self)
         self.phi_kar = calc_phi_kar(self)
+        self.phi_d = calc_phi_d(self)
 
         self.st_dev_phi = calc_st_dev_phi(self)
 
 
     def _run(self):
-        """Deze functie zorgt ervoor dat zodra er iets veranderd in de bron-data alles opnieuw wordt berekend."""
+        """
+        Voert de volledige c-phi analyse uit in de juiste volgorde:
+        data ophalen, parameters berekenen en resultaten bepalen.
+        """
         self.get_cphi_data()
         self.expand_analysis_df()
         self.eerste_benadering()
@@ -247,14 +324,23 @@ class CPhiAnalyse:
         self.result_values()
 
     def _run_sh(self):
-        """Deze functie zorgt ervoor dat zodra er iets veranderd in de bron-data alles opnieuw wordt berekend."""
+        """
+        Voert de volledige shansep analyse uit in de juiste volgorde:
+        data ophalen, parameters berekenen en resultaten bepalen.
+        """
         self.get_cphi_data()
         self.expand_analysis_df_sh()
         self.result_values_sh()
 
     def set_figure(self, plot_extra_dataset: Optional[List] = None):
-        """Deze functie maakt alle invoer voor het figuur."""
+        """
+        Maakt een visualisatie van de analyseresultaten.
 
+        Parameters
+        ----------
+        plot_extra_dataset : List, optioneel
+            Extra dataset om in de plot weer te geven
+        """
         add_proefresultaten(self)
         if plot_extra_dataset is not None:
             add_extra_proefresultaten(self, plot_extra_dataset)
@@ -272,7 +358,14 @@ class CPhiAnalyse:
         set_layout(self)
 
     def show_figure(self, plot_extra_dataset: Optional[List] = None):
-        """Deze functie laat het figuur met alle resultaten zien."""
+        """
+        Toont de visualisatie van de analyseresultaten.
+
+        Parameters
+        ----------
+        plot_extra_dataset : List, optioneel
+            Extra dataset om in de plot weer te geven
+        """
         if self.analysis_type in ['TXT_SH', 'DSS_SH']:
             self._run_sh()
         else:
@@ -282,7 +375,15 @@ class CPhiAnalyse:
         self.figure.show()
 
     def print_short_results(self):
-        """Deze functie presenteert alle resultaten."""
+        """
+        Genereert een samenvattend overzicht van de analyseresultaten.
+
+        Returns
+        -------
+        DataFrame
+            DataFrame met verwachtingswaarden, karakteristieke waarden,
+            rekenwaarden en standaarddeviaties
+        """
         if self.analysis_type in ['TXT_SH', 'DSS_SH']:
             self._run_sh()
             index = ['verwachtingswaarde', 'karakteristieke waarde', 'rekenwaarde', 'standaarddeviatie']
@@ -302,9 +403,20 @@ class CPhiAnalyse:
 
     def add_results_to_dbase(self, path):
         """
-        This function adds results to the dbase Excel export, generated with the
-        function `export_dbase_to_excel` in `import_data`. The results are added in
-        a separate sheet called 'Resultaten'.
+        Voegt analyseresultaten toe aan de database export.
+
+        Voegt de resultaten toe aan een tabblad 'Resultaten' in de Template_PVtool5_0.xlsx.
+        Als het tabblad al bestaat wordt het aangevuld, anders wordt het aangemaakt.
+
+        Parameters
+        ----------
+        path : str
+            Map locatie waar het Excel-bestand staat of moet komen
+
+        Returns
+        -------
+        DataFrame
+            DataFrame met alle resultaten in het tabblad
         """
         file_name = 'Template_PVtool5_0.xlsx'
         file_path = f"{path}/{file_name}"
@@ -375,37 +487,63 @@ class CPhiAnalyse:
 
 
     def save_total_to_excel(self, path):
+        """
+        Exporteert alle analysegegevens naar Excel.
+
+        Slaat de volledige dataset met alle berekende kolommen op in een Excel bestand.
+        De bestandsnaam wordt automatisch gegenereerd op basis van de analyse-instellingen.
+
+        Parameters
+        ----------
+        path : str
+            Map locatie waar het Excel-bestand moet worden opgeslagen
+        """
+        # pas de effective stress naam aan zodat het weggeschreven kan worden in de bestandsnaam
         effective_stress = str(self.effective_stress).replace('%', 'procent_')
         effective_stress = str(effective_stress).replace(' ', '')
+
+        # exporteer onder de juiste naam
         file_name = f"c_phi_export_test_{self.investigation_groups[0]}_{self.analysis_type}_{effective_stress}.xlsx"
         file_path = f"{path}/{file_name}"
+
+        # Hernoem de kolommen voor een ander analyse type
         if self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
             self.cphi_analyses_data_df = self.cphi_analyses_data_df.rename(columns={'S\'': '\u03C3 \'', 'T': '\u03C4'})
+
+        # schrijf het totaal weg
         df_totaal = self.cphi_analyses_data_df
         with ExcelWriter(file_path, engine='openpyxl') as writer:
             df_totaal.to_excel(writer)
 
-    def df_to_table_with_index(self, df, index_name='Index'):
+    def _df_to_table_with_index(self, df, index_name='Index'):
+        """
+        Zet een DataFrame om naar een lijst voor gebruik in een PDF tabel. Gebruikt in save_to_pdf.
+
+        Parameters
+        ----------
+        df : DataFrame
+            De DataFrame die moet worden omgezet
+        index_name : str, optioneel
+            Naam voor de index kolom (default='Index')
+
+        Returns
+        -------
+        list
+            Lijst met header en data rijen voor een PDF tabel
+        """
         header = [df.index.name or index_name] + df.columns.tolist()
         data = [[idx] + row.tolist() for idx, row in df.iterrows()]
         return [header] + data
 
-    def save_to_pdf(self, path):
+    def _create_input_table(self) -> Table:
         """
-        Save the results to a PDF
+        Maakt een tabel met de invoerselectie informatie. Gebruikt in save_to_pdf.
+
+        Returns
+        -------
+        Table
+            ReportLab tabel object met de invoerselectie informatie
         """
-        if len(self.investigation_groups) == 1:
-            title = f"{self.investigation_groups[0]} {self.effective_stress} {self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]}"
-        else:
-            title = f"{self.investigation_groups} {self.effective_stress} {self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]}"
-        file_name = f"c_phi_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf"
-        file_path = f"{path}/{file_name}"
-
-        fig_path = f"{path}/temp_plot.png"
-        self.show_figure()  # Ensure the figure is generated
-        self.figure.write_image(fig_path, scale=8, format="png")
-
-        # Eerste tabel
         columns_base = [
             'PV_NAAM', 'BORING_POSITIE', 'MONSTER_NIVEAU_NAP_VANAF', 'MONSTER_NIVEAU_NAP_TOT'
         ]
@@ -421,55 +559,80 @@ class CPhiAnalyse:
         table1_df = concat([table1_df, columns_data], axis=1)
         table1_df = table1_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
 
-        # Output tabel
-        output_table_df = self.print_short_results().copy()
-        output_table_df = output_table_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
-
-        # Initiële waardes tabel
-        initial_values = []
-        if self.gem_a1 is not None: initial_values.append(['gem_a1', self.gem_a1])
-        if self.gem_a2 is not None: initial_values.append(['gem_a2', self.gem_a2])
-        if self.kar_a1 is not None: initial_values.append(['kar_a1', self.kar_a1])
-        if self.kar_a2 is not None: initial_values.append(['kar_a2', self.kar_a2])
-        if hasattr(self, 'a2_phi_kar_onder') and self.a2_phi_kar_onder is not None: initial_values.append(
-            ['a2_phi_kar_onder', self.a2_phi_kar_onder])
-        if hasattr(self, 'a2_phi_kar_boven') and self.a2_phi_kar_boven is not None: initial_values.append(
-            ['a2_phi_kar_boven', self.a2_phi_kar_boven])
-
-        # Maak het PDF document
-        doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
-        styles = getSampleStyleSheet()
-        story = []
-        story.append(Paragraph(title, styles['Title']))
-        story.append(Spacer(1, 12))
-
-        story.append(Paragraph("Overzichtsfiguur:", styles['Heading2']))
-        story.append(Image(fig_path, width=600, height=400))
-        story.append(Spacer(1, 12))
-
-        story.append(Paragraph("Informatietabel invoerselectie:", styles['Heading2']))
-        t1_data = self.df_to_table_with_index(table1_df, index_name="alg_boring_monsternummer_id")
+        t1_data = self._df_to_table_with_index(table1_df, index_name="alg_boring_monsternummer_id")
         t1 = LongTable(t1_data, repeatRows=1)
         t1.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 9),  # Header font size
-            ('FONTSIZE', (0, 1), (-1, -1), 8),  # Row font size
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
         ]))
-        story.append(t1)
-        story.append(Spacer(1, 12))
+        return t1
 
-        story.append(Paragraph("Initiële waarden a1 en a2:", styles['Heading2']))
+    def _create_initial_values_table(self) -> Table:
+        """
+        Maakt een tabel met de initiële waarden van de analyse. Gebruikt in save_to_pdf.
+
+        Returns
+        -------
+        Table
+            ReportLab tabel object met de initiële waarden
+        """
+        initial_values = []
+        initial_values.append(['alfa:', self.alpha])
+        if self.gem_a1 is not None: initial_values.append(['gem_a1', round(self.gem_a1,3)])
+        if self.gem_a2 is not None: initial_values.append(['gem_a2', round(self.gem_a2,3)])
+        if self.kar_a1 is not None: initial_values.append(['kar_a1', round(self.kar_a1,3)])
+        if self.kar_a2 is not None: initial_values.append(['kar_a2', round(self.kar_a2,3)])
+        if hasattr(self, 'a2_phi_kar_onder') and self.a2_phi_kar_onder is not None:
+            initial_values.append(['a2_phi_kar_onder', round(self.a2_phi_kar_onder,3)])
+        if hasattr(self, 'a2_phi_kar_boven') and self.a2_phi_kar_boven is not None:
+            initial_values.append(['a2_phi_kar_boven', round(self.a2_phi_kar_boven,3)])
+
         t3 = Table([['Parameter', 'Waarde']] + initial_values)
         t3.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ]))
-        story.append(t3)
-        story.append(Spacer(1, 12))
+        return t3
 
+    def _create_results_table(self) -> Table:
+        """
+        Maakt een tabel met de eindresultaten van de analyse. Gebruikt in save_to_pdf.
+
+        Returns
+        -------
+        Table
+            ReportLab tabel object met de resultaten
+        """
+        output_table_df = self.print_short_results().copy()
+        output_table_df = output_table_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
+        output_table_data = self._df_to_table_with_index(output_table_df)
+        output_table = Table(output_table_data, repeatRows=1)
+        output_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ]))
+        return output_table
+
+    def _get_manual_values_paragraphs(self, styles) -> list:
+        """
+        Maakt een lijst van paragrafen met handmatig opgegeven waarden.
+
+        Parameters
+        ----------
+        styles : dict
+            ReportLab stylesheet met opmaakstijlen
+
+        Returns
+        -------
+        list
+            Lijst met ReportLab Paragraph objecten
+        """
+        paragraphs = []
         manual_texts = []
         if self.cohesie_gem_handmatig is not None:
             manual_texts.append(f"handmatig opgegeven: cohesie_gem_handmatig = {self.cohesie_gem_handmatig}")
@@ -477,22 +640,90 @@ class CPhiAnalyse:
             manual_texts.append(f"handmatig opgegeven: phi_kar_handmatig = {self.phi_kar_handmatig}")
         if self.cohesie_kar_handmatig is not None:
             manual_texts.append(f"handmatig opgegeven: cohesie_kar_handmatig = {self.cohesie_kar_handmatig}")
+
         if manual_texts:
-            story.append(Paragraph("Handmatig opgegeven waarden:", styles['Heading3']))
+            paragraphs.append(Paragraph("Handmatig opgegeven waarden:", styles['Heading3']))
             for txt in manual_texts:
-                story.append(Paragraph(txt, styles['Normal']))
-            story.append(Spacer(1, 12))
+                paragraphs.append(Paragraph(txt, styles['Normal']))
+        else:
+            paragraphs.append(Paragraph("Geen handmatig opgegeven waarden, figuur gebaseerd op eerste inschatting", styles['Normal']))
 
-        story.append(Paragraph("Resultaten:", styles['Heading2']))
-        output_table_data = self.df_to_table_with_index(output_table_df)
-        output_table = Table(output_table_data, repeatRows=1)
-        output_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ]))
-        story.append(output_table)
+        return paragraphs
 
+    def save_to_pdf(self, path: str) -> str:
+        """
+        Slaat de analyseresultaten op in een PDF-document, inclusief figuren, datatabellen en numerieke resultaten.
+
+        De PDF bevat:
+        - Titel met analysedetails
+        - Overzichtsfiguur van de analyse
+        - Tabel met invoerselectie informatie
+        - Tabel met initiële waarden
+        - Eventueel handmatig opgegeven waarden
+        - Tabel met eindresultaten
+
+        Parameters
+        ----------
+        path : str
+            Map locatie waar het PDF-bestand moet worden opgeslagen
+
+        Returns
+        -------
+        str
+            Het absolute bestandspad van het aangemaakte PDF-bestand
+        """
+        # Maak titel en bestandsnaam
+        if len(self.investigation_groups) == 1:
+            title = f"{self.investigation_groups[0]} {self.effective_stress} {self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]}"
+        else:
+            title = f"{self.investigation_groups} {self.effective_stress} {self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]}"
+
+        file_name = f"c_phi_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf"
+        file_path = f"{path}/{file_name}"
+
+        # Maak en bewaar de figuur
+        fig_path = f"{path}/temp_plot.png"
+        self.show_figure()
+        self.figure.write_image(fig_path, scale=2, format="png")  # Reduced scale factor for better quality/size balance
+
+        # Maak het PDF document
+        doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
+        styles = getSampleStyleSheet()
+        story = []
+
+        # Voeg titel toe
+        story.append(Paragraph(title, styles['Title']))
+        story.append(Spacer(width=1, height=12))
+
+        # Voeg figuur toe met aangepaste grootte
+        available_width = doc.width * 0.85  # Use 85% of page width
+        available_height = doc.height * 0.75  # Use 75% of page height
+        story.append(Paragraph("Overzichtsfiguur", styles['Heading2']))
+        img = Image(fig_path)
+        img.drawWidth = available_width
+        img.drawHeight = available_height
+        story.append(img)
+        story.append(Spacer(width=1, height=12))
+
+        # Voeg invoertabel toe
+        story.append(Paragraph("Informatietabel invoerselectie", styles['Heading2']))
+        story.append(self._create_input_table())
+        story.append(Spacer(1, 12))
+
+        # Voeg initiële waarden toe
+        story.append(Paragraph("Initiële waarden", styles['Heading2']))
+        story.append(self._create_initial_values_table())
+        story.append(Spacer(1, 12))
+
+        # Voeg handmatige waarden toe
+        story.extend(self._get_manual_values_paragraphs(styles))
+        story.append(Spacer(1, 12))
+
+        # Voeg resultaten toe
+        story.append(Paragraph("Resultaten", styles['Heading2']))
+        story.append(self._create_results_table())
+
+        # Bouw de PDF
         doc.build(story)
 
         print(f"PDF succesvol opgeslagen op: {file_path}")

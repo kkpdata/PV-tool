@@ -1,3 +1,6 @@
+#------------------------------------Cphi----------------------------------------
+#------------------------------------TXT-----------------------------------------
+
 TWO_PERC_COLUMNS = ['PV_NAAM', 'TXT_SS_S\'_2%', 'TXT_SS_T_2%']
 
 FIVE_PERC_COLUMNS = ['PV_NAAM', 'TXT_SS_S\'_5%', 'TXT_SS_T_5%']
@@ -43,5 +46,3 @@ TEXTUAL_NAMES_DSS = {
     'pieksterkte': PIEKSTERKTE_COLUMNS_DSS,
     'eindsterkte': EINDSTERKTE_COLUMNS_DSS,
 }
-
-
