@@ -681,10 +681,11 @@ class CPhiAnalyse:
         file_name = f"c_phi_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf"
         file_path = f"{path}/{file_name}"
 
-        # Maak en bewaar de figuur
+        # Maak en bewaar de figuur alleen als deze nog niet bestaat
         fig_path = f"{path}/temp_plot.png"
-        self.show_figure()
-        self.figure.write_image(fig_path, scale=2, format="png")  # Reduced scale factor for better quality/size balance
+        if not hasattr(self, 'figure') or len(self.figure.data) == 0:
+            self.show_figure()
+        self.figure.write_image(fig_path, scale=2, format="png")
 
         # Maak het PDF document
         doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
@@ -696,8 +697,8 @@ class CPhiAnalyse:
         story.append(Spacer(width=1, height=12))
 
         # Voeg figuur toe met aangepaste grootte
-        available_width = doc.width * 0.85  # Use 85% of page width
-        available_height = doc.height * 0.75  # Use 75% of page height
+        available_width = doc.width * 0.85
+        available_height = doc.height * 0.75
         story.append(Paragraph("Overzichtsfiguur", styles['Heading2']))
         img = Image(fig_path)
         img.drawWidth = available_width
@@ -728,3 +729,4 @@ class CPhiAnalyse:
 
         print(f"PDF succesvol opgeslagen op: {file_path}")
         return file_path
+

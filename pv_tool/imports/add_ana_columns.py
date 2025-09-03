@@ -25,16 +25,17 @@ def add_terreinspanning(self: Dbase):
 
 
 def add_txt_max_vert_consol_sp(self: Dbase):
-    """Deze functie berekend de maximale verticale consolidatiespanning van de triaxiaalproef."""
-    product1 = self.dbase_df["TXT_SS_S'_MAX_CONSOLIDATIE"] + self.dbase_df['TXT_SS_T_MAX_CONSOLIDATIE']
+    """Deze functie berekend de eind verticale consolidatiespanning van de triaxiaalproef. Kan worden omgezet naar max"""
+    # product1 = self.dbase_df["TXT_SS_S'_MAX_CONSOLIDATIE"] + self.dbase_df['TXT_SS_T_MAX_CONSOLIDATIE']
     product2 = self.dbase_df["TXT_SS_S'_EIND_CONSOLIDATIE"] + self.dbase_df['TXT_SS_T_EIND_CONSOLIDATIE']
-    self.dbase_df['ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING'] = np.maximum(product1, product2)
+    self.dbase_df['ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING'] = product2
 
 
 def add_dss_max_consol_sp(self: Dbase):
-    """Deze functie berekend de maximale verticale consolidatiespanning van de DSS-proef."""
-    self.dbase_df['ANA_DSS_MAX_CONSOLIDATIE_SPANNING'] = self.dbase_df[
-        ['DSS_MAX_EFF_VERT_SPANNING_CONSOLIDATIE', 'DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE']].max(axis=1)
+    """Deze functie berekend de eind verticale consolidatiespanning van de DSS-proef. Kan worden omgezet naar max"""
+    # self.dbase_df['ANA_DSS_MAX_CONSOLIDATIE_SPANNING'] = self.dbase_df[
+    #     ['DSS_MAX_EFF_VERT_SPANNING_CONSOLIDATIE', 'DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE']].max(axis=1)
+    self.dbase_df['ANA_DSS_MAX_CONSOLIDATIE_SPANNING'] = self.dbase_df['DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE']
 
 
 def add_txt_consol_type(self: Dbase):
