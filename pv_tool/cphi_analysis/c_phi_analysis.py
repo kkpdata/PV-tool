@@ -480,7 +480,7 @@ class CPhiAnalyse:
             'PV_A1_COH_GEM [kPa]', 'PV_A2_TAN_PHI_GEM [-]', 'PV_A1_COH_KAR [kPa]', 'PV_A2_TAN_PHI_KAR [-]',
             'PV_PARTPHI [-]', 'PV_PARTCOH [-]', 'PV_TYPEVERZAMELING', 'PV_COH_GEM [kPa]', 'PV_PHI_GEM [graden]',
             'PV_COH_KAR [kPa]', 'PV_PHI_KAR [graden]', 'PV_COH_SD_DSTAB [-]', 'PV_PHI_SD_DSTAB [-]',
-            'PV_VGWNAT_GEM', 'PV_VGWNAT_SD', 'PV_WATERGEHALTE_GEM [kN/m3]', 'PV_WATERGEHALTE_SD [kN/m3]', 'Timestamp'
+            'PV_VGWNAT_GEM [kN/m3]', 'PV_VGWNAT_SD [kN/m3]', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD', 'Timestamp'
         ]
 
         new_row = {
@@ -511,7 +511,7 @@ class CPhiAnalyse:
             'PV_PHI_SD_DSTAB [-]': self.st_dev_phi,
             'PV_PARTPHI [-]': self.material_tan_phi,
             'PV_PARTCOH [-]': self.material_cohesie,
-            'PV_VGWNAT_GEM [kN/m3]': self.calc_vgwnat_gem,   # TODO deze 4 kolommen worden niet goed gevuld - check. bij een tweede run voegt ie ze achteraan toe
+            'PV_VGWNAT_GEM [kN/m3]': self.calc_vgwnat_gem,
             'PV_VGWNAT_SD [kN/m3]': self.calc_vgwnat_sd,
             'PV_WATERGEHALTE_GEM': self.calc_watergehalte_gem,
             'PV_WATERGEHALTE_SD': self.calc_watergehalte_sd,
