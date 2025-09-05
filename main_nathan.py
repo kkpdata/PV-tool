@@ -69,14 +69,14 @@ from pv_tool.cphi_analysis.variables import *
 # analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
 #                       analysis_type='DSS_CPhi')
 
-# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
-#                       analysis_type='TXT_CPhi')
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
+                      analysis_type='TXT_CPhi')
 
 # analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
 #                       analysis_type='DSS_SH')
 
-analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
-                      analysis_type='TXT_SH')
+# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
+#                       analysis_type='TXT_SH')
 
 
 # analyse.get_cphi_data()
@@ -88,8 +88,10 @@ analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16
 
 analyse.apply_settings(alpha=0.75)
 print(analyse.print_short_results())
-analyse.show_figure(plot_extra_dataset=['DSS_SAFE_veen_outlier'])
+# analyse.show_figure(plot_extra_dataset=['DSS_SAFE_veen_outlier'])
+analyse.show_figure()
 
+##
 analyse.save_total_to_excel(path=str(save_test))
 
 analyse.add_results_to_dbase(path = str(save_test))

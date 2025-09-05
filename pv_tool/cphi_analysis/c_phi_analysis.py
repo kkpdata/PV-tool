@@ -374,7 +374,7 @@ class CPhiAnalyse:
         self.set_figure(plot_extra_dataset)
         self.figure.show()
 
-    def print_short_results(self):
+    def print_short_results(self): # TODO vanaf nu bij het wegschrijven van resultaten: rond alles af op 3 decimalen
         """
         Genereert een samenvattend overzicht van de analyseresultaten.
 
@@ -401,7 +401,7 @@ class CPhiAnalyse:
             analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
         return analyse_output_df
 
-    def add_results_to_dbase(self, path):
+    def add_results_to_dbase(self, path):  # TODO wegschrijven als tabel in excel met o.a. filter functionaliteiten en uitlijnen op de breedte van de kolomnaam
         """
         Voegt analyseresultaten toe aan de database export.
 
@@ -436,11 +436,11 @@ class CPhiAnalyse:
         ]
 
         new_row = {
-            'PVNAAM': self.investigation_groups,
+            'PVNAAM': self.investigation_groups[0],
             'PV_REK': self.effective_stress,
             'PV_TYPE_PROEF': self.analysis_type.split('_')[0],
             'PV_ANALYSE': self.analysis_type.split('_')[1],
-            'PV_RESULTAAT_ID': f"{self.investigation_groups}_{self.effective_stress}_{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
+            'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
             'PV_TYPEVERZAMELING': self.alpha,
             'PV_A1_COH_GEM [kPa]': self.gem_a1,
             'PV_A2_TAN_PHI_GEM [-]': self.gem_a2,
@@ -463,7 +463,7 @@ class CPhiAnalyse:
             'PV_PHI_SD_DSTAB [-]': self.st_dev_phi,
             'PV_PARTPHI [-]': self.material_tan_phi,
             'PV_PARTCOH [-]': self.material_cohesie,
-            'PV_VGWNAT_GEM [kN/m3]': self.calc_vgwnat_gem,
+            'PV_VGWNAT_GEM [kN/m3]': self.calc_vgwnat_gem,   # TODO deze 4 kolommen worden niet goed gevuld - check
             'PV_VGWNAT_SD [kN/m3]': self.calc_vgwnat_sd,
             'PV_WATERGEHALTE_GEM': self.calc_watergehalte_gem,
             'PV_WATERGEHALTE_SD': self.calc_watergehalte_sd,
@@ -682,6 +682,7 @@ class CPhiAnalyse:
         file_path = f"{path}/{file_name}"
 
         # Maak en bewaar de figuur alleen als deze nog niet bestaat
+        # TODO sla het figuur op een andere manier op - hogere resolutie en originele verhoudingen. nu is die niet scherp en vertekend
         fig_path = f"{path}/temp_plot.png"
         if not hasattr(self, 'figure') or len(self.figure.data) == 0:
             self.show_figure()
@@ -693,32 +694,41 @@ class CPhiAnalyse:
         story = []
 
         # Voeg titel toe
-        story.append(Paragraph(title, styles['Title']))
+        story.append(Paragraph(title, styles['Title'])) # TODO titel aanpassen naar de naam van de figuur en dan naam van de figuur weg
         story.append(Spacer(width=1, height=12))
 
         # Voeg figuur toe met aangepaste grootte
         available_width = doc.width * 0.85
         available_height = doc.height * 0.75
-        story.append(Paragraph("Overzichtsfiguur", styles['Heading2']))
+        story.append(Paragraph("Overzichtsfiguur", styles['Heading2']))  # TODO kopje overzichtsfiguur weg
         img = Image(fig_path)
         img.drawWidth = available_width
         img.drawHeight = available_height
         story.append(img)
         story.append(Spacer(width=1, height=12))
 
+        # TODO figuur laat gemiddelde lijn niet zien
+
+        # TODO alles links uitlijnen
+
         # Voeg invoertabel toe
         story.append(Paragraph("Informatietabel invoerselectie", styles['Heading2']))
         story.append(self._create_input_table())
         story.append(Spacer(1, 12))
 
+        # TODO materiaalfactor en alfa samen in een tabel - alfa hoort niet in de initiele waarden
+
         # Voeg initiële waarden toe
-        story.append(Paragraph("Initiële waarden", styles['Heading2']))
+        story.append(Paragraph("Eerste benadering fysisch realiseerbare ondergrens en gemiddelde waarden", styles['Heading2']))
         story.append(self._create_initial_values_table())
         story.append(Spacer(1, 12))
+
+
 
         # Voeg handmatige waarden toe
         story.extend(self._get_manual_values_paragraphs(styles))
         story.append(Spacer(1, 12))
+        # TODO aanpassen deze tekst - er staat nu te vaak handmatig en het is niet cohesie handmatig maar a1 handmatig (en phi is a2 handmatig)
 
         # Voeg resultaten toe
         story.append(Paragraph("Resultaten", styles['Heading2']))
