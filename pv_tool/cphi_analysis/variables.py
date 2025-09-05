@@ -1,8 +1,10 @@
 from __future__ import annotations
+
+import math
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
+    from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 import numpy as np
 from scipy.stats import t
 
@@ -68,6 +70,30 @@ def t_n_2(self: CPhiAnalyse):
     significantieniveau = 0.1
     degrees_of_freedom = count_s(self) - 2
     return t.ppf(1 - significantieniveau / 2, degrees_of_freedom)
+
+def t_n_2_sh(self: CPhiAnalyse):
+    significantieniveau = 0.05
+    degrees_of_freedom = count_s(self) - 1
+    return t.ppf(significantieniveau, degrees_of_freedom)
+
+def gem_ln_tan_a_sh(self: CPhiAnalyse):
+    return self.cphi_analyses_data_df['LN(tan(a))'].mean()
+
+def std_ln_tan_a_sh(self: CPhiAnalyse):
+    return self.cphi_analyses_data_df['LN(tan(a))'].std()
+
+def var_a2_gem_sh(self: CPhiAnalyse):
+    return math.exp(gem_ln_tan_a_sh(self))
+
+def var_a2_onder_sh(self: CPhiAnalyse):
+    a2_phi_kar_onder = math.exp(gem_ln_tan_a_sh(self) + t_n_2_sh(self) * std_ln_tan_a_sh(self) *
+                                math.sqrt((1 - self.alpha) + 1 / count_s(self)))
+    return a2_phi_kar_onder
+
+def var_a2_boven_sh(self: CPhiAnalyse):
+    a2_phi_kar_boven = math.exp(gem_ln_tan_a_sh(self) - t_n_2_sh(self) * std_ln_tan_a_sh(self) *
+                                math.sqrt((1 - self.alpha) + 1 / count_s(self)))
+    return a2_phi_kar_boven
 
 
 def sum_s2(self: CPhiAnalyse):
@@ -149,7 +175,14 @@ def helling_gecor(self: CPhiAnalyse):
 
 
 def var_tan_phi_gem(self: CPhiAnalyse):
-    return helling_gecor(self) / np.sqrt(1 - helling_gecor(self)**2)
+    if self.analysis_type == 'TXT_CPhi':
+        return helling_gecor(self) / np.sqrt(1 - helling_gecor(self)**2)
+    elif self.analysis_type == 'DSS_CPhi':
+        return helling_gecor(self)
+    elif self.analysis_type == 'TXT_SH':
+        return var_a2_gem_sh(self) / np.sqrt(1 - var_a2_gem_sh(self) ** 2)
+    elif self.analysis_type == 'DSS_SH':
+        return var_a2_gem_sh(self)
 
 
 def var_tan_phi_kar(self: CPhiAnalyse):
@@ -157,4 +190,13 @@ def var_tan_phi_kar(self: CPhiAnalyse):
         phi_kar = self.phi_kar_handmatig
     else:
         phi_kar = self.eerste_benadering_a2_kar
-    return phi_kar / np.sqrt(1 - phi_kar**2)
+    if self.analysis_type == 'TXT_CPhi':
+        return phi_kar / np.sqrt(1 - phi_kar**2)
+    elif self.analysis_type == 'DSS_CPhi':
+        return phi_kar
+
+def var_tan_phi_kar_sh(self: CPhiAnalyse):
+    if self.analysis_type == 'TXT_SH':
+        return var_a2_onder_sh(self) / np.sqrt(1 - var_a2_onder_sh(self) ** 2)
+    elif self.analysis_type == 'DSS_SH':
+        return var_a2_onder_sh(self)

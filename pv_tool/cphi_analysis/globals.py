@@ -1,0 +1,48 @@
+#------------------------------------Cphi----------------------------------------
+#------------------------------------TXT-----------------------------------------
+
+TWO_PERC_COLUMNS = ['PV_NAAM', 'TXT_SS_S\'_2%', 'TXT_SS_T_2%']
+
+FIVE_PERC_COLUMNS = ['PV_NAAM', 'TXT_SS_S\'_5%', 'TXT_SS_T_5%']
+
+FIFTEEN_PERC_COLUMNS = ['PV_NAAM', 'TXT_SS_S\'_15%', 'TXT_SS_T_15%']
+
+PIEKSTERKTE_COLUMNS = ['PV_NAAM', 'TXT_SS_S\'_BIJ_T_PIEK', 'TXT_SS_T_PIEK']
+
+EINDSTERKTE_COLUMNS = ['PV_NAAM', 'TXT_SS_S\'_BIJ_T_EIND', 'TXT_SS_T_EIND']
+
+TEXTUAL_NAMES = {
+    '2% rek': TWO_PERC_COLUMNS,
+    '5% rek': FIVE_PERC_COLUMNS,
+    '15% rek': FIFTEEN_PERC_COLUMNS,
+    'pieksterkte': PIEKSTERKTE_COLUMNS,
+    'eindsterkte': EINDSTERKTE_COLUMNS,
+}
+
+NEW_COLUMN_NAMES = ['PV_NAAM', 'S\'', 'T']
+
+# -------------------------------------- DSS ---------------------------------------
+
+TWO_PERC_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_2%', 'DSS_T_2%']
+
+FIVE_PERC_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_5%', 'DSS_T_5%']
+
+TEN_PERC_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_10%', 'DSS_T_10%']
+
+FIFTEEN_PERC_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_15%', 'DSS_T_15%']
+
+TWENTY_PERC_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_20%', 'DSS_T_20%']
+
+PIEKSTERKTE_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_BIJ_T_MAX', 'DSS_T_MAX']
+
+EINDSTERKTE_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_BIJ_T_EIND', 'DSS_T_EIND']
+
+TEXTUAL_NAMES_DSS = {
+    '2% rek': TWO_PERC_COLUMNS_DSS,
+    '5% rek': FIVE_PERC_COLUMNS_DSS,
+    '10% rek': TEN_PERC_COLUMNS_DSS,
+    '15% rek': FIFTEEN_PERC_COLUMNS_DSS,
+    '20% rek': TWENTY_PERC_COLUMNS_DSS,
+    'pieksterkte': PIEKSTERKTE_COLUMNS_DSS,
+    'eindsterkte': EINDSTERKTE_COLUMNS_DSS,
+}

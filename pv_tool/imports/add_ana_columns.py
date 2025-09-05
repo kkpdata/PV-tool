@@ -1,6 +1,7 @@
 from __future__ import annotations
 import numpy as np
 from typing import TYPE_CHECKING
+import pandas as pd
 
 if TYPE_CHECKING:
     from pv_tool.imports.import_data import Dbase
@@ -60,10 +61,25 @@ def add_dss_consol_type(self: Dbase):
 
 
 def add_grensspanning_proef(self: Dbase):
-    """Deze functie bepaald de grensspanning."""
+    """Deze functie bepaalt de grensspanning."""
     columns = ['CRS_GRENSSPANNING_A', 'SD_ISOTACHE_GRENSSPANNING_A', 'ANA_GRENSSPANNING_HANDMATIG']
     grens_values = self.dbase_df[columns].max(axis=1)
     self.dbase_df['ANA_GRENSSPANNING_PROEF'] = grens_values
+
+# def add_grensspanning_proef(self: Dbase):
+#     """Deze functie bepaalt de grensspanning"""
+#     columns = ['CRS_GRENSSPANNING_A', 'SD_ISOTACHE_GRENSSPANNING_A', 'ANA_GRENSSPANNING_HANDMATIG']
+#
+#     for col in columns:
+#         non_numeric_positions = self.dbase_df[
+#             self.dbase_df[col].apply(lambda x: not pd.api.types.is_numeric_dtype(type(x)))].index.tolist()
+#         if non_numeric_positions:
+#             print(f"Column '{col}' contains non-numeric values at positions: {non_numeric_positions}. "
+#                   f"These values will be treated as NaN.")
+#
+#     numeric_dbase = self.dbase_df[columns].apply(pd.to_numeric, errors='coerce')
+#     grens_values = numeric_dbase.max(axis=1)
+#     self.dbase_df['ANA_GRENSSPANNING_PROEF'] = grens_values
 
 
 def calc_pop_veld(self):
