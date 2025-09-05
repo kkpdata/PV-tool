@@ -308,7 +308,7 @@ class CPhiAnalyse:
         calculate_s_ty_ondergrens_correctie_c(self)
         calculate_kappa_2_ondergrens_correctie_c(self)
 
-    def result_values(self):
+    def result_values(self):  # TODO als cohesie kar op 0 wordt gezet werkt de functie niet meer - checken
         """
         Berekent de definitieve resultaten van de c-phi analyse: gemiddelde, karakteristieke en rekenwaarden voor
         cohesie en phi, inclusief standaarddeviaties.
@@ -401,7 +401,7 @@ class CPhiAnalyse:
             add_5pr_bovengrens(self)
             add_5pr_ondergrens(self)
             add_fysische_realiseerbare_ondergrens(self)
-            add_gemiddelde(self)
+            add_gemiddelde(self)  # TODO Gemiddelde lijn wordt niet altijd getoond - test een andere naam
 
         set_layout(self)
 
@@ -494,12 +494,12 @@ class CPhiAnalyse:
             'PV_A2_TAN_PHI_GEM [-]': self.gem_a2,
             'PV_A1_COH_KAR [kPa]': self.kar_a1,
             'PV_A2_TAN_PHI_KAR [-]': self.kar_a2,
-            'PV_COH_GEM [kPa]': (self.c_gem if self.c_gem is not None and self.c_gem > 0
+            'PV_COH_GEM [kPa]': (self.c_gem if self.c_gem is not None and self.c_gem >= 0
                                 else "[-]" if self.c_gem is None
                                 else f"{self.c_gem} (kan niet - aanpassen!)"
                                 ),
             'PV_PHI_GEM [graden]': self.phi_gem,
-            'PV_COH_KAR [kPa]': (self.c_kar if self.c_kar is not None and self.c_kar > 0
+            'PV_COH_KAR [kPa]': (self.c_kar if self.c_kar is not None and self.c_kar >= 0
                                 else "[-]" if self.c_kar is None
                                 else f"{self.c_kar} (kan niet - aanpassen!)"
                                 ),
