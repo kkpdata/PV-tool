@@ -205,6 +205,54 @@ class CPhiAnalyse:
             self.cohesie_kar_handmatig = cohesie_kar
         self._run()
 
+
+    #  voeg functie toe die zoekt of er op path een excel staat 'Template_PVtool5_0.xlsx' die het tabblad 'resultaten' inleest als die er is.
+    # Hij moet dan zoeken of de combinatie van PVNAAM, PV_REK en PV_TYPE_PROEF al bestaat. Zo ja, selecteer dan de regel met de laatste timestamp
+    # vervolgens moet de interface van de jupyter notebook waarin de analyse wordt uitgevoerd de mogelijkheid krijgen om deze waarden over te nemen of niet.
+    def get_previous_results(self, path: str):
+        """
+        Zoekt naar eerdere analyseresultaten in een Excel-bestand.
+
+        Parameters
+        ----------
+        path : str
+            Pad naar de map waar het Excel-bestand staat
+
+        Returns
+        -------
+        DataFrame of None
+            DataFrame met eerdere resultaten als deze gevonden zijn, anders None
+        """
+        file_name = 'Template_PVtool5_0.xlsx'
+        file_path = f"{path}/{file_name}"
+
+        try:
+            with open(file_path, 'r'):
+                pass
+        except FileNotFoundError:
+            raise FileNotFoundError("Er is geen dbase aanwezig onder de naam Template_PVtool5_0.xlsx")
+
+        try:
+            results_df = read_excel(file_path, sheet_name='Resultaten')
+        except ValueError:
+            print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
+            return None
+
+        filtered_df = results_df[
+            (results_df['PV_NAAM'].isin(self.investigation_groups)) &
+            (results_df['PV_REK'] == self.effective_stress) &
+            (results_df['PV_TYPE_PROEF'] == self.analysis_type)
+        ]
+
+        if filtered_df.empty:
+            print("Er zijn geen eerdere resultaten gevonden voor de opgegeven parameters.")
+            return None
+
+        latest_entry = filtered_df.loc[filtered_df['PV_RESULTAAT_ID'].idxmax()]
+
+        return latest_entry
+
+
     def expand_analysis_df(self):
         """
         Berekent afgeleide parameters voor de c-phi analyse.
@@ -463,7 +511,7 @@ class CPhiAnalyse:
             'PV_PHI_SD_DSTAB [-]': self.st_dev_phi,
             'PV_PARTPHI [-]': self.material_tan_phi,
             'PV_PARTCOH [-]': self.material_cohesie,
-            'PV_VGWNAT_GEM [kN/m3]': self.calc_vgwnat_gem,   # TODO deze 4 kolommen worden niet goed gevuld - check
+            'PV_VGWNAT_GEM [kN/m3]': self.calc_vgwnat_gem,   # TODO deze 4 kolommen worden niet goed gevuld - check. bij een tweede run voegt ie ze achteraan toe
             'PV_VGWNAT_SD [kN/m3]': self.calc_vgwnat_sd,
             'PV_WATERGEHALTE_GEM': self.calc_watergehalte_gem,
             'PV_WATERGEHALTE_SD': self.calc_watergehalte_sd,
