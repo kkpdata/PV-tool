@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 from pv_tool.cphi_analysis.calc_parameters import *
 from typing import Optional, List
 from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, TEXTUAL_NAMES_DSS, NEW_COLUMN_NAMES)
+from pandas import DataFrame
 
 
 def add_proefresultaten(self: CPhiAnalyse):
@@ -256,4 +257,56 @@ def set_layout(self: CPhiAnalyse):
         yaxis_title=yas_title,
         legend_title=legend_title,
         margin=dict(t=100, r=50, b=100, l=50)  # Adjusted margins for better layout
+    )
+
+def plot_stress_paths(self: CPhiAnalyse, data_df: DataFrame) -> None:
+    """
+    Plot de spanningspaden voor alle beschikbare effective stress waarden.
+    Verbindt de punten van verschillende rekpercentages voor hetzelfde monster.
+
+    Parameters
+    ----------
+    data_df : DataFrame
+        DataFrame met de kolommen 'PV_NAAM', 'S\'' en 'T' voor verschillende rekpercentages
+    """
+    # Groepeer de data per monster
+    for sample_name in data_df['PV_NAAM'].unique():
+        sample_data = data_df[data_df['PV_NAAM'] == sample_name].copy()
+        # Sorteer de data op S' om een logische verbinding te maken
+        sample_data = sample_data.sort_values('S\'')
+
+        # Voeg het eerste punt toe met een speciaal symbool
+        self.figure.add_trace(
+            go.Scatter(
+                x=[sample_data['S\''].iloc[0]],
+                y=[sample_data['T'].iloc[0]],
+                mode='markers',
+                marker=dict(
+                    symbol='star',
+                    size=10,
+                    color='blue'
+                ),
+                name=f'Start {sample_name}',
+                showlegend=True
+            )
+        )
+
+        # Voeg de spanningspad lijn toe voor dit monster
+        self.figure.add_trace(
+            go.Scatter(
+                x=sample_data['S\''],
+                y=sample_data['T'],
+                mode='lines+markers',
+                line=dict(color='lightgray', width=1),
+                marker=dict(size=6),
+                name=f'Spanningspad {sample_name}',
+                text=[f"{sample_name} - S\':{s:.1f}, T:{t:.1f}" for s, t in zip(sample_data['S\''], sample_data['T'])],
+                hoverinfo='text'
+            )
+        )
+
+    self.figure.update_layout(
+        xaxis_title="S' [kPa]",
+        yaxis_title="T [kPa]",
+        title="Spanningspaden"
     )

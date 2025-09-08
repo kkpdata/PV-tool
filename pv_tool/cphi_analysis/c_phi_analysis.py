@@ -205,6 +205,53 @@ class CPhiAnalyse:
             self.cohesie_kar_handmatig = cohesie_kar
         self._run()
 
+    # voeg functie toe die voor alle beschikbare  invoer van effective stress (dus niet alleen degene die geselecteerd is) de data ophaalt bij de gekozen investigation group, op de manier van get_cphi_data
+    # Deze functie moet een andere functie aanroepen die deze informatie kan plotten. Het eerste datapunt S en T wordt geplot met een ander symbool zodat duidelijk is dat dit een startpunt is.
+    # De datapunten S en T (verschillende rekpercentages) die bij hetzelfde monster horen worden met elkaar verbonden door een smalle, lichtgrijze lijn
+
+    def plot_spanningspaden(self):
+        """
+        Plot de spanningspaden voor alle beschikbare effective stress waarden
+        binnen de geselecteerde investigation groups.
+
+        Dit helpt bij het visualiseren van de spanningsveranderingen
+        tijdens de proeven.
+        """
+        if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
+            relevant_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
+            relevant_df = relevant_df[relevant_df['PV_NAAM'].isin(self.investigation_groups)]
+            effective_stress_options = ['2% rek', '5% rek', '10% rek', '15% rek', 'pieksterkte', 'eindsterkte']
+        elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+            relevant_df = self.dbase_df[self.dbase_df['ALG__DSS']]
+            relevant_df = relevant_df[relevant_df['PV_NAAM'].isin(self.investigation_groups)]
+            effective_stress_options = ['2% rek', '5% rek', '10% rek', '15% rek', '20% rek', 'pieksterkte', 'eindsterkte']
+        else:
+            raise ValueError("Ongeldig analysetype. Gebruik 'TXT_CPhi', 'TXT_SH', 'DSS_CPhi' of 'DSS_SH'.")
+
+        # Maak een nieuwe figuur aan
+        self.figure = go.Figure()
+
+        # Verzamel alle data voor elk monster
+        all_data = []
+        for sample_name in relevant_df['PV_NAAM'].unique():
+            sample_data = relevant_df[relevant_df['PV_NAAM'] == sample_name]
+
+            for stress in effective_stress_options:
+                columns = TEXTUAL_NAMES.get(stress, []) if self.analysis_type in ['TXT_CPhi', 'TXT_SH'] else TEXTUAL_NAMES_DSS.get(stress, [])
+                if len(columns) > 0:
+                    data = sample_data[columns].copy()
+                    if not data.empty and not data.isna().all().all():
+                        data.columns = NEW_COLUMN_NAMES
+                        all_data.append(data)
+
+        # Combineer alle data
+        if all_data:
+            combined_data = concat(all_data, ignore_index=True)
+            # Plot de spanningspaden
+            from pv_tool.cphi_analysis.visualization import plot_stress_paths
+            plot_stress_paths(self, combined_data)
+        else:
+            raise ValueError("Geen geldige data gevonden voor de spanningspaden.")
 
     #  voeg functie toe die zoekt of er op path een excel staat 'Template_PVtool5_0.xlsx' die het tabblad 'resultaten' inleest als die er is.
     # Hij moet dan zoeken of de combinatie van PVNAAM, PV_REK en PV_TYPE_PROEF al bestaat. Zo ja, selecteer dan de regel met de laatste timestamp
