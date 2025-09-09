@@ -163,27 +163,47 @@ def calc_c_d(self: CPhiAnalyse):
     return float(calc_c_kar(self) / self.material_cohesie)
 
 def calc_st_dev_phi(self: CPhiAnalyse):
-    """Berekent de standaarddeviatie van phi op basis van gemiddelde en rekenwaarde."""
+    """Berekent de standaarddeviatie van phi op basis van gemiddelde en rekenwaarde.
+
+    Raises:
+        ValueError: Als phi_gem of phi_d negatief of nul is.
+    """
     phi_gem = calc_phi_gem(self)
     phi_d = calc_phi_d(self)
-    if phi_gem <= 0 or phi_d <= 0:
-        phi_gem = max(phi_gem, 0.1)
-        phi_d = max(phi_d, 0.1)
+
+    # Controleer op fysisch onmogelijke waarden
+    if phi_gem <= 0:
+        raise ValueError(f"Gemiddelde phi waarde moet positief zijn, gevonden waarde: {phi_gem}")
+    if phi_d <= 0:
+        raise ValueError(f"Rekenwaarde phi moet positief zijn, gevonden waarde: {phi_d}")
+
     st_dev = phi_gem * math.sqrt(math.exp((((norm.ppf(0.05) * 2) + math.sqrt((norm.ppf(0.05) * 2) ** 2 +
-                                                                             8 * (math.log(phi_gem) - math.log(phi_d))))
-                                           / 2) ** 2) - 1)
+                                                                           8 * (math.log(phi_gem) - math.log(phi_d))))
+                                         / 2) ** 2) - 1)
     return float(st_dev)
 
 def calc_st_dev_c(self: CPhiAnalyse):
-    """Berekent de standaarddeviatie van de cohesie op basis van gemiddelde en rekenwaarde."""
+    """Berekent de standaarddeviatie van de cohesie op basis van gemiddelde en rekenwaarde.
+
+    Raises:
+        ValueError: Als c_gem of c_d negatief is.
+    """
     c_gem = calc_c_gem(self)
     c_d = calc_c_d(self)
-    if c_gem <= 0 or c_d <= 0:
-        c_gem = max(c_gem, 0.1)
-        c_d = max(c_d, 0.1)
+
+    # Controleer op fysisch onmogelijke waarden (cohesie mag 0 zijn)
+    if c_gem < 0:
+        raise ValueError(f"Gemiddelde cohesie waarde mag niet negatief zijn, gevonden waarde: {c_gem}")
+    if c_d < 0:
+        raise ValueError(f"Rekenwaarde cohesie mag niet negatief zijn, gevonden waarde: {c_d}")
+
+    # Als een van beide waardes 0 is, is de standaarddeviatie ook 0
+    if c_gem == 0 or c_d == 0:
+        return 0.0
+
     st_dev = c_gem * math.sqrt(math.exp((((norm.ppf(0.05) * 2) + math.sqrt((norm.ppf(0.05) * 2) ** 2 +
-                                                                           8 * (math.log(c_gem) - math.log(c_d)))) / 2)
-                                        ** 2) - 1)
+                                                                         8 * (math.log(c_gem) - math.log(c_d)))) / 2)
+                                      ** 2) - 1)
     return float(st_dev)
 
 def calc_tan_phi_kar(self: CPhiAnalyse):

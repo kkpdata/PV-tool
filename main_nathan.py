@@ -81,10 +81,24 @@ analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16
 
 # analyse.get_cphi_data()
 
+analyse.apply_parameters(cohesie_kar=0)
+analyse.apply_settings(alpha=0.75)
+print(analyse.print_short_results())
+analyse.show_figure()
+
+### spanningspaden plot
+
+# analyse.plot_spanningspaden()
+
+
 ## apply parameters if needed and plot and print
 
 # analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
 # analyse.apply_parameters(cohesie_gem=10.96, phi_kar=0.476, cohesie_kar=4.16)
+
+analyse.apply_parameters(cohesie_gem=10)
+# als cohesie gem wordt aangepast dan plot die niet de gemiddelde lijn.
+# # als kar wordt aangepast naar een waarde = 0 dan past ie m niet goed aan
 
 analyse.apply_settings(alpha=0.75)
 print(analyse.print_short_results())

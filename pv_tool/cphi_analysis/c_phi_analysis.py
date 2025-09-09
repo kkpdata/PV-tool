@@ -238,7 +238,7 @@ class CPhiAnalyse:
 
             for stress in effective_stress_options:
                 columns = ALL_TEXTUAL_NAMES.get(stress, []) if self.analysis_type in ['TXT_CPhi', 'TXT_SH'] else ALL_TEXTUAL_NAMES_DSS.get(stress, [])
-                columns = columns[1:]
+
                 if len(columns) > 0:
                     data = sample_data[columns].copy()
                     if not data.empty and not data.isna().all().all():
@@ -250,7 +250,11 @@ class CPhiAnalyse:
             combined_data = concat(all_data, ignore_index=True)
             # Plot de spanningspaden
             from pv_tool.cphi_analysis.visualization import plot_stress_paths
+
+
+            self.figure = go.Figure()
             plot_stress_paths(self, combined_data)
+            self.figure.show()
         else:
             raise ValueError("Geen geldige data gevonden voor de spanningspaden.")
 

@@ -8,6 +8,7 @@ from pv_tool.cphi_analysis.calc_parameters import *
 from typing import Optional, List
 from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, TEXTUAL_NAMES_DSS, NEW_COLUMN_NAMES)
 from pandas import DataFrame
+import numpy as np
 
 
 def add_proefresultaten(self: CPhiAnalyse):
@@ -162,15 +163,19 @@ def add_fysische_realiseerbare_ondergrens(self: CPhiAnalyse):
     raaklijn_kar_x1 = 0
     raaklijn_kar_x2 = self.cphi_analyses_data_df['S\''].max() + 5
 
-    if self.phi_kar_handmatig and self.cohesie_kar_handmatig:
+    # Changed the conditions to handle cohesie_kar_handmatig=0 correctly
+    has_phi_kar = self.phi_kar_handmatig is not None
+    has_cohesie_kar = self.cohesie_kar_handmatig is not None  # Now 0 will be considered as "has value"
+
+    if has_phi_kar and has_cohesie_kar:
         raaklijn_kar_y1 = self.cohesie_kar_handmatig + (raaklijn_kar_x1 * self.phi_kar_handmatig)
         raaklijn_kar_y2 = self.cohesie_kar_handmatig + (self.phi_kar_handmatig * raaklijn_kar_x2)
         print('fysisch realiseerbare ondergrens gebaseerd op phi kar handmatig en cohesie kar handmatig')
-    elif not self.phi_kar_handmatig and self.cohesie_kar_handmatig:
+    elif not has_phi_kar and has_cohesie_kar:
         raaklijn_kar_y1 = self.cohesie_kar_handmatig + (raaklijn_kar_x1 * self.eerste_benadering_a2_kar)
         raaklijn_kar_y2 = self.cohesie_kar_handmatig + (self.eerste_benadering_a2_kar * raaklijn_kar_x2)
         print('fysisch realiseerbare ondergrens gebaseerd op eerste benadering a2 kar en cohesie handmatig')
-    elif self.phi_kar_handmatig and not self.cohesie_kar_handmatig:
+    elif has_phi_kar and not has_cohesie_kar:
         raaklijn_kar_y1 = self.eerste_benadering_a1_kar + (raaklijn_kar_x1 * self.phi_kar_handmatig)
         raaklijn_kar_y2 = self.eerste_benadering_a1_kar + (self.phi_kar_handmatig * raaklijn_kar_x2)
         print('fysisch realiseerbare ondergrens gebaseerd op phi kar handmatig en eerste benadering a1')
@@ -192,31 +197,38 @@ def add_fysische_realiseerbare_ondergrens(self: CPhiAnalyse):
     )
 
 
+def _get_helling_value(helling):
+    """Helper function om de juiste waarde uit helling te halen, ongeacht of het een float of array is."""
+    if isinstance(helling, (list, np.ndarray)):
+        return float(helling[0])
+    return float(helling)
+
 def add_gemiddelde(self: CPhiAnalyse):
     """Deze functie voegt de gemiddelde waarden toe aan de figuur."""
     x1 = self.cphi_analyses_data_df['S\''].min() + 5
     x2 = self.cphi_analyses_data_df['S\''].max() + 5
 
-    if self.cohesie_gem_handmatig:
-        y1 = x1 * helling_gecor(self) + self.cohesie_gem_handmatig
-        y2 = x2 * helling_gecor(self) + self.cohesie_gem_handmatig
+    if self.cohesie_gem_handmatig is not None:
+        helling = _get_helling_value(self.helling_gecorrigeerd)
+        y1 = x1 * helling + self.cohesie_gem_handmatig
+        y2 = x2 * helling + self.cohesie_gem_handmatig
         print('gemiddelde gebaseerd op helling gecor en cohesie gem handmatig')
     else:
-        y1 = x1 * helling_gecor(self) + self.eerste_benadering_a1_gem
-        y2 = x2 * helling_gecor(self) + self.eerste_benadering_a1_gem
+        helling = _get_helling_value(self.helling_gecorrigeerd)
+        y1 = x1 * helling + self.eerste_benadering_a1_gem
+        y2 = x2 * helling + self.eerste_benadering_a1_gem
         print('gemiddelde gebaseerd op helling gecor en eerste benadering a1 gem')
 
     x = [x1, x2]
     y = [y1, y2]
-
-    print(x,y)
 
     self.figure.add_trace(
         go.Scatter(
             x=x,
             y=y,
             mode='lines',
-            name='Verwachtingswaarde'
+            name='gemiddelde',
+            line=dict(color='orange', width=2),
         )
     )
 
@@ -235,7 +247,8 @@ def add_gemiddelde_sh(self: CPhiAnalyse):
             x=x,
             y=y,
             mode='lines',
-            name='Raaklijn gemiddeld'
+            name='Raaklijn gemiddeld',
+            line=dict(color='orange', width=2)
         )
     )
 
