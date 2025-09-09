@@ -204,7 +204,10 @@ class CPhiAnalyse:
             self.phi_kar_handmatig = phi_kar
         if cohesie_kar is not None:
             self.cohesie_kar_handmatig = cohesie_kar
-        self._run()
+        if self.analysis_type in ['TXT_SH', 'DSS_SH']:
+            self._run_sh()
+        else:
+            self._run()
 
 
 

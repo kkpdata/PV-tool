@@ -4,6 +4,7 @@ import math
 import numpy as np
 from scipy.stats import linregress, norm
 from typing import TYPE_CHECKING
+import warnings
 
 if TYPE_CHECKING:
     from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
@@ -142,10 +143,10 @@ def calc_c_kar(self: CPhiAnalyse):
         phi_kar = self.phi_kar_handmatig
     else:
         phi_kar = self.eerste_benadering_a2_kar
-    if self.cohesie_kar_handmatig is not None:
-        coh_kar = self.cohesie_kar_handmatig
-    else:
-        coh_kar = self.eerste_benadering_a1_kar
+
+    # Explicitly check if cohesie_kar_handmatig is not None, including when it's 0
+    coh_kar = self.cohesie_kar_handmatig if self.cohesie_kar_handmatig is not None else self.eerste_benadering_a1_kar
+
     if self.analysis_type == 'TXT_CPhi':
         return float(coh_kar / np.sqrt(1 - phi_kar ** 2))
     elif self.analysis_type == 'DSS_CPhi':
@@ -185,26 +186,31 @@ def calc_st_dev_phi(self: CPhiAnalyse):
 def calc_st_dev_c(self: CPhiAnalyse):
     """Berekent de standaarddeviatie van de cohesie op basis van gemiddelde en rekenwaarde.
 
-    Raises:
-        ValueError: Als c_gem of c_d negatief is.
+    Geeft een waarschuwing als c_gem of c_d negatief is en retourneert None.
     """
     c_gem = calc_c_gem(self)
     c_d = calc_c_d(self)
 
     # Controleer op fysisch onmogelijke waarden (cohesie mag 0 zijn)
     if c_gem < 0:
-        raise ValueError(f"Gemiddelde cohesie waarde mag niet negatief zijn, gevonden waarde: {c_gem}")
+        warnings.warn("Gemiddelde cohesie waarde mag niet negatief zijn, gevonden waarde: {}".format(c_gem))
+        return None
     if c_d < 0:
-        raise ValueError(f"Rekenwaarde cohesie mag niet negatief zijn, gevonden waarde: {c_d}")
+        warnings.warn("Rekenwaarde cohesie mag niet negatief zijn, gevonden waarde: {}".format(c_d))
+        return None
 
     # Als een van beide waardes 0 is, is de standaarddeviatie ook 0
     if c_gem == 0 or c_d == 0:
         return 0.0
 
-    st_dev = c_gem * math.sqrt(math.exp((((norm.ppf(0.05) * 2) + math.sqrt((norm.ppf(0.05) * 2) ** 2 +
-                                                                         8 * (math.log(c_gem) - math.log(c_d)))) / 2)
-                                      ** 2) - 1)
-    return float(st_dev)
+    try:
+        st_dev = c_gem * math.sqrt(math.exp((((norm.ppf(0.05) * 2) + math.sqrt((norm.ppf(0.05) * 2) ** 2 +
+                                                                             8 * (math.log(c_gem) - math.log(c_d)))) / 2)
+                                          ** 2) - 1)
+        return st_dev
+    except (ValueError, OverflowError):
+        warnings.warn("Standaarddeviatie berekening resulteerde in een ongeldige waarde.")
+        return None
 
 def calc_tan_phi_kar(self: CPhiAnalyse):
     """Berekent de karakteristieke tan(phi) voor CPhi analyses."""

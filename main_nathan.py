@@ -79,9 +79,9 @@ analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16
 #                       analysis_type='TXT_SH')
 
 
-# analyse.get_cphi_data()
-
-analyse.apply_parameters(cohesie_kar=0)
+# analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
+# analyse.apply_parameters(cohesie_gem=10.96, phi_kar=0.476, cohesie_kar=4.16)
+analyse.apply_parameters(cohesie_gem=0)
 analyse.apply_settings(alpha=0.75)
 print(analyse.print_short_results())
 analyse.show_figure()
