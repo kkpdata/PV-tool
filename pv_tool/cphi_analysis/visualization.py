@@ -200,19 +200,23 @@ def add_gemiddelde(self: CPhiAnalyse):
     if self.cohesie_gem_handmatig:
         y1 = x1 * helling_gecor(self) + self.cohesie_gem_handmatig
         y2 = x2 * helling_gecor(self) + self.cohesie_gem_handmatig
+        print('gemiddelde gebaseerd op helling gecor en cohesie gem handmatig')
     else:
         y1 = x1 * helling_gecor(self) + self.eerste_benadering_a1_gem
         y2 = x2 * helling_gecor(self) + self.eerste_benadering_a1_gem
+        print('gemiddelde gebaseerd op helling gecor en eerste benadering a1 gem')
 
     x = [x1, x2]
     y = [y1, y2]
+
+    print(x,y)
 
     self.figure.add_trace(
         go.Scatter(
             x=x,
             y=y,
             mode='lines',
-            name='Gemiddelde'
+            name='Verwachtingswaarde'
         )
     )
 
@@ -298,7 +302,7 @@ def plot_stress_paths(self: CPhiAnalyse, data_df: DataFrame) -> None:
                 y=sample_data['T'],
                 mode='lines+markers',
                 line=dict(color='lightgray', width=1),
-                marker=dict(size=6),
+                marker=dict(color='black', size=2),
                 name=f'Spanningspad {sample_name}',
                 text=[f"{sample_name} - S\':{s:.1f}, T:{t:.1f}" for s, t in zip(sample_data['S\''], sample_data['T'])],
                 hoverinfo='text'

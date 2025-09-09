@@ -3,7 +3,8 @@ from typing import Optional, List, Literal
 from datetime import datetime
 from pandas import DataFrame, ExcelWriter, concat, read_excel
 
-from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS)
+from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, ALL_TEXTUAL_NAMES,
+                                           NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS, ALL_TEXTUAL_NAMES_DSS)
 
 from pv_tool.imports.import_data import Dbase
 import plotly.graph_objects as go
@@ -205,9 +206,7 @@ class CPhiAnalyse:
             self.cohesie_kar_handmatig = cohesie_kar
         self._run()
 
-    # voeg functie toe die voor alle beschikbare  invoer van effective stress (dus niet alleen degene die geselecteerd is) de data ophaalt bij de gekozen investigation group, op de manier van get_cphi_data
-    # Deze functie moet een andere functie aanroepen die deze informatie kan plotten. Het eerste datapunt S en T wordt geplot met een ander symbool zodat duidelijk is dat dit een startpunt is.
-    # De datapunten S en T (verschillende rekpercentages) die bij hetzelfde monster horen worden met elkaar verbonden door een smalle, lichtgrijze lijn
+
 
     def plot_spanningspaden(self):
         """
@@ -220,11 +219,12 @@ class CPhiAnalyse:
         if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
             relevant_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
             relevant_df = relevant_df[relevant_df['PV_NAAM'].isin(self.investigation_groups)]
-            effective_stress_options = ['2% rek', '5% rek', '10% rek', '15% rek', 'pieksterkte', 'eindsterkte']
+            effective_stress_options = ['consolidatie', '2% rek', '5% rek', '15% rek', 'pieksterkte', 'eindsterkte']
         elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
             relevant_df = self.dbase_df[self.dbase_df['ALG__DSS']]
             relevant_df = relevant_df[relevant_df['PV_NAAM'].isin(self.investigation_groups)]
-            effective_stress_options = ['2% rek', '5% rek', '10% rek', '15% rek', '20% rek', 'pieksterkte', 'eindsterkte']
+            effective_stress_options = ['consolidatie', '2% rek', '5% rek', '10% rek', '15% rek', '20% rek', 'pieksterkte', 'eindsterkte']
+            relevant_df['DSS_T_CONSOLIDATIE'] = [0]*len(relevant_df)
         else:
             raise ValueError("Ongeldig analysetype. Gebruik 'TXT_CPhi', 'TXT_SH', 'DSS_CPhi' of 'DSS_SH'.")
 
@@ -237,7 +237,8 @@ class CPhiAnalyse:
             sample_data = relevant_df[relevant_df['PV_NAAM'] == sample_name]
 
             for stress in effective_stress_options:
-                columns = TEXTUAL_NAMES.get(stress, []) if self.analysis_type in ['TXT_CPhi', 'TXT_SH'] else TEXTUAL_NAMES_DSS.get(stress, [])
+                columns = ALL_TEXTUAL_NAMES.get(stress, []) if self.analysis_type in ['TXT_CPhi', 'TXT_SH'] else ALL_TEXTUAL_NAMES_DSS.get(stress, [])
+                columns = columns[1:]
                 if len(columns) > 0:
                     data = sample_data[columns].copy()
                     if not data.empty and not data.isna().all().all():
@@ -552,7 +553,7 @@ class CPhiAnalyse:
                                 ),
             'PV_PHI_KAR [graden]': self.phi_kar,
             'PV_COH_SD_DSTAB [-]': (self.st_dev_c if self.c_gem is not None and self.c_kar is not None
-                                    and self.c_gem > 0 and self.c_kar > 0
+                                    and self.c_gem >= 0 and self.c_kar >= 0
                                     else "[-]" if self.c_gem is None or self.c_kar is None
                                     else "[-] (c < 0)"),
             'PV_PHI_SD_DSTAB [-]': self.st_dev_phi,
