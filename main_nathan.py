@@ -84,11 +84,11 @@ analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16
 analyse.apply_parameters(cohesie_gem=0)
 analyse.apply_settings(alpha=0.75)
 print(analyse.print_short_results())
-analyse.show_figure()
+analyse.show_figure(plot_spanningspaden=True)
 
 ### spanningspaden plot
 
-# analyse.plot_spanningspaden()
+analyse.plot_spanningspaden()
 
 
 ## apply parameters if needed and plot and print

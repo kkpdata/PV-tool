@@ -252,6 +252,84 @@ def add_gemiddelde_sh(self: CPhiAnalyse):
         )
     )
 
+def _get_marker_direction(self, stress_df):
+        """
+        Bepaalt de richting van de marker op basis van het eerste segment van het spanningspad.
+
+        Parameters
+        ----------
+        stress_df : DataFrame
+            DataFrame met kolommen 'S\'' en 'T' voor de spanningswaarden
+
+        Returns
+        -------
+        str
+            Symbol naam voor de marker ('triangle-up', 'triangle-down', 'triangle-left', of 'triangle-right')
+        """
+        if len(stress_df) < 2:
+            return 'triangle-up'
+
+        dx = stress_df['S\''].iloc[1] - stress_df['S\''].iloc[0]
+        dy = stress_df['T'].iloc[1] - stress_df['T'].iloc[0]
+
+        # Bepaal dominante richting
+        if abs(dx) > abs(dy):
+            return 'triangle-right' if dx > 0 else 'triangle-left'
+        else:
+            return 'triangle-up' if dy > 0 else 'triangle-down'
+
+def add_stress_paths(self: CPhiAnalyse, sample_stress_paths: dict) -> None:
+    """
+    Plot de spanningspaden voor alle beschikbare effective stress waarden.
+    Verbindt de punten van verschillende rekpercentages voor hetzelfde monster.
+
+    Parameters
+    ----------
+    sample_stress_paths : dict
+        Dictionary met als key de monster naam en als value een DataFrame met kolommen
+        'S\'', 'T' en 'stress_state' voor de spanningswaarden
+    """
+    first_sample = True
+    for sample_name, stress_df in sample_stress_paths.items():
+        # Bepaal de richting van de marker
+        marker_symbol = _get_marker_direction(self, stress_df=stress_df)
+
+        # Voeg het eerste punt toe met een speciaal symbool
+        self.figure.add_trace(
+            go.Scatter(
+                x=[stress_df['S\''].iloc[0]],
+                y=[stress_df['T'].iloc[0]],
+                mode='markers',
+                marker=dict(
+                    symbol=marker_symbol,
+                    size=6,
+                    color='lightgray'
+                ),
+                name='K0' if first_sample else f'Start {sample_name}',
+                text=f"{sample_name} - {stress_df['stress_state'].iloc[0]}<br>S\':{stress_df['S\''].iloc[0]:.1f}, T:{stress_df['T'].iloc[0]:.1f}",
+                hoverinfo='text',
+                showlegend=first_sample
+            )
+        )
+
+        # Voeg de spanningspad lijn toe voor dit monster
+        self.figure.add_trace(
+            go.Scatter(
+                x=stress_df['S\''],
+                y=stress_df['T'],
+                mode='lines+markers',
+                line=dict(color='lightgray', width=1),
+                marker=dict(color='lightgray', size=1),
+                name='s\'-t curve' if first_sample else f'Spanningspad {sample_name}',
+                text=[f"{sample_name} - {state}<br>S\':{s:.1f}, T:{t:.1f}"
+                      for state, s, t in zip(stress_df['stress_state'], stress_df['S\''], stress_df['T'])],
+                hoverinfo='text',
+                showlegend=first_sample
+            )
+        )
+        first_sample = False
+
+
 def set_layout(self: CPhiAnalyse):
     """
     Stelt de layout van de figuur in met titel en as-labels.
@@ -274,56 +352,4 @@ def set_layout(self: CPhiAnalyse):
         yaxis_title=yas_title,
         legend_title=legend_title,
         margin=dict(t=100, r=50, b=100, l=50)  # Adjusted margins for better layout
-    )
-
-def plot_stress_paths(self: CPhiAnalyse, data_df: DataFrame) -> None:
-    """
-    Plot de spanningspaden voor alle beschikbare effective stress waarden.
-    Verbindt de punten van verschillende rekpercentages voor hetzelfde monster.
-
-    Parameters
-    ----------
-    data_df : DataFrame
-        DataFrame met de kolommen 'PV_NAAM', 'S\'' en 'T' voor verschillende rekpercentages
-    """
-    # Groepeer de data per monster
-    for sample_name in data_df['PV_NAAM'].unique():
-        sample_data = data_df[data_df['PV_NAAM'] == sample_name].copy()
-        # Sorteer de data op S' om een logische verbinding te maken
-        sample_data = sample_data.sort_values('S\'')
-
-        # Voeg het eerste punt toe met een speciaal symbool
-        self.figure.add_trace(
-            go.Scatter(
-                x=[sample_data['S\''].iloc[0]],
-                y=[sample_data['T'].iloc[0]],
-                mode='markers',
-                marker=dict(
-                    symbol='star',
-                    size=10,
-                    color='blue'
-                ),
-                name=f'Start {sample_name}',
-                showlegend=True
-            )
-        )
-
-        # Voeg de spanningspad lijn toe voor dit monster
-        self.figure.add_trace(
-            go.Scatter(
-                x=sample_data['S\''],
-                y=sample_data['T'],
-                mode='lines+markers',
-                line=dict(color='lightgray', width=1),
-                marker=dict(color='black', size=2),
-                name=f'Spanningspad {sample_name}',
-                text=[f"{sample_name} - S\':{s:.1f}, T:{t:.1f}" for s, t in zip(sample_data['S\''], sample_data['T'])],
-                hoverinfo='text'
-            )
-        )
-
-    self.figure.update_layout(
-        xaxis_title="S' [kPa]",
-        yaxis_title="T [kPa]",
-        title="Spanningspaden"
     )

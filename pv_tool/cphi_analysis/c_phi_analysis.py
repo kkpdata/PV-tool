@@ -1,7 +1,7 @@
 from operator import index
 from typing import Optional, List, Literal
 from datetime import datetime
-from pandas import DataFrame, ExcelWriter, concat, read_excel
+from pandas import DataFrame, ExcelWriter, concat, read_excel, isna
 
 from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, ALL_TEXTUAL_NAMES,
                                            NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS, ALL_TEXTUAL_NAMES_DSS)
@@ -217,7 +217,8 @@ class CPhiAnalyse:
         binnen de geselecteerde investigation groups.
 
         Dit helpt bij het visualiseren van de spanningsveranderingen
-        tijdens de proeven.
+        tijdens de proeven. Voor elk monster (uit de index van de dataframes)
+        wordt een apart spanningspad gemaakt met alle beschikbare spanningsstappen.
         """
         if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
             relevant_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
@@ -231,33 +232,43 @@ class CPhiAnalyse:
         else:
             raise ValueError("Ongeldig analysetype. Gebruik 'TXT_CPhi', 'TXT_SH', 'DSS_CPhi' of 'DSS_SH'.")
 
-        # Maak een nieuwe figuur aan
-        self.figure = go.Figure()
+        # Eerst verzamelen we alle data per spanningsstap
+        all_data = {}
+        for stress in effective_stress_options:
+            columns = ALL_TEXTUAL_NAMES.get(stress, []) if self.analysis_type in ['TXT_CPhi', 'TXT_SH'] else ALL_TEXTUAL_NAMES_DSS.get(stress, [])
+            if len(columns) > 0:
+                data = relevant_df[columns].copy()
+                if not data.empty and not data.isna().all().all():
+                    data.columns = NEW_COLUMN_NAMES
+                    all_data[stress] = data
 
-        # Verzamel alle data voor elk monster
-        all_data = []
-        for sample_name in relevant_df['PV_NAAM'].unique():
-            sample_data = relevant_df[relevant_df['PV_NAAM'] == sample_name]
+        # Nu herstructureren we de data per monster (uit de index)
+        sample_stress_paths = {}
 
-            for stress in effective_stress_options:
-                columns = ALL_TEXTUAL_NAMES.get(stress, []) if self.analysis_type in ['TXT_CPhi', 'TXT_SH'] else ALL_TEXTUAL_NAMES_DSS.get(stress, [])
+        # Verzamel alle unieke monster namen uit de indices van alle dataframes
+        all_samples = set()
+        for df in all_data.values():
+            all_samples.update(df.index)
 
-                if len(columns) > 0:
-                    data = sample_data[columns].copy()
-                    if not data.empty and not data.isna().all().all():
-                        data.columns = NEW_COLUMN_NAMES
-                        all_data.append(data)
+        # Voor elk monster, verzamel alle spanningsstappen
+        for sample_name in all_samples:
+            stress_data = {'S\'': [], 'T': [], 'stress_state': []}
+            for stress, df in all_data.items():
+                if sample_name in df.index:
+                    sample_data = df.loc[sample_name]
+                    if not (isna(sample_data['S\'']) or isna(sample_data['T'])):
+                        stress_data['S\''].append(sample_data['S\''])
+                        stress_data['T'].append(sample_data['T'])
+                        stress_data['stress_state'].append(stress)
 
-        # Combineer alle data
-        if all_data:
-            combined_data = concat(all_data, ignore_index=True)
-            # Plot de spanningspaden
-            from pv_tool.cphi_analysis.visualization import plot_stress_paths
+            if stress_data['S\'']:  # Als er data is voor dit monster
+                stress_df = DataFrame(stress_data)
+                sample_stress_paths[sample_name] = stress_df
 
-
-            self.figure = go.Figure()
-            plot_stress_paths(self, combined_data)
-            self.figure.show()
+        # Plot de spanningspaden
+        if sample_stress_paths:
+            from pv_tool.cphi_analysis.visualization import add_stress_paths
+            add_stress_paths(self, sample_stress_paths)
         else:
             raise ValueError("Geen geldige data gevonden voor de spanningspaden.")
 
@@ -435,7 +446,7 @@ class CPhiAnalyse:
         self.expand_analysis_df_sh()
         self.result_values_sh()
 
-    def set_figure(self, plot_extra_dataset: Optional[List] = None):
+    def set_figure(self, plot_extra_dataset: Optional[List] = None, plot_spanningspaden: bool = False):
         """
         Maakt een visualisatie van de analyseresultaten.
 
@@ -443,10 +454,18 @@ class CPhiAnalyse:
         ----------
         plot_extra_dataset : List, optioneel
             Extra dataset om in de plot weer te geven
+
+        plot_spanningspaden : bool, optioneel
+            Of de spanningspaden moeten worden weergegeven
         """
-        add_proefresultaten(self)
+
         if plot_extra_dataset is not None:
             add_extra_proefresultaten(self, plot_extra_dataset)
+
+        if plot_spanningspaden:
+            self.plot_spanningspaden()
+
+        add_proefresultaten(self)
 
         if self.analysis_type in ['TXT_SH', 'DSS_SH']:
             add_gemiddelde_sh(self)
@@ -456,11 +475,11 @@ class CPhiAnalyse:
             add_5pr_bovengrens(self)
             add_5pr_ondergrens(self)
             add_fysische_realiseerbare_ondergrens(self)
-            add_gemiddelde(self)  # TODO Gemiddelde lijn wordt niet altijd getoond - test een andere naam
+            add_gemiddelde(self)
 
         set_layout(self)
 
-    def show_figure(self, plot_extra_dataset: Optional[List] = None):
+    def show_figure(self, plot_extra_dataset: Optional[List] = None, plot_spanningspaden: bool = False):
         """
         Toont de visualisatie van de analyseresultaten.
 
@@ -468,13 +487,16 @@ class CPhiAnalyse:
         ----------
         plot_extra_dataset : List, optioneel
             Extra dataset om in de plot weer te geven
+
+        plot_spanningspaden : bool, optioneel
+            Of de spanningspaden moeten worden weergegeven
         """
         if self.analysis_type in ['TXT_SH', 'DSS_SH']:
             self._run_sh()
         else:
             self._run()
         self.figure = go.Figure()
-        self.set_figure(plot_extra_dataset)
+        self.set_figure(plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
         self.figure.show()
 
     def print_short_results(self): # TODO vanaf nu bij het wegschrijven van resultaten: rond alles af op 3 decimalen
