@@ -83,26 +83,35 @@ analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16
 
 # analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
 # analyse.apply_parameters(cohesie_gem=10.96, phi_kar=0.476, cohesie_kar=4.16)
-analyse.apply_settings(alpha=0.75)
+
+# laatste_resultaten = analyse.get_previous_results(path=str(save_test))
+#
+# phi_kar = laatste_resultaten['PV_PHI_KAR [graden]'][0]
+#
+# analyse.apply_settings(alpha=0.75)
+# analyse.apply_parameters(phi_kar=phi_kar)
+
+##
+
 print(analyse.print_short_results())
-analyse.show_figure(plot_extra_dataset=['TXT_SAFE_Klei_licht_outlier'], plot_spanningspaden=True)
+analyse.show_figure(plot_extra_dataset=['TXT_SAFE_Klei_licht_outlier', 'TXT_SAFE_klei_licht_12_16'], plot_spanningspaden=True)
 
 
 ##
-analyse.save_total_to_excel(path=str(save_test))
+# analyse.save_total_to_excel(path=str(save_test))
+#
+# analyse.add_results_to_dbase(path = str(save_test))
 
-analyse.add_results_to_dbase(path = str(save_test))
-
-analyse.save_to_pdf(path = str(save_test))
-
-
-##
-analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
-                      analysis_type='DSS_SH')
+# analyse.save_to_pdf(path = str(save_test))
 
 
-##
-
-analyse.apply_settings(alpha=0.75)
-print(analyse.print_short_results())
-analyse.show_figure(plot_extra_dataset=['TXT_SAFE_Klei_licht_outlier'], plot_spanningspaden=True)
+# ##
+# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
+#                       analysis_type='DSS_SH')
+#
+#
+# ##
+#
+# analyse.apply_settings(alpha=0.75)
+# print(analyse.print_short_results())
+# analyse.show_figure(plot_extra_dataset=['TXT_SAFE_Klei_licht_outlier'], plot_spanningspaden=True)
