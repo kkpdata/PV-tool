@@ -277,16 +277,14 @@ class CPhiAnalyse:
                         piek_row = stress_df[stress_df['stress_state'] == 'pieksterkte']
                         stress_df = stress_df[stress_df['stress_state'] != 'pieksterkte']
                         if rek_bij_t_piek < 2:
-                            insert_index = 0
-                        elif rek_bij_t_piek <5:
                             insert_index = 1
-                        elif rek_bij_t_piek <15:
+                        elif rek_bij_t_piek <5:
                             insert_index = 2
-                        elif not isna(rek_bij_t_eind) and rek_bij_t_eind > rek_bij_t_piek:
+                        elif rek_bij_t_piek <15:
                             insert_index = 3
+                        elif not isna(rek_bij_t_eind) and rek_bij_t_eind > rek_bij_t_piek:
+                            insert_index = 4
                         else:
-                            insert_index = len(stress_df)
-                        if insert_index == 0 and stress_df.iloc[0]['S\''] < rek_bij_t_piek:
                             insert_index = len(stress_df)
                         stress_df = concat([stress_df.iloc[:insert_index], piek_row, stress_df.iloc[insert_index:]]).reset_index(drop=True)
                 elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
@@ -297,20 +295,18 @@ class CPhiAnalyse:
                         piek_row = stress_df[stress_df['stress_state'] == 'pieksterkte']
                         stress_df = stress_df[stress_df['stress_state'] != 'pieksterkte']
                         if rek_bij_t_max < 2:
-                            insert_index = 0
-                        elif rek_bij_t_max <5:
                             insert_index = 1
-                        elif rek_bij_t_max <10:
+                        elif rek_bij_t_max <5:
                             insert_index = 2
-                        elif rek_bij_t_max <15:
+                        elif rek_bij_t_max <10:
                             insert_index = 3
-                        elif rek_bij_t_max <20:
+                        elif rek_bij_t_max <15:
                             insert_index = 4
-                        elif not isna(rek_bij_t_eind) and rek_bij_t_eind > rek_bij_t_max:
+                        elif rek_bij_t_max <20:
                             insert_index = 5
+                        elif not isna(rek_bij_t_eind) and rek_bij_t_eind > rek_bij_t_max:
+                            insert_index = 6
                         else:
-                            insert_index = len(stress_df)
-                        if insert_index == 0 and stress_df.iloc[0]['S\''] < rek_bij_t_max:
                             insert_index = len(stress_df)
                         stress_df = concat([stress_df.iloc[:insert_index], piek_row, stress_df.iloc[insert_index:]]).reset_index(drop=True)
 
