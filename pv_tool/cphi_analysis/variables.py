@@ -164,14 +164,16 @@ def sigma_a1_gecorrigeerd(self: CPhiAnalyse):
 
 
 def helling_gecor(self: CPhiAnalyse):
+    """Berekent de gecorrigeerde helling."""
     if self.cohesie_gem_handmatig is not None:
         x_values = self.cphi_analyses_data_df['S\'']
         y_values = self.cphi_analyses_data_df['correctie_t']
         x = np.array(x_values)[:, np.newaxis]
         helling, _, _, _ = np.linalg.lstsq(x, np.array(y_values))
+        return float(helling[0])
     else:
         helling = sum_s_ty(self) / sum_s_tt(self)
-    return helling
+        return float(helling)
 
 
 def var_tan_phi_gem(self: CPhiAnalyse):

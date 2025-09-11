@@ -7,6 +7,8 @@ import plotly.graph_objects as go
 from pv_tool.cphi_analysis.calc_parameters import *
 from typing import Optional, List
 from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, TEXTUAL_NAMES_DSS, NEW_COLUMN_NAMES)
+from pandas import DataFrame
+import numpy as np
 
 
 def add_proefresultaten(self: CPhiAnalyse):
@@ -21,6 +23,9 @@ def add_proefresultaten(self: CPhiAnalyse):
             x=x_proefresultaten,
             y=y_proefresultaten,
             mode='markers',
+            marker=dict(
+                color='blue'
+            ),
             name=f'Geanalyseerd: {self.investigation_groups[0]}',
             text=boring_monsternummer,
             hoverinfo='text'
@@ -38,13 +43,10 @@ def get_extra_data(self: CPhiAnalyse, investigationgroups_extra: Optional[List])
 
     dataset_df = dataset_df[
         dataset_df['PV_NAAM'].isin(investigationgroups_extra)]
-    print(dataset_df)
     if self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
         dataset_df = dataset_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])]
-        print(dataset_df)
     else:
         dataset_df = dataset_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
-        print(dataset_df)
     dataset_df.columns = NEW_COLUMN_NAMES
     return dataset_df
 
@@ -62,6 +64,9 @@ def add_extra_proefresultaten(self: CPhiAnalyse, extra_groepen: Optional[List]):
             x=x_extra_proefresultaten,
             y=y_extra_proefresultaten,
             mode='markers',
+            marker=dict(
+                color='red'
+            ),
             name=f'Extra: {extra_groepen[0]}',
             text=boring_monsternummer,
             hoverinfo='text'
@@ -161,15 +166,18 @@ def add_fysische_realiseerbare_ondergrens(self: CPhiAnalyse):
     raaklijn_kar_x1 = 0
     raaklijn_kar_x2 = self.cphi_analyses_data_df['S\''].max() + 5
 
-    if self.phi_kar_handmatig and self.cohesie_kar_handmatig:
+    has_phi_kar = self.phi_kar_handmatig is not None
+    has_cohesie_kar = self.cohesie_kar_handmatig is not None
+
+    if has_phi_kar and has_cohesie_kar:
         raaklijn_kar_y1 = self.cohesie_kar_handmatig + (raaklijn_kar_x1 * self.phi_kar_handmatig)
         raaklijn_kar_y2 = self.cohesie_kar_handmatig + (self.phi_kar_handmatig * raaklijn_kar_x2)
         print('fysisch realiseerbare ondergrens gebaseerd op phi kar handmatig en cohesie kar handmatig')
-    elif not self.phi_kar_handmatig and self.cohesie_kar_handmatig:
+    elif not has_phi_kar and has_cohesie_kar:
         raaklijn_kar_y1 = self.cohesie_kar_handmatig + (raaklijn_kar_x1 * self.eerste_benadering_a2_kar)
         raaklijn_kar_y2 = self.cohesie_kar_handmatig + (self.eerste_benadering_a2_kar * raaklijn_kar_x2)
         print('fysisch realiseerbare ondergrens gebaseerd op eerste benadering a2 kar en cohesie handmatig')
-    elif self.phi_kar_handmatig and not self.cohesie_kar_handmatig:
+    elif has_phi_kar and not has_cohesie_kar:
         raaklijn_kar_y1 = self.eerste_benadering_a1_kar + (raaklijn_kar_x1 * self.phi_kar_handmatig)
         raaklijn_kar_y2 = self.eerste_benadering_a1_kar + (self.phi_kar_handmatig * raaklijn_kar_x2)
         print('fysisch realiseerbare ondergrens gebaseerd op phi kar handmatig en eerste benadering a1')
@@ -186,22 +194,33 @@ def add_fysische_realiseerbare_ondergrens(self: CPhiAnalyse):
             x=x,
             y=y,
             mode='lines',
-            name='Fysische realiseerbare ondergrens'
+            name='Fysische realiseerbare ondergrens',
+            line=dict(color='purple', width=2),
         )
     )
 
+
+def _get_helling_value(helling):
+    """Helper function om de juiste waarde uit helling te halen, ongeacht of het een float of array is."""
+    if isinstance(helling, (list, np.ndarray)):
+        return float(helling[0])
+    return float(helling)
 
 def add_gemiddelde(self: CPhiAnalyse):
     """Deze functie voegt de gemiddelde waarden toe aan de figuur."""
     x1 = self.cphi_analyses_data_df['S\''].min() + 5
     x2 = self.cphi_analyses_data_df['S\''].max() + 5
 
-    if self.cohesie_gem_handmatig:
-        y1 = x1 * helling_gecor(self) + self.cohesie_gem_handmatig
-        y2 = x2 * helling_gecor(self) + self.cohesie_gem_handmatig
+    if self.cohesie_gem_handmatig is not None:
+        helling = _get_helling_value(self.helling_gecorrigeerd)
+        y1 = x1 * helling + self.cohesie_gem_handmatig
+        y2 = x2 * helling + self.cohesie_gem_handmatig
+        print('gemiddelde gebaseerd op helling gecorrigeerd en cohesie gem handmatig')
     else:
-        y1 = x1 * helling_gecor(self) + self.eerste_benadering_a1_gem
-        y2 = x2 * helling_gecor(self) + self.eerste_benadering_a1_gem
+        helling = _get_helling_value(self.helling_gecorrigeerd)
+        y1 = x1 * helling + self.eerste_benadering_a1_gem
+        y2 = x2 * helling + self.eerste_benadering_a1_gem
+        print('gemiddelde gebaseerd op helling gecorrigeerd en eerste benadering a1 gem')
 
     x = [x1, x2]
     y = [y1, y2]
@@ -211,7 +230,8 @@ def add_gemiddelde(self: CPhiAnalyse):
             x=x,
             y=y,
             mode='lines',
-            name='Gemiddelde'
+            name='gemiddelde',
+            line=dict(color='orange', width=2),
         )
     )
 
@@ -230,9 +250,89 @@ def add_gemiddelde_sh(self: CPhiAnalyse):
             x=x,
             y=y,
             mode='lines',
-            name='Raaklijn gemiddeld'
+            name='Raaklijn gemiddeld',
+            line=dict(color='orange', width=2)
         )
     )
+
+def _get_marker_direction(self, stress_df):
+        """
+        Bepaalt de richting van de marker op basis van het eerste segment van het spanningspad.
+
+        Parameters
+        ----------
+        stress_df : DataFrame
+            DataFrame met kolommen 'S\'' en 'T' voor de spanningswaarden
+
+        Returns
+        -------
+        str
+            Symbol naam voor de marker ('triangle-up', 'triangle-down', 'triangle-left', of 'triangle-right')
+        """
+        if len(stress_df) < 2:
+            return 'triangle-up'
+
+        dx = stress_df['S\''].iloc[1] - stress_df['S\''].iloc[0]
+        dy = stress_df['T'].iloc[1] - stress_df['T'].iloc[0]
+
+        # Bepaal dominante richting
+        if abs(dx) > abs(dy):
+            return 'triangle-right' if dx > 0 else 'triangle-left'
+        else:
+            return 'triangle-up' if dy > 0 else 'triangle-down'
+
+def add_stress_paths(self: CPhiAnalyse, sample_stress_paths: dict) -> None:
+    """
+    Plot de spanningspaden voor alle beschikbare effective stress waarden.
+    Verbindt de punten van verschillende rekpercentages voor hetzelfde monster.
+
+    Parameters
+    ----------
+    sample_stress_paths : dict
+        Dictionary met als key de monster naam en als value een DataFrame met kolommen
+        'S\'', 'T' en 'stress_state' voor de spanningswaarden
+    """
+    first_sample = True
+    for sample_name, stress_df in sample_stress_paths.items():
+        # Bepaal de richting van de marker
+        marker_symbol = _get_marker_direction(self, stress_df=stress_df)
+
+        # Voeg de spanningspad lijn toe voor dit monster
+        self.figure.add_trace(
+            go.Scatter(
+                x=stress_df['S\''],
+                y=stress_df['T'],
+                mode='lines+markers',
+                line=dict(color='lightgray', width=1),
+                marker=dict(color='lightgray', size=1),
+                name='s\'-t curve' if first_sample else f'Spanningspad {sample_name}',
+                text=[f"{sample_name} - {state}<br>S\':{s:.1f}, T:{t:.1f}"
+                      for state, s, t in zip(stress_df['stress_state'], stress_df['S\''], stress_df['T'])],
+                hoverinfo='text',
+                showlegend=first_sample
+            )
+        )
+
+        # Voeg het eerste punt toe met een speciaal symbool
+        self.figure.add_trace(
+            go.Scatter(
+                x=[stress_df['S\''].iloc[0]],
+                y=[stress_df['T'].iloc[0]],
+                mode='markers',
+                marker=dict(
+                    symbol=marker_symbol,
+                    size=7,
+                    color='gray'
+                ),
+                name='K0' if first_sample else f'Start {sample_name}',
+                text=f"{sample_name} - {stress_df['stress_state'].iloc[0]}<br>S\':{stress_df['S\''].iloc[0]:.1f}, T:{stress_df['T'].iloc[0]:.1f}",
+                hoverinfo='text',
+                showlegend=first_sample
+            )
+        )
+
+        first_sample = False
+
 
 def set_layout(self: CPhiAnalyse):
     """
@@ -249,11 +349,11 @@ def set_layout(self: CPhiAnalyse):
         yas_title = 't [kPa]'
     legend_title = 'Legenda'
     self.figure.update_layout(
-        width=1200,  # Smaller base width for better scaling
-        height=600,  # Adjusted height to maintain aspect ratio
+        width=1200,
+        height=600,
         title=title,
         xaxis_title=xas_title,
         yaxis_title=yas_title,
         legend_title=legend_title,
-        margin=dict(t=100, r=50, b=100, l=50)  # Adjusted margins for better layout
+        margin=dict(t=100, r=50, b=100, l=50)
     )

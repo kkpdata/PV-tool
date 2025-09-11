@@ -1,6 +1,8 @@
 #------------------------------------Cphi----------------------------------------
 #------------------------------------TXT-----------------------------------------
 
+CONSOLIDATIE_COLUMNS = ['PV_NAAM', 'TXT_SS_S\'_EIND_CONSOLIDATIE', 'TXT_SS_T_EIND_CONSOLIDATIE']
+
 TWO_PERC_COLUMNS = ['PV_NAAM', 'TXT_SS_S\'_2%', 'TXT_SS_T_2%']
 
 FIVE_PERC_COLUMNS = ['PV_NAAM', 'TXT_SS_S\'_5%', 'TXT_SS_T_5%']
@@ -19,9 +21,21 @@ TEXTUAL_NAMES = {
     'eindsterkte': EINDSTERKTE_COLUMNS,
 }
 
+ALL_TEXTUAL_NAMES = {
+   'consolidatie': CONSOLIDATIE_COLUMNS,
+    '2% rek': TWO_PERC_COLUMNS,
+    '5% rek': FIVE_PERC_COLUMNS,
+    '15% rek': FIFTEEN_PERC_COLUMNS,
+    'pieksterkte': PIEKSTERKTE_COLUMNS,
+    'eindsterkte': EINDSTERKTE_COLUMNS,
+}
+
 NEW_COLUMN_NAMES = ['PV_NAAM', 'S\'', 'T']
 
 # -------------------------------------- DSS ---------------------------------------
+
+CONSOLIDATIE_COLUMNS_DSS = ['PV_NAAM', 'DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE', 'DSS_T_CONSOLIDATIE']
+# TODO die laatste kolomnaam klopt niet - check bij Leo welke kolom erbij hoort
 
 TWO_PERC_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_2%', 'DSS_T_2%']
 
@@ -38,6 +52,17 @@ PIEKSTERKTE_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_BIJ_T_MAX', 'DSS_T_MAX']
 EINDSTERKTE_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_BIJ_T_EIND', 'DSS_T_EIND']
 
 TEXTUAL_NAMES_DSS = {
+    '2% rek': TWO_PERC_COLUMNS_DSS,
+    '5% rek': FIVE_PERC_COLUMNS_DSS,
+    '10% rek': TEN_PERC_COLUMNS_DSS,
+    '15% rek': FIFTEEN_PERC_COLUMNS_DSS,
+    '20% rek': TWENTY_PERC_COLUMNS_DSS,
+    'pieksterkte': PIEKSTERKTE_COLUMNS_DSS,
+    'eindsterkte': EINDSTERKTE_COLUMNS_DSS,
+}
+
+ALL_TEXTUAL_NAMES_DSS = {
+    'consolidatie': CONSOLIDATIE_COLUMNS_DSS,
     '2% rek': TWO_PERC_COLUMNS_DSS,
     '5% rek': FIVE_PERC_COLUMNS_DSS,
     '10% rek': TEN_PERC_COLUMNS_DSS,
