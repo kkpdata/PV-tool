@@ -36,6 +36,8 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import SimpleDocTemplate, Table, LongTable, TableStyle, Paragraph, Spacer, Image
 
+from openpyxl.worksheet.table import Table as XLTable, TableStyleInfo
+from openpyxl.utils import get_column_letter
 
 
 class CPhiAnalyse:
@@ -458,14 +460,12 @@ class CPhiAnalyse:
         plot_spanningspaden : bool, optioneel
             Of de spanningspaden moeten worden weergegeven
         """
-
-        if plot_extra_dataset is not None:
-            add_extra_proefresultaten(self, plot_extra_dataset)
-
         if plot_spanningspaden:
             self.plot_spanningspaden()
 
         add_proefresultaten(self)
+        if plot_extra_dataset is not None:
+            add_extra_proefresultaten(self, plot_extra_dataset)
 
         if self.analysis_type in ['TXT_SH', 'DSS_SH']:
             add_gemiddelde_sh(self)
@@ -526,7 +526,7 @@ class CPhiAnalyse:
             analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
         return analyse_output_df
 
-    def add_results_to_dbase(self, path):  # TODO wegschrijven als tabel in excel met o.a. filter functionaliteiten en uitlijnen op de breedte van de kolomnaam
+    def add_results_to_dbase(self, path):
         """
         Voegt analyseresultaten toe aan de database export.
 
@@ -567,31 +567,31 @@ class CPhiAnalyse:
             'PV_ANALYSE': self.analysis_type.split('_')[1],
             'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
             'PV_TYPEVERZAMELING': self.alpha,
-            'PV_A1_COH_GEM [kPa]': self.gem_a1,
-            'PV_A2_TAN_PHI_GEM [-]': self.gem_a2,
-            'PV_A1_COH_KAR [kPa]': self.kar_a1,
-            'PV_A2_TAN_PHI_KAR [-]': self.kar_a2,
-            'PV_COH_GEM [kPa]': (self.c_gem if self.c_gem is not None and self.c_gem >= 0
+            'PV_A1_COH_GEM [kPa]': round(self.gem_a1, 3) if self.gem_a1 is not None else None,
+            'PV_A2_TAN_PHI_GEM [-]': round(self.gem_a2, 3) if self.gem_a2 is not None else None,
+            'PV_A1_COH_KAR [kPa]': round(self.kar_a1, 3) if self.kar_a1 is not None else None,
+            'PV_A2_TAN_PHI_KAR [-]': round(self.kar_a2, 3) if self.kar_a2 is not None else None,
+            'PV_COH_GEM [kPa]': (round(self.c_gem, 3) if self.c_gem is not None and self.c_gem >= 0
                                 else "[-]" if self.c_gem is None
-                                else f"{self.c_gem} (kan niet - aanpassen!)"
+                                else f"{round(self.c_gem, 3)} (kan niet - aanpassen!)"
                                 ),
-            'PV_PHI_GEM [graden]': self.phi_gem,
-            'PV_COH_KAR [kPa]': (self.c_kar if self.c_kar is not None and self.c_kar >= 0
+            'PV_PHI_GEM [graden]': round(self.phi_gem, 3) if self.phi_gem is not None else None,
+            'PV_COH_KAR [kPa]': (round(self.c_kar, 3) if self.c_kar is not None and self.c_kar >= 0
                                 else "[-]" if self.c_kar is None
-                                else f"{self.c_kar} (kan niet - aanpassen!)"
+                                else f"{round(self.c_kar, 3)} (kan niet - aanpassen!)"
                                 ),
-            'PV_PHI_KAR [graden]': self.phi_kar,
-            'PV_COH_SD_DSTAB [-]': (self.st_dev_c if self.c_gem is not None and self.c_kar is not None
+            'PV_PHI_KAR [graden]': round(self.phi_kar, 3) if self.phi_kar is not None else None,
+            'PV_COH_SD_DSTAB [-]': (round(self.st_dev_c, 3) if self.c_gem is not None and self.c_kar is not None
                                     and self.c_gem >= 0 and self.c_kar >= 0
                                     else "[-]" if self.c_gem is None or self.c_kar is None
                                     else "[-] (c < 0)"),
-            'PV_PHI_SD_DSTAB [-]': self.st_dev_phi,
+            'PV_PHI_SD_DSTAB [-]': round(self.st_dev_phi, 3) if self.st_dev_phi is not None else None,
             'PV_PARTPHI [-]': self.material_tan_phi,
             'PV_PARTCOH [-]': self.material_cohesie,
-            'PV_VGWNAT_GEM [kN/m3]': self.calc_vgwnat_gem,
-            'PV_VGWNAT_SD [kN/m3]': self.calc_vgwnat_sd,
-            'PV_WATERGEHALTE_GEM': self.calc_watergehalte_gem,
-            'PV_WATERGEHALTE_SD': self.calc_watergehalte_sd,
+            'PV_VGWNAT_GEM [kN/m3]': round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
+            'PV_VGWNAT_SD [kN/m3]': round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
+            'PV_WATERGEHALTE_GEM': round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None,
+            'PV_WATERGEHALTE_SD': round(self.calc_watergehalte_sd, 3) if self.calc_watergehalte_sd is not None else None,
             'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
@@ -605,11 +605,78 @@ class CPhiAnalyse:
             print('Tabblad resultaten in dbase excel bestaat nog niet en wordt aangemaakt')
             df_updated = DataFrame([new_row], columns=expected_columns)
 
+        # Write data to Excel
         with ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
             df_updated.to_excel(writer, sheet_name='Resultaten', index=False)
 
         return df_updated
 
+    @staticmethod
+    def format_excel_sheet(file_path: str, sheet_name: str, num_columns: int, num_rows: int, table_name: str = None):
+        """
+        Formatteert een Excel werkblad als een tabel met filters en aangepaste kolombreedtes.
+
+        Parameters
+        ----------
+        file_path : str
+            Het volledige pad naar het Excel bestand
+        sheet_name : str
+            Naam van het werkblad dat geformatteerd moet worden
+        num_columns : int
+            Aantal kolommen in de tabel
+        num_rows : int
+            Aantal rijen in de tabel (exclusief de header)
+        table_name : str, optioneel
+            Naam voor de Excel tabel. Als None wordt opgegeven, wordt sheet_name + "Table" gebruikt.
+        """
+
+        workbook = load_workbook(file_path)
+        worksheet = workbook[sheet_name]
+
+        # Auto-adjust column widths based on content
+        for column in worksheet.columns:
+            max_length = 0
+            column_letter = get_column_letter(column[0].column)
+
+            for cell in column:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+
+            adjusted_width = max_length + 2
+            worksheet.column_dimensions[column_letter].width = adjusted_width
+
+        # Define table range
+        table_range = f"A1:{get_column_letter(num_columns)}{num_rows + 1}"
+
+        # Create table with filters
+        if table_name is None:
+            table_name = f"{sheet_name}Table"
+
+        # Remove spaces and special characters from table name
+        table_name = "".join(c for c in table_name if c.isalnum())
+
+        table = XLTable(displayName=table_name, ref=table_range)
+
+        # Add a default style
+        style = TableStyleInfo(
+            name="TableStyleMedium2",
+            showFirstColumn=False,
+            showLastColumn=False,
+            showRowStripes=True,
+            showColumnStripes=False
+        )
+        table.tableStyleInfo = style
+
+        # Remove existing table if it exists
+        for existing_table in worksheet.tables.values():
+            if existing_table.name == table_name:
+                del worksheet.tables[existing_table.name]
+                break
+
+        # Add the table to the worksheet
+        worksheet.add_table(table)
+
+        workbook.save(file_path)
 
     def save_total_to_excel(self, path):
         """
