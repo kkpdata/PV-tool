@@ -32,7 +32,9 @@ from openpyxl import load_workbook
 
 
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import SimpleDocTemplate, Table, LongTable, TableStyle, Paragraph, Spacer, Image
 
@@ -265,8 +267,52 @@ class CPhiAnalyse:
 
             if stress_data['S\'']:  # Als er data is voor dit monster
                 stress_df = DataFrame(stress_data)
+
+                if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
+                    rek_bij_t_piek = self.total_cphi_analyses_data_df.loc[sample_name, 'TXT_SS_REK_BIJ_T_PIEK']
+                    rek_bij_t_eind = self.total_cphi_analyses_data_df.loc[sample_name, 'TXT_SS_REK_BIJ_T_EIND']
+                    if not isna(rek_bij_t_piek) and 'pieksterkte' in stress_df['stress_state'].values:
+                        # Verplaats de rij met 'pieksterkte' naar de juiste positie
+                        piek_row = stress_df[stress_df['stress_state'] == 'pieksterkte']
+                        stress_df = stress_df[stress_df['stress_state'] != 'pieksterkte']
+                        if rek_bij_t_piek < 2:
+                            insert_index = 1
+                        elif rek_bij_t_piek <5:
+                            insert_index = 2
+                        elif rek_bij_t_piek <15:
+                            insert_index = 3
+                        elif not isna(rek_bij_t_eind) and rek_bij_t_eind > rek_bij_t_piek:
+                            insert_index = 4
+                        else:
+                            insert_index = len(stress_df)
+                        stress_df = concat([stress_df.iloc[:insert_index], piek_row, stress_df.iloc[insert_index:]]).reset_index(drop=True)
+                elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+                    rek_bij_t_max = self.total_cphi_analyses_data_df.loc[sample_name, 'DSS_REK_BIJ_T_MAX']
+                    rek_bij_t_eind = self.total_cphi_analyses_data_df.loc[sample_name, 'DSS_REK_BIJ_T_EIND']
+                    if not isna(rek_bij_t_max) and 'pieksterkte' in stress_df['stress_state'].values:
+                        # Verplaats de rij met 'pieksterkte' naar de juiste positie
+                        piek_row = stress_df[stress_df['stress_state'] == 'pieksterkte']
+                        stress_df = stress_df[stress_df['stress_state'] != 'pieksterkte']
+                        if rek_bij_t_max < 2:
+                            insert_index = 1
+                        elif rek_bij_t_max <5:
+                            insert_index = 2
+                        elif rek_bij_t_max <10:
+                            insert_index = 3
+                        elif rek_bij_t_max <15:
+                            insert_index = 4
+                        elif rek_bij_t_max <20:
+                            insert_index = 5
+                        elif not isna(rek_bij_t_eind) and rek_bij_t_eind > rek_bij_t_max:
+                            insert_index = 6
+                        else:
+                            insert_index = len(stress_df)
+                        stress_df = concat([stress_df.iloc[:insert_index], piek_row, stress_df.iloc[insert_index:]]).reset_index(drop=True)
+
                 sample_stress_paths[sample_name] = stress_df
 
+
+        
         # Plot de spanningspaden
         if sample_stress_paths:
             from pv_tool.cphi_analysis.visualization import add_stress_paths
@@ -307,7 +353,7 @@ class CPhiAnalyse:
             return None
 
         filtered_df = results_df[
-            (results_df['PV_NAAM'].isin(self.investigation_groups)) &
+            (results_df['PVNAAM'].isin(self.investigation_groups)) &
             (results_df['PV_REK'] == self.effective_stress) &
             (results_df['PV_TYPE_PROEF'] == self.analysis_type)
         ]
@@ -318,7 +364,8 @@ class CPhiAnalyse:
 
         latest_entry = filtered_df.loc[filtered_df['PV_RESULTAAT_ID'].idxmax()]
 
-        return latest_entry
+
+        return latest_entry  # TODO test ff of deze goed aangeroepen kan worden
 
 
     def expand_analysis_df(self):
@@ -376,7 +423,8 @@ class CPhiAnalyse:
         calculate_s_ty_ondergrens_correctie_c(self)
         calculate_kappa_2_ondergrens_correctie_c(self)
 
-    def result_values(self):  # TODO als cohesie kar op 0 wordt gezet werkt de functie niet meer - checken
+
+    def result_values(self):
         """
         Berekent de definitieve resultaten van de c-phi analyse: gemiddelde, karakteristieke en rekenwaarden voor
         cohesie en phi, inclusief standaarddeviaties.
@@ -499,7 +547,7 @@ class CPhiAnalyse:
         self.set_figure(plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
         self.figure.show()
 
-    def print_short_results(self): # TODO vanaf nu bij het wegschrijven van resultaten: rond alles af op 3 decimalen
+    def print_short_results(self):
         """
         Genereert een samenvattend overzicht van de analyseresultaten.
 
@@ -754,6 +802,8 @@ class CPhiAnalyse:
         t1_data = self._df_to_table_with_index(table1_df, index_name="alg_boring_monsternummer_id")
         t1 = LongTable(t1_data, repeatRows=1)
         t1.setStyle(TableStyle([
+
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -784,6 +834,7 @@ class CPhiAnalyse:
 
         t3 = Table([['Parameter', 'Waarde']] + initial_values)
         t3.setStyle(TableStyle([
+             ('ALIGN', (0,0), (-1,-1), 'LEFT'),
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -804,6 +855,7 @@ class CPhiAnalyse:
         output_table_data = self._df_to_table_with_index(output_table_df)
         output_table = Table(output_table_data, repeatRows=1)
         output_table.setStyle(TableStyle([
+             ('ALIGN', (0,0), (-1,-1), 'LEFT'),
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -865,43 +917,54 @@ class CPhiAnalyse:
             Het absolute bestandspad van het aangemaakte PDF-bestand
         """
         # Maak titel en bestandsnaam
-        if len(self.investigation_groups) == 1:
-            title = f"{self.investigation_groups[0]} {self.effective_stress} {self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]}"
-        else:
-            title = f"{self.investigation_groups} {self.effective_stress} {self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]}"
-
+        title = f'{self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]} analyse met {self.effective_stress} op {self.investigation_groups[0]}'
         file_name = f"c_phi_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf"
         file_path = f"{path}/{file_name}"
 
         # Maak en bewaar de figuur alleen als deze nog niet bestaat
-        # TODO sla het figuur op een andere manier op - hogere resolutie en originele verhoudingen. nu is die niet scherp en vertekend
         fig_path = f"{path}/temp_plot.png"
         if not hasattr(self, 'figure') or len(self.figure.data) == 0:
             self.show_figure()
-        self.figure.write_image(fig_path, scale=2, format="png")
 
+        fig_width = 1280
+        fig_height = 720
+        self.figure.write_image(fig_path, width=fig_width, height=fig_height, scale=2, format="png")
         # Maak het PDF document
         doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
         styles = getSampleStyleSheet()
+        styles.add(ParagraphStyle(name='Left', parent=styles['Normal'], alignment=TA_LEFT))
+        styles.add(ParagraphStyle(name='TitleLeft', parent=styles['Title'], alignment=TA_LEFT))
         story = []
 
         # Voeg titel toe
-        story.append(Paragraph(title, styles['Title'])) # TODO titel aanpassen naar de naam van de figuur en dan naam van de figuur weg
+        story.append(Paragraph(title, styles['TitleLeft'])) # TODO titel aanpassen naar de naam van de figuur en dan naam van de figuur weg
         story.append(Spacer(width=1, height=12))
 
         # Voeg figuur toe met aangepaste grootte
-        available_width = doc.width * 0.85
-        available_height = doc.height * 0.75
-        story.append(Paragraph("Overzichtsfiguur", styles['Heading2']))  # TODO kopje overzichtsfiguur weg
-        img = Image(fig_path)
-        img.drawWidth = available_width
-        img.drawHeight = available_height
+        from PIL import Image as PILImage
+        from reportlab.platypus import Image as RLImage
+
+        fig_path = f"{path}/temp_plot.png"
+
+        # Laad PNG en bepaal pixelafmetingen
+        with PILImage.open(fig_path) as im:
+            img_width_px, img_height_px = im.size
+
+        # Stel gewenste breedte in punten (bijv. 90% van PDF breedte)
+        max_width_pt = doc.width * 0.9
+
+        # Bereken hoogte zodat verhouding gelijk blijft
+        aspect = img_height_px / img_width_px
+        img_width_pt = min(max_width_pt, doc.width)  # niet breder dan pagina
+        img_height_pt = img_width_pt * aspect
+
+        # Maak ReportLab Image aan
+        img = RLImage(fig_path)
+        img.drawWidth = img_width_pt
+        img.drawHeight = img_height_pt
+        img.hAlign = 'LEFT'
         story.append(img)
         story.append(Spacer(width=1, height=12))
-
-        # TODO figuur laat gemiddelde lijn niet zien
-
-        # TODO alles links uitlijnen
 
         # Voeg invoertabel toe
         story.append(Paragraph("Informatietabel invoerselectie", styles['Heading2']))

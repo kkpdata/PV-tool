@@ -56,22 +56,24 @@ def add_extra_proefresultaten(self: CPhiAnalyse, extra_groepen: Optional[List]):
     df = get_extra_data(self, investigationgroups_extra=extra_groepen)
     boring_monsternummer = df.index
 
-    x_extra_proefresultaten = df['S\'']
-    y_extra_proefresultaten = df['T']
+    n=0
+    for naam in df['PV_NAAM'].unique():
 
-    self.figure.add_trace(
-        go.Scatter(
-            x=x_extra_proefresultaten,
-            y=y_extra_proefresultaten,
-            mode='markers',
-            marker=dict(
-                color='red'
-            ),
-            name=f'Extra: {extra_groepen[0]}',
-            text=boring_monsternummer,
-            hoverinfo='text'
+        sub_df = df[df['PV_NAAM'] == naam]
+        x_extra_proefresultaten = sub_df['S\'']
+        y_extra_proefresultaten = sub_df['T']
+
+        self.figure.add_trace(
+            go.Scatter(
+                x=x_extra_proefresultaten,
+                y=y_extra_proefresultaten,
+                mode='markers',
+                name=f'Extra: {extra_groepen[n]}',
+                text=boring_monsternummer,
+                hoverinfo='text'
+            )
         )
-    )
+        n += 1
 
 
 def add_5pr_bovengrens(self: CPhiAnalyse):
@@ -349,8 +351,8 @@ def set_layout(self: CPhiAnalyse):
         yas_title = 't [kPa]'
     legend_title = 'Legenda'
     self.figure.update_layout(
-        width=1200,
-        height=600,
+        width=1280,
+        height=720,
         title=title,
         xaxis_title=xas_title,
         yaxis_title=yas_title,

@@ -42,72 +42,76 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
 from pv_tool.imports.import_options import *
 from pv_tool.imports.import_data import Dbase
 
-# path_to_data = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm")
-# path_to_data = Path(
-#     r"C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm")
-path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
-save_test = Path(r"C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
+
+path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n_test_zonder_functies.xlsm"
+# path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n_test_zonder_functies.xlsm"
+# path_to_data = Path(get_repo_root()) / "example_files" / "Dbase-template.xlsx"
+
+save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
 dbase = Dbase()
 dbase.import_data_and_validate(source='PV-tool', source_dir=path_to_data, export_path=save_test)
 
-
-
-
-
-
+dbase.export_dbase_to_excel(export_dir=save_test)
 
 
 ##
-#
-# validatie = Validation(dbase=dbase)
-# # validatie.split_dbase()
-# # dfs = validatie.dataframes
-# #
-# # validatie.validation_selection(category='Classificatie')
-# #
-# # dfs2 = validatie.dataframes
-# #
-# validatie.validation_log(export_path=save_test)
-#
-# dfs3 = validatie.total_error_log
-# print(dfs3)
+print('Unieke verzamelingen:')
+for pvnaam in dbase.dbase_df['PV_NAAM'].unique():
+    print(pvnaam)
 
 
+## initiate cphi or dss analysis with different options
+# CPHI-analyse
+from pv_tool.cphi_analysis.c_phi_analysis import *
+from pv_tool.cphi_analysis.variables import *
+
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
+                      analysis_type='DSS_CPhi')
+
+# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
+#                       analysis_type='TXT_CPhi')
+#
+# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
+#                       analysis_type='DSS_SH')
+
+# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
+#                       analysis_type='TXT_SH')
+
+
+##
+
+# analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
+# analyse.apply_parameters(cohesie_gem=10.96, phi_kar=0.476, cohesie_kar=4.16)
+
+# laatste_resultaten = analyse.get_previous_results(path=str(save_test))
+#
+# phi_kar = laatste_resultaten['PV_PHI_KAR [graden]'][0]
+#
+# analyse.apply_settings(alpha=0.75)
+# analyse.apply_parameters(phi_kar=phi_kar)
+
+##
+
+print(analyse.print_short_results())
+analyse.show_figure( plot_spanningspaden=True)
+
+
+##
+# analyse.save_total_to_excel(path=str(save_test))
+#
+# analyse.add_results_to_dbase(path = str(save_test))
+
+# analyse.save_to_pdf(path = str(save_test))
 
 
 # ##
-# path_to_export_warnings = Path(
-#     r"C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output\validation_output_warnings.xlsx")
-# path_to_export_critical = Path(
-#     r"C:\Users\deenekat7271\ARCADIS\30287614 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output\validation_output_critical.xlsx")
+# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
+#                       analysis_type='DSS_SH')
 #
-# validate_w = Validation(dbase=dbase, critical=False)
-# validate_c = Validation(dbase=dbase, critical=True)
 #
-# val_warning = validate_w.validation_log(save_path=path_to_export_warnings)
-# val_crit = validate_c.validation_log(save_path=path_to_export_critical)
+# ##
 #
-# test_output_warnings = val_warning[0]
-# names_output_warnings = val_warning[1]
-# dfs_warnings = val_warning[2]
-#
-# test_output_critical = val_crit[0]
-# names_output_critical = val_crit[1]
-# dfs_critical = val_crit[2]
-#
-# for i in range(len(names_output_warnings)):
-#     c = names_output_warnings[i]
-#     e = 0
-#     for error in test_output_warnings[i]:
-#         e += 1
-#         print(f"waarschuwing in categorie {c} in row {error[0]} in column {error[1]}: {error[2]}")
-#     print(f"in categorie {c} zijn {e} waarschuwingen gevonden")
-#
-# for i in range(len(names_output_critical)):
-#     c = names_output_critical[i]
-#     e = 0
-#     for error in test_output_critical[i]:
-#         e += 1
-#         print(f"kritieke fout in category {c} in row {error[0]} in column {error[1]}: {error[2]}")
-#     print(f"in categorie {c} zijn {e} fatale errors gevonden")
+# analyse.apply_settings(alpha=0.75)
+# print(analyse.print_short_results())
+# analyse.show_figure(plot_extra_dataset=['TXT_SAFE_Klei_licht_outlier'], plot_spanningspaden=True)
