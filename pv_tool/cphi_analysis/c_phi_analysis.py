@@ -32,6 +32,7 @@ from openpyxl import load_workbook
 
 
 from reportlab.lib import colors
+
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.pagesizes import A4, landscape
@@ -311,6 +312,7 @@ class CPhiAnalyse:
                 sample_stress_paths[sample_name] = stress_df
 
 
+        
         # Plot de spanningspaden
         if sample_stress_paths:
             from pv_tool.cphi_analysis.visualization import add_stress_paths
@@ -318,7 +320,9 @@ class CPhiAnalyse:
         else:
             raise ValueError("Geen geldige data gevonden voor de spanningspaden.")
 
-
+    #  voeg functie toe die zoekt of er op path een excel staat 'Template_PVtool5_0.xlsx' die het tabblad 'resultaten' inleest als die er is.
+    # Hij moet dan zoeken of de combinatie van PVNAAM, PV_REK en PV_TYPE_PROEF al bestaat. Zo ja, selecteer dan de regel met de laatste timestamp
+    # vervolgens moet de interface van de jupyter notebook waarin de analyse wordt uitgevoerd de mogelijkheid krijgen om deze waarden over te nemen of niet.
     def get_previous_results(self, path: str):
         """
         Zoekt naar eerdere analyseresultaten in een Excel-bestand.
@@ -347,6 +351,7 @@ class CPhiAnalyse:
         except ValueError:
             print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
             return None
+
         filtered_df = results_df[
             (results_df['PVNAAM'].isin(self.investigation_groups)) &
             (results_df['PV_REK'] == self.effective_stress) &
@@ -358,6 +363,7 @@ class CPhiAnalyse:
             return None
 
         latest_entry = filtered_df.loc[filtered_df['PV_RESULTAAT_ID'].idxmax()]
+
 
         return latest_entry  # TODO test ff of deze goed aangeroepen kan worden
 
@@ -416,6 +422,7 @@ class CPhiAnalyse:
         calculate_5pr_bovengrens_correctie_c(self)
         calculate_s_ty_ondergrens_correctie_c(self)
         calculate_kappa_2_ondergrens_correctie_c(self)
+
 
     def result_values(self):
         """
@@ -795,7 +802,8 @@ class CPhiAnalyse:
         t1_data = self._df_to_table_with_index(table1_df, index_name="alg_boring_monsternummer_id")
         t1 = LongTable(t1_data, repeatRows=1)
         t1.setStyle(TableStyle([
-             ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -921,7 +929,6 @@ class CPhiAnalyse:
         fig_width = 1280
         fig_height = 720
         self.figure.write_image(fig_path, width=fig_width, height=fig_height, scale=2, format="png")
-
         # Maak het PDF document
         doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
         styles = getSampleStyleSheet()

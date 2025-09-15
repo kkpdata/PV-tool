@@ -86,5 +86,14 @@ print(ondergr_cor)
 
 ##
 
+
 analyse_path = Path(get_repo_root()) / "example_files" / "test2.xlsx"
 analyse.save_total_to_excel(path=analyse_path)
+
+##
+# test
+from pv_tool.imports.import_data import Dbase
+from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
+
+dbase = Dbase()
+
