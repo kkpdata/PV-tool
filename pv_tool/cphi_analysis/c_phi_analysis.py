@@ -32,6 +32,10 @@ from openpyxl import load_workbook
 
 
 from reportlab.lib import colors
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3606918258a7be714e360ee4c6608058465def29
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.pagesizes import A4, landscape
@@ -266,9 +270,13 @@ class CPhiAnalyse:
 
             if stress_data['S\'']:  # Als er data is voor dit monster
                 stress_df = DataFrame(stress_data)
+<<<<<<< HEAD
                 # zoek eerst rek bij t piek behorend bij sample name, dit is kolom 'DSS_REK_BIJ_T_MAX' of 'TXT_SS_REK_BIJ_T_PIEK' (afhankelijk van analyse_type) in het dataframe self.total_cphi_analyses_data_df
                 # afhankelijk hiervan moeten de rijen in stress_df gesorteerd worden
                 # de rij waarin de 'pieksterkte' staat moet namelijk verplaatst worden naar de plek behorend bij de rek bij t piek
+=======
+
+>>>>>>> 3606918258a7be714e360ee4c6608058465def29
                 if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
                     rek_bij_t_piek = self.total_cphi_analyses_data_df.loc[sample_name, 'TXT_SS_REK_BIJ_T_PIEK']
                     rek_bij_t_eind = self.total_cphi_analyses_data_df.loc[sample_name, 'TXT_SS_REK_BIJ_T_EIND']
@@ -312,8 +320,13 @@ class CPhiAnalyse:
 
                 sample_stress_paths[sample_name] = stress_df
 
+<<<<<<< HEAD
         print(sample_stress_paths)
 
+=======
+
+        
+>>>>>>> 3606918258a7be714e360ee4c6608058465def29
         # Plot de spanningspaden
         if sample_stress_paths:
             from pv_tool.cphi_analysis.visualization import add_stress_paths
@@ -366,7 +379,8 @@ class CPhiAnalyse:
 
         latest_entry = filtered_df.loc[filtered_df['PV_RESULTAAT_ID'].idxmax()]
 
-        return latest_entry
+
+        return latest_entry  # TODO test ff of deze goed aangeroepen kan worden
 
 
     def expand_analysis_df(self):
@@ -424,6 +438,10 @@ class CPhiAnalyse:
         calculate_s_ty_ondergrens_correctie_c(self)
         calculate_kappa_2_ondergrens_correctie_c(self)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3606918258a7be714e360ee4c6608058465def29
     def result_values(self):
         """
         Berekent de definitieve resultaten van de c-phi analyse: gemiddelde, karakteristieke en rekenwaarden voor
@@ -802,7 +820,12 @@ class CPhiAnalyse:
         t1_data = self._df_to_table_with_index(table1_df, index_name="alg_boring_monsternummer_id")
         t1 = LongTable(t1_data, repeatRows=1)
         t1.setStyle(TableStyle([
+<<<<<<< HEAD
              ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+=======
+
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+>>>>>>> 3606918258a7be714e360ee4c6608058465def29
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -924,11 +947,17 @@ class CPhiAnalyse:
         fig_path = f"{path}/temp_plot.png"
         if not hasattr(self, 'figure') or len(self.figure.data) == 0:
             self.show_figure()
+<<<<<<< HEAD
 
         fig_width = 1280
         fig_height = 720
         self.figure.write_image(fig_path, width=fig_width, height=fig_height, scale=2, format="png")
+=======
+>>>>>>> 3606918258a7be714e360ee4c6608058465def29
 
+        fig_width = 1280
+        fig_height = 720
+        self.figure.write_image(fig_path, width=fig_width, height=fig_height, scale=2, format="png")
         # Maak het PDF document
         doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
         styles = getSampleStyleSheet()

@@ -34,70 +34,61 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     repo = git.Repo(root_search_dir, search_parent_directories=True)
     return repo.working_tree_dir
 
+
 ##
 from pathlib import Path
 import os
 from pv_tool.imports.import_data import Dbase
+from pv_tool.imports.import_options import import_pv_tool
 import git
 
-# de grote test van importeren.py
+import pv_tool
 
-# import pv_tool
-# path_pv_tool = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
-# dbase = Dbase()
-# dbase.import_data_and_validate(source='PV-tool', source_dir=path_pv_tool)
-
-#import stowa
-# dir_stowa = Path(get_repo_root()) / "example_files" / "23ZP0747_STOWA-definitief.xlsx"
-# dbase2 = Dbase()
-# dbase2.import_data_and_validate(source_dir=dir_stowa, source='Stowa')
-#
-# print(dbase2.dbase_df.columns)
-
-# export_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
-# dbase2.dbase_df.to_excel(export_dir)
-
-#import dbase
-dbase_dir = Path(get_repo_root()) / "example_files" / "test.xlsx"
-dbase = Dbase()
-dbase.import_data_and_validate(source_dir=dbase_dir, source='Dbase')
-
-print(dbase.dbase_df)
+path_pv_tool = Path(
+    get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n validatie eerste opzet origineel_TD.xlsm"
 export_dir = Path(get_repo_root()) / "example_files"
 dbase = Dbase()
-dbase.import_data_and_validate(source_dir=dbase_dir, source='Dbase', export_path=export_dir)
+dbase.import_data_and_validate(source='PV-tool', source_dir=path_pv_tool, export_path=export_dir)
 
-print(dbase.dbase_df)
-
-
-
-
-
+##
+df = dbase.dbase_df
+print(df)
 
 
 ## CPHI-analyse
-from pv_tool.analysis.c_phi_analysis import *
-from pv_tool.analysis.variables import *
+from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
+
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
                       analysis_type='TXT_CPhi')
 
-analyse.factsheet()
-analyse.show_figure()
-##
+analyse.show_results() # deze is eruit
+print('phi_gem_benadering =', analyse.eerste_benadering_a2_gem)
+print('c_gem_benadering =', analyse.eerste_benadering_a1_gem)
+print('phi_kar_benadering =', analyse.eerste_benadering_a2_kar)
+print('c_kar_benadering =', analyse.eerste_benadering_a1_kar)
+# eerste benadering gaat goed!
 
-analyse.apply_settings(alpha=Alpha.LOCAL)
-analyse.show_figure()
-
-##
-print(analyse.cohesie_gem_handmatig)
-
-analyse.apply_parameters(cohesie_gem=15)
-analyse.show_figure()
-print(analyse.cohesie_gem_handmatig)
 
 ##
-analyse.apply_parameters(cohesie_kar=15)  # volgens mij werkt dit nog niet
-analyse.show_figure()
+analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=2.45)
+print('helling_gecor =', analyse.helling_gecorrigeerd)
+print('c_gem_hand =', analyse.cohesie_gem_handmatig)
+print('phi_kar_hand =', analyse.phi_kar_handmatig)
+print('c_kar_hand =', analyse.cohesie_kar_handmatig)
+analyse.show_results() # deze is eruit
+
+##
+
+ondergr_cor = analyse.cphi_analyses_data_df['5pr_bovengrens_cor']
+print(ondergr_cor)
+
+
+
+##
+
+
+analyse_path = Path(get_repo_root()) / "example_files" / "test2.xlsx"
+analyse.save_total_to_excel(path=analyse_path)
 
 ##
 # test
