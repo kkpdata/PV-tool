@@ -66,12 +66,12 @@ for pvnaam in dbase.dbase_df['PV_NAAM'].unique():
 from pv_tool.cphi_analysis.c_phi_analysis import *
 from pv_tool.cphi_analysis.variables import *
 
-# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
-#                       analysis_type='DSS_CPhi')
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
+                      analysis_type='DSS_CPhi')
 
-analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
-                      analysis_type='TXT_CPhi')
-
+# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
+#                       analysis_type='TXT_CPhi')
+#
 # analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
 #                       analysis_type='DSS_SH')
 
@@ -94,7 +94,7 @@ analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16
 ##
 
 print(analyse.print_short_results())
-analyse.show_figure(plot_extra_dataset=['TXT_SAFE_Klei_licht_outlier', 'TXT_SAFE_klei_licht_12_16'], plot_spanningspaden=True)
+analyse.show_figure( plot_spanningspaden=True)
 
 
 ##

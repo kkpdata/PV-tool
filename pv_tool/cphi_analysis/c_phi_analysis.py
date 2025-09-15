@@ -266,9 +266,7 @@ class CPhiAnalyse:
 
             if stress_data['S\'']:  # Als er data is voor dit monster
                 stress_df = DataFrame(stress_data)
-                # zoek eerst rek bij t piek behorend bij sample name, dit is kolom 'DSS_REK_BIJ_T_MAX' of 'TXT_SS_REK_BIJ_T_PIEK' (afhankelijk van analyse_type) in het dataframe self.total_cphi_analyses_data_df
-                # afhankelijk hiervan moeten de rijen in stress_df gesorteerd worden
-                # de rij waarin de 'pieksterkte' staat moet namelijk verplaatst worden naar de plek behorend bij de rek bij t piek
+
                 if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
                     rek_bij_t_piek = self.total_cphi_analyses_data_df.loc[sample_name, 'TXT_SS_REK_BIJ_T_PIEK']
                     rek_bij_t_eind = self.total_cphi_analyses_data_df.loc[sample_name, 'TXT_SS_REK_BIJ_T_EIND']
@@ -312,7 +310,6 @@ class CPhiAnalyse:
 
                 sample_stress_paths[sample_name] = stress_df
 
-        print(sample_stress_paths)
 
         # Plot de spanningspaden
         if sample_stress_paths:
@@ -321,9 +318,7 @@ class CPhiAnalyse:
         else:
             raise ValueError("Geen geldige data gevonden voor de spanningspaden.")
 
-    #  voeg functie toe die zoekt of er op path een excel staat 'Template_PVtool5_0.xlsx' die het tabblad 'resultaten' inleest als die er is.
-    # Hij moet dan zoeken of de combinatie van PVNAAM, PV_REK en PV_TYPE_PROEF al bestaat. Zo ja, selecteer dan de regel met de laatste timestamp
-    # vervolgens moet de interface van de jupyter notebook waarin de analyse wordt uitgevoerd de mogelijkheid krijgen om deze waarden over te nemen of niet.
+
     def get_previous_results(self, path: str):
         """
         Zoekt naar eerdere analyseresultaten in een Excel-bestand.
@@ -352,8 +347,6 @@ class CPhiAnalyse:
         except ValueError:
             print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
             return None
-        print(results_df)
-        print(results_df.columns)
         filtered_df = results_df[
             (results_df['PVNAAM'].isin(self.investigation_groups)) &
             (results_df['PV_REK'] == self.effective_stress) &
@@ -366,7 +359,7 @@ class CPhiAnalyse:
 
         latest_entry = filtered_df.loc[filtered_df['PV_RESULTAAT_ID'].idxmax()]
 
-        return latest_entry
+        return latest_entry  # TODO test ff of deze goed aangeroepen kan worden
 
 
     def expand_analysis_df(self):
