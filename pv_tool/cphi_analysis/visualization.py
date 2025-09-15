@@ -353,7 +353,7 @@ def set_layout(self: CPhiAnalyse):
     self.figure.update_layout(
         width=1280,
         height=720,
-        title=title,
+        title=title if self.show_title else None,
         xaxis_title=xas_title,
         yaxis_title=yas_title,
         legend_title=legend_title,
