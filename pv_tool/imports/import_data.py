@@ -42,15 +42,10 @@ class Dbase:
             self.dbase_df = self.pv_tool
         elif source == 'Dbase':
             import_dbase(self, dbase_dir=source_dir)
-<<<<<<< HEAD
 
         self.validation.validation_export(export_path=export_path)  # TODO splits op in import en validate - maar behoud wel de analyse kolommen etc.
         self.validation.print_critical_errors()
 
-=======
-        self.validation.validation_export(export_path=export_path)  # TODO splits op in import en validate - maar behoud wel de analyse kolommen etc.
-        self.validation.print_critical_errors()
->>>>>>> 3606918258a7be714e360ee4c6608058465def29
         self._create_dbase(source=source) # kijk of deze snapt als de input niet gevalideerd is
         return self.dbase_df
 
