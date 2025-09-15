@@ -320,9 +320,6 @@ class CPhiAnalyse:
         else:
             raise ValueError("Geen geldige data gevonden voor de spanningspaden.")
 
-    #  voeg functie toe die zoekt of er op path een excel staat 'Template_PVtool5_0.xlsx' die het tabblad 'resultaten' inleest als die er is.
-    # Hij moet dan zoeken of de combinatie van PVNAAM, PV_REK en PV_TYPE_PROEF al bestaat. Zo ja, selecteer dan de regel met de laatste timestamp
-    # vervolgens moet de interface van de jupyter notebook waarin de analyse wordt uitgevoerd de mogelijkheid krijgen om deze waarden over te nemen of niet.
     def get_previous_results(self, path: str):
         """
         Zoekt naar eerdere analyseresultaten in een Excel-bestand.
@@ -352,11 +349,38 @@ class CPhiAnalyse:
             print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
             return None
 
+        print(results_df)
+        print(results_df.index)
+        print(self.investigation_groups, self.effective_stress, self.analysis_type)
+
+        # filter df based on if the column PV_RESULTAAT_ID contains the investigation group, effective stress and analysis type
         filtered_df = results_df[
-            (results_df['PVNAAM'].isin(self.investigation_groups)) &
-            (results_df['PV_REK'] == self.effective_stress) &
-            (results_df['PV_TYPE_PROEF'] == self.analysis_type)
+            (results_df['PV_RESULTAAT_ID'].str.contains(self.investigation_groups[0])) &
+            (results_df['PV_RESULTAAT_ID'].str.contains(self.effective_stress)) &
+            (results_df['PV_RESULTAAT_ID'].str.contains(self.analysis_type))
         ]
+
+        # filtered_df = results_df[
+        #     (results_df['PVNAAM'].isin(self.investigation_groups)) &
+        #     (results_df['PV_REK'] == self.effective_stress) &
+        #     (results_df['PV_TYPE_PROEF'] == self.analysis_type)
+        # ]
+        #
+        # filtered_df1 = results_df[
+        #     (results_df['PVNAAM'].isin(self.investigation_groups))
+        # ]
+        #
+        # filtered_df2 = results_df[
+        #     (results_df['PV_REK'] == self.effective_stress)
+        # ]
+        #
+        # filtered_df3 = results_df[
+        #     (results_df['PV_TYPE_PROEF'] == self.analysis_type)
+        # ]
+        #
+        # print(filtered_df1)
+        # print(filtered_df2)
+        # print(filtered_df3)
 
         if filtered_df.empty:
             print("Er zijn geen eerdere resultaten gevonden voor de opgegeven parameters.")
@@ -850,7 +874,8 @@ class CPhiAnalyse:
         Table
             ReportLab tabel object met de resultaten
         """
-        output_table_df = self.print_short_results().copy()
+        output_table_df = self.print_short_results().copy()  # TODO de index moet niet index heten maar 'parameter'
+        # TODO standaarddeviatie is standaarddeviatie d-stability
         output_table_df = output_table_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
         output_table_data = self._df_to_table_with_index(output_table_df)
         output_table = Table(output_table_data, repeatRows=1)
@@ -928,7 +953,8 @@ class CPhiAnalyse:
 
         fig_width = 1280
         fig_height = 720
-        self.figure.write_image(fig_path, width=fig_width, height=fig_height, scale=2, format="png")
+        self.figure.write_image(fig_path, width=fig_width, height=fig_height, scale=2, format="png")  # TODO figuur nog iets groter
+
         # Maak het PDF document
         doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
         styles = getSampleStyleSheet()
@@ -967,14 +993,14 @@ class CPhiAnalyse:
         story.append(Spacer(width=1, height=12))
 
         # Voeg invoertabel toe
-        story.append(Paragraph("Informatietabel invoerselectie", styles['Heading2']))
+        story.append(Paragraph("Informatietabel invoerselectie", styles['Heading2']))  # TODO deze naar achteraan in de pdf
         story.append(self._create_input_table())
         story.append(Spacer(1, 12))
 
         # TODO materiaalfactor en alfa samen in een tabel - alfa hoort niet in de initiele waarden
 
         # Voeg initiële waarden toe
-        story.append(Paragraph("Eerste benadering fysisch realiseerbare ondergrens en gemiddelde waarden", styles['Heading2']))
+        story.append(Paragraph("Parameter bepaling fysisch realiseerbare ondergrens en gemiddelde waarden", styles['Heading2'])) # TODO pas de namen aan zoals in chat Leo
         story.append(self._create_initial_values_table())
         story.append(Spacer(1, 12))
 

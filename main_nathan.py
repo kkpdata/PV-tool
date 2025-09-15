@@ -54,6 +54,24 @@ dbase.import_data_and_validate(source='PV-tool', source_dir=path_to_data, export
 
 dbase.export_dbase_to_excel(export_dir=save_test)
 
+# ## Test invoegen analyse kolommmen handmatig
+# from pv_tool.imports.import_options import *
+# from pv_tool.imports.import_data import Dbase
+#
+#
+# # path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n_test_zonder_functies.xlsm"
+# # path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n_test_zonder_functies.xlsm"
+# # path_to_data = Path(get_repo_root()) / "example_files" / "Dbase-template.xlsx"
+#
+# path_to_data = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Template_PVtool5_0 voorstel ana kolommen.xlsx")
+#
+# save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie")
+#
+# dbase = Dbase()
+# dbase.import_data_and_validate(source='Dbase', source_dir=path_to_data, export_path=save_test)
+#
+# dbase.export_dbase_to_excel(export_dir=save_test)
+
 
 ##
 print('Unieke verzamelingen:')
@@ -66,11 +84,11 @@ for pvnaam in dbase.dbase_df['PV_NAAM'].unique():
 from pv_tool.cphi_analysis.c_phi_analysis import *
 from pv_tool.cphi_analysis.variables import *
 
-analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
-                      analysis_type='DSS_CPhi')
+# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
+#                       analysis_type='DSS_CPhi')
 
-# analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
-#                       analysis_type='TXT_CPhi')
+analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
+                      analysis_type='TXT_CPhi')
 #
 # analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
 #                       analysis_type='DSS_SH')
@@ -79,17 +97,24 @@ analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effec
 #                       analysis_type='TXT_SH')
 
 
+
 ##
 
-# analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
 # analyse.apply_parameters(cohesie_gem=10.96, phi_kar=0.476, cohesie_kar=4.16)
 
-# laatste_resultaten = analyse.get_previous_results(path=str(save_test))
-#
-# phi_kar = laatste_resultaten['PV_PHI_KAR [graden]'][0]
-#
-# analyse.apply_settings(alpha=0.75)
-# analyse.apply_parameters(phi_kar=phi_kar)
+analyse.apply_settings(alpha=0.75)
+analyse.apply_parameters(cohesie_gem=8, phi_kar=0.53, cohesie_kar=6.72)
+
+laatste_resultaten = analyse.get_previous_results(path=str(save_test))
+
+phi_kar = laatste_resultaten['PV_PHI_KAR [graden]']
+
+alfa = laatste_resultaten['PV_TYPEVERZAMELING']
+
+analyse.apply_parameters(phi_kar=phi_kar)
+analyse.apply_settings(alpha=alfa)
+
+print(analyse.phi_kar_handmatig)
 
 ##
 
