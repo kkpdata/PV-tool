@@ -101,7 +101,7 @@ def calc_tan_phi_d(self: CPhiAnalyse):
     return tan_phi_d
 
 
-def calc_cohesie_kar(self: CPhiAnalyse):
+def calc_a1_kar(self: CPhiAnalyse):
     """Berekent de karakteristieke cohesie, rekening houdend met handmatige invoer."""
     if self.cohesie_gem_handmatig is not None:
         cohesie_kar = a1_kar_gecorrigeerd(self)
@@ -163,7 +163,8 @@ def calc_c_d(self: CPhiAnalyse):
     """Berekent de rekenwaarde van de cohesie [kPa]."""
     return float(calc_c_kar(self) / self.material_cohesie)
 
-def calc_st_dev_phi(self: CPhiAnalyse):
+def calc_st_dev_phi(self: CPhiAnalyse):  # TODO in een eerdere versie werd er doorgerekend met 0.01 als phi_gem of phi_d negatief was. Dit is nu aangepast naar een ValueError. Maar dit moet weer terug veranderd worden samen met een userwarning
+    # Dat heeft te  maken met wat je in d stability wil invoeren
     """Berekent de standaarddeviatie van phi op basis van gemiddelde en rekenwaarde.
 
     Raises:

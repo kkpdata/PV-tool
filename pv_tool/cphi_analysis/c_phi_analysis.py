@@ -24,7 +24,7 @@ from pv_tool.cphi_analysis.visualization import (add_proefresultaten, add_extra_
 from pv_tool.cphi_analysis.calc_parameters import (calc_watergehalte_gem, calc_watergehalte_sd, calc_vgwnat_gem,
                                                    calc_vgwnat_sd, calc_a2_phi_gem,  calc_a2_kar, calc_phi_d,
                                                    helling_gecorrigeerd, calc_a1_c_gem, calc_tan_phi_gem, calc_phi_kar,
-                                                   calc_cohesie_kar, calc_phi_gem, calc_c_gem, calc_tan_phi_kar,
+                                                   calc_a1_kar, calc_phi_gem, calc_c_gem, calc_tan_phi_kar,
                                               calc_c_kar, calc_tan_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c,
                                                 calc_a2_phi_gem_sh, calc_a2_phi_kar_boven_sh, calc_a2_phi_kar_onder_sh,
                                                    calc_tan_phi_kar_sh)
@@ -208,6 +208,7 @@ class CPhiAnalyse:
             self.phi_kar_handmatig = phi_kar
         if cohesie_kar is not None:
             self.cohesie_kar_handmatig = cohesie_kar
+
         if self.analysis_type in ['TXT_SH', 'DSS_SH']:
             self._run_sh()
         else:
@@ -357,7 +358,7 @@ class CPhiAnalyse:
             print("Er zijn geen eerdere resultaten gevonden voor de opgegeven parameters.")
             return None
 
-        latest_entry = filtered_df.loc[filtered_df['PV_RESULTAAT_ID'].idxmax()]
+        latest_entry = filtered_df.loc[filtered_df['PV_RESULTAAT_ID'].idxmax()]  # TODO niet op basis van idxmax maar op basis van laatste timestamp (in kolom 'Timestamp')
 
         return latest_entry
 
@@ -401,7 +402,7 @@ class CPhiAnalyse:
         Maakt een eerste schatting van de karakteristieke sterkteparameters cohesie (a1) en phi (a2).
         """
         self.eerste_benadering_a2_kar = calc_a2_kar(self)
-        self.eerste_benadering_a1_kar = calc_cohesie_kar(self)
+        self.eerste_benadering_a1_kar = calc_a1_kar(self)
 
     def expand_analysis_df_corrected(self):
         """
@@ -416,17 +417,18 @@ class CPhiAnalyse:
         calculate_kappa_2_ondergrens_correctie_c(self)
 
     def result_values(self):  # TODO dit gaat nog steeds niet goed want de handmatige waarden moeten de rest overschrijven als ze er zijn. ligt dit aan calc of moeten we dat hier definieren met if else
+        # TODO ddit heeft te maken met de waarschuwing dat  c < 0 terwijl c >= 0 wordt opgegeven
         """
         Berekent de definitieve resultaten van de c-phi analyse: gemiddelde, karakteristieke en rekenwaarden voor
         cohesie en phi, inclusief standaarddeviaties.
         """
         self.helling_gecorrigeerd = helling_gecorrigeerd(self)
 
-        self.gem_a1 = calc_a1_c_gem(self)
-        self.gem_a2 = calc_a2_phi_gem(self)
+        self.gem_a1 = self.cohesie_gem_handmatig if self.cohesie_gem_handmatig is not None else calc_a1_c_gem(self)
+        self.gem_a2 = calc_a2_phi_gem(self)  # TODO op basis van een handmatig opgegeven waarde cohesie gem moet deze opnieuw berekend worden. Dit komt wel goed in figuur en resultaten tabel terecht maar niet in dbase excel
 
-        self.kar_a1 = calc_cohesie_kar(self)
-        self.kar_a2 = self.phi_kar_handmatig if self.phi_kar_handmatig is not None else self.eerste_benadering_a2_kar
+        self.kar_a1 = self.cohesie_kar_handmatig if self.cohesie_kar_handmatig is not None else calc_a1_kar(self)
+        self.kar_a2 = self.phi_kar_handmatig if self.phi_kar_handmatig is not None else calc_a2_kar(self)
 
         self.phi_gem = calc_phi_gem(self)
         self.tan_phi_gem = calc_tan_phi_gem(self)
@@ -564,7 +566,7 @@ class CPhiAnalyse:
             analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
         return analyse_output_df
 
-    def add_results_to_dbase(self, path):
+    def add_results_to_dbase(self, path):  # TODO a1 en a2 gem en kar worden niet goed weg geschreven als handmatige waardes?
         """
         Voegt analyseresultaten toe aan de database export.
 
@@ -583,6 +585,11 @@ class CPhiAnalyse:
         """
         file_name = 'Template_PVtool5_0.xlsx'
         file_path = f"{path}/{file_name}"
+
+        if self.analysis_type in ['TXT_SH', 'DSS_SH']:
+            self._run_sh()
+        else:
+            self._run()
 
         try:
             with open(file_path, 'r'):
@@ -646,6 +653,17 @@ class CPhiAnalyse:
         # Write data to Excel
         with ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
             df_updated.to_excel(writer, sheet_name='Resultaten', index=False)
+
+        # Formatting
+        num_columns = df_updated.shape[1]
+        num_rows = df_updated.shape[0]
+        self.format_excel_sheet(
+            file_path=file_path,
+            sheet_name='Resultaten',
+            num_columns=num_columns,
+            num_rows=num_rows,
+            table_name='ResultatenTable'
+        )
 
         return df_updated
 
