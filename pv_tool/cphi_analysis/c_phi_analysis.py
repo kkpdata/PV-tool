@@ -32,6 +32,7 @@ from openpyxl import load_workbook
 
 
 from reportlab.lib import colors
+
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.pagesizes import A4, landscape
@@ -131,6 +132,7 @@ class CPhiAnalyse:
 
         # Figure
         self.figure = go.Figure()
+        self.show_title: Optional[bool] = True
 
     def get_cphi_data(self):
         """
@@ -163,7 +165,6 @@ class CPhiAnalyse:
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])]
 
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
-
 
     def apply_settings(self, alpha: Optional[float] = None,
                        material_factor_cohesion: Optional[float] = None,
@@ -211,8 +212,6 @@ class CPhiAnalyse:
             self._run_sh()
         else:
             self._run()
-
-
 
     def plot_spanningspaden(self):
         """
@@ -266,9 +265,7 @@ class CPhiAnalyse:
 
             if stress_data['S\'']:  # Als er data is voor dit monster
                 stress_df = DataFrame(stress_data)
-                # zoek eerst rek bij t piek behorend bij sample name, dit is kolom 'DSS_REK_BIJ_T_MAX' of 'TXT_SS_REK_BIJ_T_PIEK' (afhankelijk van analyse_type) in het dataframe self.total_cphi_analyses_data_df
-                # afhankelijk hiervan moeten de rijen in stress_df gesorteerd worden
-                # de rij waarin de 'pieksterkte' staat moet namelijk verplaatst worden naar de plek behorend bij de rek bij t piek
+
                 if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
                     rek_bij_t_piek = self.total_cphi_analyses_data_df.loc[sample_name, 'TXT_SS_REK_BIJ_T_PIEK']
                     rek_bij_t_eind = self.total_cphi_analyses_data_df.loc[sample_name, 'TXT_SS_REK_BIJ_T_EIND']
@@ -312,8 +309,8 @@ class CPhiAnalyse:
 
                 sample_stress_paths[sample_name] = stress_df
 
-        print(sample_stress_paths)
 
+        
         # Plot de spanningspaden
         if sample_stress_paths:
             from pv_tool.cphi_analysis.visualization import add_stress_paths
@@ -321,9 +318,6 @@ class CPhiAnalyse:
         else:
             raise ValueError("Geen geldige data gevonden voor de spanningspaden.")
 
-    #  voeg functie toe die zoekt of er op path een excel staat 'Template_PVtool5_0.xlsx' die het tabblad 'resultaten' inleest als die er is.
-    # Hij moet dan zoeken of de combinatie van PVNAAM, PV_REK en PV_TYPE_PROEF al bestaat. Zo ja, selecteer dan de regel met de laatste timestamp
-    # vervolgens moet de interface van de jupyter notebook waarin de analyse wordt uitgevoerd de mogelijkheid krijgen om deze waarden over te nemen of niet.
     def get_previous_results(self, path: str):
         """
         Zoekt naar eerdere analyseresultaten in een Excel-bestand.
@@ -352,12 +346,11 @@ class CPhiAnalyse:
         except ValueError:
             print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
             return None
-        print(results_df)
-        print(results_df.columns)
+
         filtered_df = results_df[
-            (results_df['PVNAAM'].isin(self.investigation_groups)) &
-            (results_df['PV_REK'] == self.effective_stress) &
-            (results_df['PV_TYPE_PROEF'] == self.analysis_type)
+            (results_df['PV_RESULTAAT_ID'].str.contains(self.investigation_groups[0])) &
+            (results_df['PV_RESULTAAT_ID'].str.contains(self.effective_stress)) &
+            (results_df['PV_RESULTAAT_ID'].str.contains(self.analysis_type))
         ]
 
         if filtered_df.empty:
@@ -367,7 +360,6 @@ class CPhiAnalyse:
         latest_entry = filtered_df.loc[filtered_df['PV_RESULTAAT_ID'].idxmax()]
 
         return latest_entry
-
 
     def expand_analysis_df(self):
         """
@@ -411,7 +403,6 @@ class CPhiAnalyse:
         self.eerste_benadering_a2_kar = calc_a2_kar(self)
         self.eerste_benadering_a1_kar = calc_cohesie_kar(self)
 
-
     def expand_analysis_df_corrected(self):
         """
         Voegt gecorrigeerde parameters toe aan de analyse: gecorrigeerde waarden voor
@@ -424,7 +415,7 @@ class CPhiAnalyse:
         calculate_s_ty_ondergrens_correctie_c(self)
         calculate_kappa_2_ondergrens_correctie_c(self)
 
-    def result_values(self):
+    def result_values(self):  # TODO dit gaat nog steeds niet goed want de handmatige waarden moeten de rest overschrijven als ze er zijn. ligt dit aan calc of moeten we dat hier definieren met if else
         """
         Berekent de definitieve resultaten van de c-phi analyse: gemiddelde, karakteristieke en rekenwaarden voor
         cohesie en phi, inclusief standaarddeviaties.
@@ -473,7 +464,6 @@ class CPhiAnalyse:
         self.phi_d = calc_phi_d(self)
 
         self.st_dev_phi = calc_st_dev_phi(self)
-
 
     def _run(self):
         """
@@ -559,14 +549,14 @@ class CPhiAnalyse:
         """
         if self.analysis_type in ['TXT_SH', 'DSS_SH']:
             self._run_sh()
-            index = ['verwachtingswaarde', 'karakteristieke waarde', 'rekenwaarde', 'standaarddeviatie']
+            index = ['Verwachtingswaarde', 'Karakteristieke waarde', 'Rekenwaarde', 'Standaarddeviatie D-stability']
             columns = ['tan phi [-]', 'phi [graden]']
             analyse_output_df = DataFrame(index=index, columns=columns)
-            analyse_output_df['tan phi [-]'] = [self.tan_phi_gem, self.tan_phi_kar, self.tan_phi_d, '[-]']
+            analyse_output_df['tan phi [-]'] = [self.tan_phi_gem, self.tan_phi_kar , self.tan_phi_d, '[-]']
             analyse_output_df['phi [graden]'] = [self.phi_gem, self.phi_kar, self.phi_d, self.st_dev_phi]
         else:
             self._run()
-            index = ['verwachtingswaarde', 'karakteristieke waarde', 'rekenwaarde', 'standaarddeviatie']
+            index = ['Verwachtingswaarde', 'Karakteristieke waarde', 'Rekenwaarde', 'Standaarddeviatie D-stability']
             columns = ['tan phi [-]', 'phi [graden]', 'cohesie [kPa]']
             analyse_output_df = DataFrame(index=index, columns=columns)
             analyse_output_df['tan phi [-]'] = [self.tan_phi_gem, self.tan_phi_kar, self.tan_phi_d, '[-]']
@@ -755,7 +745,8 @@ class CPhiAnalyse:
         with ExcelWriter(file_path, engine='openpyxl') as writer:
             df_totaal.to_excel(writer)
 
-    def _df_to_table_with_index(self, df, index_name='Index'):
+    @staticmethod
+    def _df_to_table_with_index(df, index_name='Index'):
         """
         Zet een DataFrame om naar een lijst voor gebruik in een PDF tabel. Gebruikt in save_to_pdf.
 
@@ -800,9 +791,10 @@ class CPhiAnalyse:
         table1_df = table1_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
 
         t1_data = self._df_to_table_with_index(table1_df, index_name="alg_boring_monsternummer_id")
-        t1 = LongTable(t1_data, repeatRows=1)
+        t1 = LongTable(t1_data, repeatRows=1, hAlign='LEFT')
         t1.setStyle(TableStyle([
-             ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+
+            ('ALIGN', (0,0), (-1,-1), 'LEFT'),
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -820,18 +812,37 @@ class CPhiAnalyse:
         Table
             ReportLab tabel object met de initiële waarden
         """
-        initial_values = []
-        initial_values.append(['alfa:', self.alpha])
-        if self.gem_a1 is not None: initial_values.append(['gem_a1', round(self.gem_a1,3)])
-        if self.gem_a2 is not None: initial_values.append(['gem_a2', round(self.gem_a2,3)])
-        if self.kar_a1 is not None: initial_values.append(['kar_a1', round(self.kar_a1,3)])
-        if self.kar_a2 is not None: initial_values.append(['kar_a2', round(self.kar_a2,3)])
-        if hasattr(self, 'a2_phi_kar_onder') and self.a2_phi_kar_onder is not None:
-            initial_values.append(['a2_phi_kar_onder', round(self.a2_phi_kar_onder,3)])
-        if hasattr(self, 'a2_phi_kar_boven') and self.a2_phi_kar_boven is not None:
-            initial_values.append(['a2_phi_kar_boven', round(self.a2_phi_kar_boven,3)])
+        # name_gem_a1 = 'a1 gem = snijpunt y-as (cohesie gemiddeld)' if self.cohesie_gem_handmatig is None else 'a1 gem = cohesie gemiddeld (handmatig)'
+        # name_gem_a2 = 'a2 gem = tan(phi) gemiddeld'
+        # name_kar_a1 = 'a1 kar = snijpunt y-as (cohesie karakteristiek)' if self.cohesie_kar_handmatig is None else 'a1 kar = cohesie karakteristiek (handmatig)'
+        # name_kar_a2 = 'a2 kar = tan(phi) karakteristiek' if self.phi_kar_handmatig is None else 'a2 kar = tan(phi) karakteristiek (handmatig)'
+        name_phi_kar_onder = 'a2 kar onder = tan(phi) karakteristiek ondergrens'
+        name_phi_kar_boven = 'a2 kar boven = tan(phi) karakteristiek bovengrens'
 
-        t3 = Table([['Parameter', 'Waarde']] + initial_values)
+        initial_values = []
+
+        if self.cohesie_gem_handmatig is not None: initial_values.append(['a1 gem = cohesie gemiddeld (handmatig)', round(self.cohesie_gem_handmatig,3)])
+        elif self.gem_a1 is not None: initial_values.append(['a1 gem = snijpunt y-as (cohesie gemiddeld)', round(self.gem_a1,3)])
+
+        if self.gem_a2 is not None: initial_values.append(['a2 gem = tan(phi) gemiddeld', round(self.gem_a2,3)])
+
+        if self.cohesie_kar_handmatig is not None: initial_values.append(['a1 kar = cohesie karakteristiek (handmatig)', round(self.cohesie_kar_handmatig,3)])
+        elif self.kar_a1 is not None: initial_values.append(['a1 kar = snijpunt y-as (cohesie karakteristiek)' , round(self.kar_a1,3)])
+
+        if self.phi_kar_handmatig is not None: initial_values.append(['a2 kar = tan(phi) karakteristiek (handmatig)', round(self.phi_kar_handmatig,3)])
+        elif self.kar_a2 is not None: initial_values.append(['a2 kar = tan(phi) karakteristiek', round(self.kar_a2,3)])
+
+        if hasattr(self, 'a2_phi_kar_onder') and self.a2_phi_kar_onder is not None:
+            initial_values.append([name_phi_kar_onder, round(self.a2_phi_kar_onder,3)])
+        if hasattr(self, 'a2_phi_kar_boven') and self.a2_phi_kar_boven is not None:
+            initial_values.append([name_phi_kar_boven, round(self.a2_phi_kar_boven,3)])
+
+
+        initial_values.append(['Type verzameling: lokaal = 1.0; regionaal = 0.75', self.alpha])
+        initial_values.append(['Partiële materiaalfactor cohesie [-]', self.material_cohesie])
+        initial_values.append(['Partiële materiaalfactor tan phi [-]', self.material_tan_phi])
+
+        t3 = Table([['Parameter', 'Waarde']] + initial_values, hAlign='LEFT')
         t3.setStyle(TableStyle([
              ('ALIGN', (0,0), (-1,-1), 'LEFT'),
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
@@ -850,9 +861,10 @@ class CPhiAnalyse:
             ReportLab tabel object met de resultaten
         """
         output_table_df = self.print_short_results().copy()
+        output_table_df.index.name = 'Parameter'
         output_table_df = output_table_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
         output_table_data = self._df_to_table_with_index(output_table_df)
-        output_table = Table(output_table_data, repeatRows=1)
+        output_table = Table(output_table_data, repeatRows=1, hAlign='LEFT')
         output_table.setStyle(TableStyle([
              ('ALIGN', (0,0), (-1,-1), 'LEFT'),
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
@@ -923,11 +935,13 @@ class CPhiAnalyse:
         # Maak en bewaar de figuur alleen als deze nog niet bestaat
         fig_path = f"{path}/temp_plot.png"
         if not hasattr(self, 'figure') or len(self.figure.data) == 0:
+            self.show_title = False
             self.show_figure()
 
+        self.show_title = True
         fig_width = 1280
         fig_height = 720
-        self.figure.write_image(fig_path, width=fig_width, height=fig_height, scale=2, format="png")
+        self.figure.write_image(fig_path, width=fig_width, height=fig_height, scale=4, format="png")
 
         # Maak het PDF document
         doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
@@ -937,7 +951,7 @@ class CPhiAnalyse:
         story = []
 
         # Voeg titel toe
-        story.append(Paragraph(title, styles['TitleLeft'])) # TODO titel aanpassen naar de naam van de figuur en dan naam van de figuur weg
+        story.append(Paragraph(title, styles['TitleLeft']))
         story.append(Spacer(width=1, height=12))
 
         # Voeg figuur toe met aangepaste grootte
@@ -950,8 +964,8 @@ class CPhiAnalyse:
         with PILImage.open(fig_path) as im:
             img_width_px, img_height_px = im.size
 
-        # Stel gewenste breedte in punten (bijv. 90% van PDF breedte)
-        max_width_pt = doc.width * 0.9
+        # Stel gewenste breedte in punten (bijv. 95% van PDF breedte)
+        max_width_pt = doc.width * 0.95
 
         # Bereken hoogte zodat verhouding gelijk blijft
         aspect = img_height_px / img_width_px
@@ -963,31 +977,24 @@ class CPhiAnalyse:
         img.drawWidth = img_width_pt
         img.drawHeight = img_height_pt
         img.hAlign = 'LEFT'
+
         story.append(img)
         story.append(Spacer(width=1, height=12))
+
+        # Voeg initiële waarden toe
+        story.append(Paragraph("Parameter bepaling fysisch realiseerbare ondergrens en gemiddelde waarden", styles['Heading2']))
+        story.append(self._create_initial_values_table())
+        story.append(Spacer(1, 12))
+
+        # Voeg resultaten toe
+        story.append(Paragraph("Resultaten", styles['Heading2']))
+        story.append(self._create_results_table())
+        story.append(Spacer(1, 12))
 
         # Voeg invoertabel toe
         story.append(Paragraph("Informatietabel invoerselectie", styles['Heading2']))
         story.append(self._create_input_table())
         story.append(Spacer(1, 12))
-
-        # TODO materiaalfactor en alfa samen in een tabel - alfa hoort niet in de initiele waarden
-
-        # Voeg initiële waarden toe
-        story.append(Paragraph("Eerste benadering fysisch realiseerbare ondergrens en gemiddelde waarden", styles['Heading2']))
-        story.append(self._create_initial_values_table())
-        story.append(Spacer(1, 12))
-
-
-
-        # Voeg handmatige waarden toe
-        story.extend(self._get_manual_values_paragraphs(styles))
-        story.append(Spacer(1, 12))
-        # TODO aanpassen deze tekst - er staat nu te vaak handmatig en het is niet cohesie handmatig maar a1 handmatig (en phi is a2 handmatig)
-
-        # Voeg resultaten toe
-        story.append(Paragraph("Resultaten", styles['Heading2']))
-        story.append(self._create_results_table())
 
         # Bouw de PDF
         doc.build(story)

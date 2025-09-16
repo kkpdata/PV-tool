@@ -193,7 +193,7 @@ def calc_st_dev_c(self: CPhiAnalyse):
 
     # Controleer op fysisch onmogelijke waarden (cohesie mag 0 zijn)
     if c_gem < 0:
-        warnings.warn("Gemiddelde cohesie waarde mag niet negatief zijn, gevonden waarde: {}".format(c_gem))
+        warnings.warn("Gemiddelde cohesie waarde mag niet negatief zijn, gevonden waarde: {}".format(c_gem)) # TODO deze warning wordt ook gegeven wanneer c overschreven wordt met waardes >0. Dit moet niet
         return None
     if c_d < 0:
         warnings.warn("Rekenwaarde cohesie mag niet negatief zijn, gevonden waarde: {}".format(c_d))
