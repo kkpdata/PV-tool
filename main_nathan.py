@@ -106,6 +106,8 @@ analyse.add_results_to_dbase(path = str(save_test))
 analyse.save_to_pdf(path = str(save_test))
 analyse.show_figure(plot_extra_dataset=['TXT_SAFE_Klei_licht_outlier'], plot_spanningspaden=True)
 
+stopperdestop
+
 ##
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['DSS_SAFE_veen'], effective_stress='20% rek',
                       analysis_type='DSS_SH')

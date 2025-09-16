@@ -130,7 +130,7 @@ def sum_5_pr_ondergrens_gecorrigeerd(self: CPhiAnalyse):
 
 
 def sum_s_ty_ondergrens_gecorrigeerd(self: CPhiAnalyse):
-    return self.cphi_analyses_data_df['s_ty_ondergrens_cor'].sum()  # Deze terug aangepast want eerst stond er niet _cor
+    return self.cphi_analyses_data_df['s_ty_ondergrens_cor'].sum()
 
 
 def a2_kar_gecorrigeerd(self: CPhiAnalyse):

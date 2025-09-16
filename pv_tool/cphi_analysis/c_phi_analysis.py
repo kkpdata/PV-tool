@@ -166,7 +166,6 @@ class CPhiAnalyse:
 
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
 
-
     def apply_settings(self, alpha: Optional[float] = None,
                        material_factor_cohesion: Optional[float] = None,
                        material_factor_tan_phi: Optional[float] = None):
@@ -213,8 +212,6 @@ class CPhiAnalyse:
             self._run_sh()
         else:
             self._run()
-
-
 
     def plot_spanningspaden(self):
         """
@@ -364,7 +361,6 @@ class CPhiAnalyse:
 
         return latest_entry
 
-
     def expand_analysis_df(self):
         """
         Berekent afgeleide parameters voor de c-phi analyse.
@@ -407,7 +403,6 @@ class CPhiAnalyse:
         self.eerste_benadering_a2_kar = calc_a2_kar(self)
         self.eerste_benadering_a1_kar = calc_cohesie_kar(self)
 
-
     def expand_analysis_df_corrected(self):
         """
         Voegt gecorrigeerde parameters toe aan de analyse: gecorrigeerde waarden voor
@@ -419,7 +414,6 @@ class CPhiAnalyse:
         calculate_5pr_bovengrens_correctie_c(self)
         calculate_s_ty_ondergrens_correctie_c(self)
         calculate_kappa_2_ondergrens_correctie_c(self)
-
 
     def result_values(self):  # TODO dit gaat nog steeds niet goed want de handmatige waarden moeten de rest overschrijven als ze er zijn. ligt dit aan calc of moeten we dat hier definieren met if else
         """
@@ -470,7 +464,6 @@ class CPhiAnalyse:
         self.phi_d = calc_phi_d(self)
 
         self.st_dev_phi = calc_st_dev_phi(self)
-
 
     def _run(self):
         """
@@ -752,7 +745,8 @@ class CPhiAnalyse:
         with ExcelWriter(file_path, engine='openpyxl') as writer:
             df_totaal.to_excel(writer)
 
-    def _df_to_table_with_index(self, df, index_name='Index'):
+    @staticmethod
+    def _df_to_table_with_index(df, index_name='Index'):
         """
         Zet een DataFrame om naar een lijst voor gebruik in een PDF tabel. Gebruikt in save_to_pdf.
 
@@ -797,7 +791,7 @@ class CPhiAnalyse:
         table1_df = table1_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
 
         t1_data = self._df_to_table_with_index(table1_df, index_name="alg_boring_monsternummer_id")
-        t1 = LongTable(t1_data, repeatRows=1)
+        t1 = LongTable(t1_data, repeatRows=1, hAlign='LEFT')
         t1.setStyle(TableStyle([
 
             ('ALIGN', (0,0), (-1,-1), 'LEFT'),
@@ -848,7 +842,7 @@ class CPhiAnalyse:
         initial_values.append(['Partiële materiaalfactor cohesie [-]', self.material_cohesie])
         initial_values.append(['Partiële materiaalfactor tan phi [-]', self.material_tan_phi])
 
-        t3 = Table([['Parameter', 'Waarde']] + initial_values)
+        t3 = Table([['Parameter', 'Waarde']] + initial_values, hAlign='LEFT')
         t3.setStyle(TableStyle([
              ('ALIGN', (0,0), (-1,-1), 'LEFT'),
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
@@ -870,7 +864,7 @@ class CPhiAnalyse:
         output_table_df.index.name = 'Parameter'
         output_table_df = output_table_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
         output_table_data = self._df_to_table_with_index(output_table_df)
-        output_table = Table(output_table_data, repeatRows=1)
+        output_table = Table(output_table_data, repeatRows=1, hAlign='LEFT')
         output_table.setStyle(TableStyle([
              ('ALIGN', (0,0), (-1,-1), 'LEFT'),
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
@@ -945,11 +939,9 @@ class CPhiAnalyse:
             self.show_figure()
 
         self.show_title = True
-        # fig_width = 1280
-        # fig_height = 720
-        fig_width = 1600
-        fig_height = 900
-        self.figure.write_image(fig_path, width=fig_width, height=fig_height, scale=3, format="png")  # TODO figuur nog iets groter
+        fig_width = 1280
+        fig_height = 720
+        self.figure.write_image(fig_path, width=fig_width, height=fig_height, scale=4, format="png")
 
         # Maak het PDF document
         doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
@@ -959,7 +951,7 @@ class CPhiAnalyse:
         story = []
 
         # Voeg titel toe
-        story.append(Paragraph(title, styles['TitleLeft'])) # TODO titel aanpassen naar de naam van de figuur en dan naam van de figuur weg
+        story.append(Paragraph(title, styles['TitleLeft']))
         story.append(Spacer(width=1, height=12))
 
         # Voeg figuur toe met aangepaste grootte
@@ -989,18 +981,10 @@ class CPhiAnalyse:
         story.append(img)
         story.append(Spacer(width=1, height=12))
 
-
-        # TODO materiaalfactor en alfa samen in een tabel - alfa hoort niet in de initiele waarden
-
         # Voeg initiële waarden toe
-        story.append(Paragraph("Parameter bepaling fysisch realiseerbare ondergrens en gemiddelde waarden", styles['Heading2'])) # TODO pas de namen aan zoals in chat Leo
+        story.append(Paragraph("Parameter bepaling fysisch realiseerbare ondergrens en gemiddelde waarden", styles['Heading2']))
         story.append(self._create_initial_values_table())
         story.append(Spacer(1, 12))
-
-        # # Voeg handmatige waarden toe
-        # story.extend(self._get_manual_values_paragraphs(styles))
-        # story.append(Spacer(1, 12))
-        # # TODO aanpassen deze tekst - er staat nu te vaak handmatig en het is niet cohesie handmatig maar a1 handmatig (en phi is a2 handmatig)
 
         # Voeg resultaten toe
         story.append(Paragraph("Resultaten", styles['Heading2']))
