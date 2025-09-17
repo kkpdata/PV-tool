@@ -358,7 +358,7 @@ class CPhiAnalyse:
             print("Er zijn geen eerdere resultaten gevonden voor de opgegeven parameters.")
             return None
 
-        latest_entry = filtered_df.loc[filtered_df['PV_RESULTAAT_ID'].idxmax()]  # TODO niet op basis van idxmax maar op basis van laatste timestamp (in kolom 'Timestamp')
+        latest_entry = filtered_df.sort_values(by='Timestamp', ascending=False).iloc[0]
 
         return latest_entry
 
@@ -416,8 +416,7 @@ class CPhiAnalyse:
         calculate_s_ty_ondergrens_correctie_c(self)
         calculate_kappa_2_ondergrens_correctie_c(self)
 
-    def result_values(self):  # TODO dit gaat nog steeds niet goed want de handmatige waarden moeten de rest overschrijven als ze er zijn. ligt dit aan calc of moeten we dat hier definieren met if else
-        # TODO ddit heeft te maken met de waarschuwing dat  c < 0 terwijl c >= 0 wordt opgegeven
+    def result_values(self):
         """
         Berekent de definitieve resultaten van de c-phi analyse: gemiddelde, karakteristieke en rekenwaarden voor
         cohesie en phi, inclusief standaarddeviaties.
@@ -425,7 +424,7 @@ class CPhiAnalyse:
         self.helling_gecorrigeerd = helling_gecorrigeerd(self)
 
         self.gem_a1 = self.cohesie_gem_handmatig if self.cohesie_gem_handmatig is not None else calc_a1_c_gem(self)
-        self.gem_a2 = calc_a2_phi_gem(self)  # TODO op basis van een handmatig opgegeven waarde cohesie gem moet deze opnieuw berekend worden. Dit komt wel goed in figuur en resultaten tabel terecht maar niet in dbase excel
+        self.gem_a2 = calc_a2_phi_gem(self)
 
         self.kar_a1 = self.cohesie_kar_handmatig if self.cohesie_kar_handmatig is not None else calc_a1_kar(self)
         self.kar_a2 = self.phi_kar_handmatig if self.phi_kar_handmatig is not None else calc_a2_kar(self)
@@ -566,7 +565,7 @@ class CPhiAnalyse:
             analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
         return analyse_output_df
 
-    def add_results_to_dbase(self, path):  # TODO a1 en a2 gem en kar worden niet goed weg geschreven als handmatige waardes?
+    def add_results_to_dbase(self, path):  # TODO check bij Leo of a1 en a2 gem en goed weg geschreven worden als handmatige waardes
         """
         Voegt analyseresultaten toe aan de database export.
 
