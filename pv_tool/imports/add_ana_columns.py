@@ -9,9 +9,10 @@ if TYPE_CHECKING:
 
 def add_columns(self: Dbase):
     """
-    Voegt analyse kolommen toe in de gespecificeerde volgorde aan het einde van de DataFrame,
-    waarbij data in 'preserve_cols' behouden blijft indien aanwezig.
+    Append analysis columns in specified order to the back of the DataFrame,
+    preserving data in 'preserve_cols' if they exist.
     """
+    # Your desired analysis columns (in order)
     analysis_columns = [
         'ANA_TERREINSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
         'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL',
@@ -27,36 +28,19 @@ def add_columns(self: Dbase):
     ]
     df = self.dbase_df
 
-    # Store preserved values with proper type conversion
-    preserved_data = {}
-    for col in preserve_cols:
-        if col in df.columns:
-            if col.endswith('_HANDMATIG') and 'CONSOLIDATIE_TYPE' in col:
-                # For consolidation type columns, preserve as string
-                preserved_data[col] = df[col].astype(str).where(df[col].notna(), None)
-            elif col == 'ANA_GRENSSPANNING_HANDMATIG':
-                # For numerical columns, convert to float
-                preserved_data[col] = pd.to_numeric(df[col], errors='coerce')
-            else:
-                preserved_data[col] = df[col].copy()
-
-    # Get non-analysis columns
+    # Remove any analysis columns from the main columns list to avoid duplicates
     other_columns = [col for col in df.columns if col not in analysis_columns]
 
-    # Create new DataFrame with correct order
-    new_df = df[other_columns].copy()
-
-    # Add analysis columns with proper types
+    # Add or overwrite analysis columns as needed (preserved ones are kept if present)
     for col in analysis_columns:
-        if col in preserve_cols and col in preserved_data:
-            new_df[col] = preserved_data[col]
+        if col in preserve_cols and col in df.columns:
+            continue  # preserve existing data
         else:
-            if 'CONSOLIDATIE_TYPE' in col:
-                new_df[col] = None  # Will be filled with 'OC' or 'NC' later
-            else:
-                new_df[col] = pd.Series(dtype='float64')  # For numerical columns
+            df[col] = None  # add or overwrite with None
 
-    self.dbase_df = new_df
+    # Reindex to: [existing non-analysis columns, then analysis columns in order]
+    df = df[other_columns + analysis_columns]
+    self.dbase_df = df
 
 
 def add_terreinspanning(self: Dbase):

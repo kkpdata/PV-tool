@@ -216,40 +216,30 @@ class Validation:
         try:
             for func_name, func in validation_mapping.items():
                 validation_df, error_log = func(self)
-                # Ensure all column names are strings
-                validation_df.columns = validation_df.columns.astype(str)
                 validation_results[func_name] = validation_df
                 self.error_totals.append(f"number of {c} in {func_name} = {len(error_log)}")
                 error_logs.extend(error_log)
 
             sheet_names_print = []
-            # First write all sheets to Excel
             with pd.ExcelWriter(str(export_path), engine="xlsxwriter") as writer:
                 for func_name, validation_df in validation_results.items():
                     sheet_name = func_name.upper()
                     sheet_names_print.append(sheet_name)
-                    # Ensure index is also strings when writing
-                    validation_df.index = validation_df.index.astype(str)
-                    # Set index name if it's empty to prevent Excel warnings
-                    if validation_df.index.name is None:
-                        validation_df.index.name = 'ID'
                     validation_df.to_excel(writer, sheet_name=sheet_name, index=True)
 
-            # After the file is completely written and closed, then format each sheet
-            for sheet_name in sheet_names_print:
-                try:
-                    num_rows, num_columns = validation_results[sheet_name.lower()].shape
-                    format_excel_sheet(
-                        file_path=str(export_path),
-                        sheet_name=sheet_name,
-                        num_columns=num_columns,
-                        num_rows=num_rows,
-                        table_name=f'tabel_{sheet_name.lower()}',
-                        index=True
-                    )
-                except Exception as format_error:
-                    print(f"Warning: Could not format sheet {sheet_name}: {str(format_error)}")
-                    # Continue with other sheets even if one fails to format
+            # # for each sheet name in the excel, format the sheet
+            # TODO dit werkt nog niet - er komen warnings over een onleesbare excel
+            # file_path = export_path
+            # for sheet_name in sheet_names_print:
+            #     num_rows, num_columns = validation_results[sheet_name.lower()].shape
+            #     format_excel_sheet(
+            #         file_path=str(file_path),
+            #         sheet_name=sheet_name,
+            #         num_columns=num_columns,
+            #         num_rows=num_rows,
+            #         table_name=f'tabel_{sheet_name.lower()}',
+            #         index=True
+            #     )
 
         except Exception as e:
             print(f"Er trad een fout op tijdens validatie of het schrijven van Excel: {str(e)}")
