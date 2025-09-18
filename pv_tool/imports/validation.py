@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from pv_tool.imports.excel_utils import format_excel_sheet
 import math
 from typing import TYPE_CHECKING, Dict
 from typing import Optional, List, Literal
@@ -70,7 +70,7 @@ class Validation:
                 'Triaxiaalproeven single stage'
             ]
     ):
-        """Deze functie verwijderd rijen uit de dataframes waar geen proef is gedaan."""
+        """Deze functie verwijdert rijen uit de dataframes waar geen proef is gedaan."""
         df_alg = self.split_dbase()['Algemene kenmerken']
         df_to_check = self.split_dbase()[category]
         if category == 'Classificatie':
@@ -226,6 +226,20 @@ class Validation:
                     sheet_name = func_name.upper()
                     sheet_names_print.append(sheet_name)
                     validation_df.to_excel(writer, sheet_name=sheet_name, index=True)
+
+            # # for each sheet name in the excel, format the sheet
+            # TODO dit werkt nog niet - er komen warnings over een onleesbare excel
+            # file_path = export_path
+            # for sheet_name in sheet_names_print:
+            #     num_rows, num_columns = validation_results[sheet_name.lower()].shape
+            #     format_excel_sheet(
+            #         file_path=str(file_path),
+            #         sheet_name=sheet_name,
+            #         num_columns=num_columns,
+            #         num_rows=num_rows,
+            #         table_name=f'tabel_{sheet_name.lower()}',
+            #         index=True
+            #     )
 
         except Exception as e:
             print(f"Er trad een fout op tijdens validatie of het schrijven van Excel: {str(e)}")

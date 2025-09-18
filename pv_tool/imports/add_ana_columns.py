@@ -8,14 +8,39 @@ if TYPE_CHECKING:
 
 
 def add_columns(self: Dbase):
-    """Voegt de kolommen toe in de gewenste volgorde zodat ze later gevuld kunnen worden."""
-    columns = ['ANA_TERREINSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
-               'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL',
-               'ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL',
-               'ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_GRENSSPANNING_PROEF', 'ANA_POP_VELD',
-               'ANA_POP_VELD_GEMIDDELD', 'ANA_GRENSSPANNING_VOORSTEL', 'ANA_GRENSSPANNING_HANDMATIG',  # TODO: ANA_GRENSSPANNING_HANDMATIG wordt al eerder ingeladen vanaf de import. Dus volgorde op andere manier veranderen, want ANA_GRENSSPANNING_HANDMATIG staat nu nog niet op de juiste plek
-               'ANA_GRENSSPANNING_REKEN', 'OCR_TXT', 'OCR_DSS']
-    self.dbase_df[columns] = None
+    """
+    Append analysis columns in specified order to the back of the DataFrame,
+    preserving data in 'preserve_cols' if they exist.
+    """
+    # Your desired analysis columns (in order)
+    analysis_columns = [
+        'ANA_TERREINSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
+        'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL',
+        'ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL',
+        'ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_GRENSSPANNING_PROEF', 'ANA_POP_VELD',
+        'ANA_POP_VELD_GEMIDDELD', 'ANA_GRENSSPANNING_VOORSTEL', 'ANA_GRENSSPANNING_HANDMATIG',
+        'ANA_GRENSSPANNING_REKEN', 'OCR_TXT', 'OCR_DSS'
+    ]
+    preserve_cols = [
+        'ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG',
+        'ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG',
+        'ANA_GRENSSPANNING_HANDMATIG'
+    ]
+    df = self.dbase_df
+
+    # Remove any analysis columns from the main columns list to avoid duplicates
+    other_columns = [col for col in df.columns if col not in analysis_columns]
+
+    # Add or overwrite analysis columns as needed (preserved ones are kept if present)
+    for col in analysis_columns:
+        if col in preserve_cols and col in df.columns:
+            continue  # preserve existing data
+        else:
+            df[col] = None  # add or overwrite with None
+
+    # Reindex to: [existing non-analysis columns, then analysis columns in order]
+    df = df[other_columns + analysis_columns]
+    self.dbase_df = df
 
 
 def add_terreinspanning(self: Dbase):
