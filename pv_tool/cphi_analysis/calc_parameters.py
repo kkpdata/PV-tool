@@ -101,7 +101,7 @@ def calc_tan_phi_d(self: CPhiAnalyse):
     return tan_phi_d
 
 
-def calc_cohesie_kar(self: CPhiAnalyse):
+def calc_a1_kar(self: CPhiAnalyse):
     """Berekent de karakteristieke cohesie, rekening houdend met handmatige invoer."""
     if self.cohesie_gem_handmatig is not None:
         cohesie_kar = a1_kar_gecorrigeerd(self)
@@ -191,17 +191,15 @@ def calc_st_dev_c(self: CPhiAnalyse):
     c_gem = calc_c_gem(self)
     c_d = calc_c_d(self)
 
-    # Controleer op fysisch onmogelijke waarden (cohesie mag 0 zijn)
-    if c_gem < 0:
-        warnings.warn("Gemiddelde cohesie waarde mag niet negatief zijn, gevonden waarde: {}".format(c_gem)) # TODO deze warning wordt ook gegeven wanneer c overschreven wordt met waardes >0. Dit moet niet
-        return None
-    if c_d < 0:
-        warnings.warn("Rekenwaarde cohesie mag niet negatief zijn, gevonden waarde: {}".format(c_d))
-        return None
+    if c_gem <= 0:
+        warnings.warn(f"Om berekening standaarddeviatie voor D-stability te kunnen doen moet gemiddelde cohesie waarde positief zijn, gevonden waarde: {round(c_gem,3)}."
+                      f"Gemiddelde cohesie wordt aangepast naar 0.01 om standaarddeviatie uit te rekenen")
+        c_gem = 0.01
 
-    # Als een van beide waardes 0 is, is de standaarddeviatie ook 0
-    if c_gem == 0 or c_d == 0:
-        return 0.0
+    if c_d <= 0:
+        warnings.warn(f"Om berekening standaarddeviatie voor D-stability te kunnen doen moet rekenwaarde van de cohesie waarde positief zijn, gevonden waarde: {round(c_d,3)}."
+                      f"Rekenwaarde cohesie wordt aangepast naar 0.01 om berekening standaarddeviatie voor D-stability te kunnen doen")
+        c_d = 0.01
 
     try:
         st_dev = c_gem * math.sqrt(math.exp((((norm.ppf(0.05) * 2) + math.sqrt((norm.ppf(0.05) * 2) ** 2 +
