@@ -33,8 +33,18 @@ class Dbase:
             add_ana_columns(self)
             add_pv_naam(self)
 
+    def import_dbase_short(self, source: Literal['Stowa', 'PV-tool', 'Dbase'],
+                                 source_dir: Path):
+        """Importeert data uit de Stowa-database, de oude pv-tool of de Dbase (template) en voegt kolommen toe"""
+        if source == 'Dbase':
+            import_dbase(self, dbase_dir=source_dir)
+            return self.dbase_df
+        else:
+            return f"Short import only available for 'Dbase' source, not for '{source}'"
+
     def import_data(self, source: Literal['Stowa', 'PV-tool', 'Dbase'],
                                  source_dir: Path):
+        """Importeert data uit de Stowa-database, de oude pv-tool of de Dbase (template) en voegt kolommen toe"""
         if source == 'Stowa':
             import_stowa(self, stowa_dir=source_dir)
             self.dbase_df = self.stowa_df
@@ -42,7 +52,7 @@ class Dbase:
             import_pv_tool(self, pv_dir=source_dir)
             self.dbase_df = self.pv_tool
         elif source == 'Dbase':
-            import_dbase(self, dbase_dir=source_dir)  # TODO importeren en/of exporteren Dbase gaat niet goed!
+            import_dbase(self, dbase_dir=source_dir)
         self._create_dbase(source=source)
         return self.dbase_df
 
