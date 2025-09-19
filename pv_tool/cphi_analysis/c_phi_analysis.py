@@ -659,7 +659,7 @@ class CPhiAnalyse:
             num_columns=num_columns,
             num_rows=num_rows,
             table_name='ResultatenTable',
-             index=True
+            index=False  # Changed from True to False to match the to_excel call
         )
 
         return df_updated
