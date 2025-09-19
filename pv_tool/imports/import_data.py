@@ -53,8 +53,8 @@ class Dbase:
 
     def export_dbase_to_excel(self, export_dir: Path, filename: str = 'Template_PVtool5_0.xlsx'):
         """
-        Exports the Dbase DataFrame to an Excel file, always overwriting the sheet Dbase5_0,
-        but preserving specified columns if they exist.
+        Exports the Dbase DataFrame to an Excel file, maintaining the correct column order
+        and preserving specified columns if they exist.
         """
         export_path = export_dir / filename
         sheet_name = 'Dbase5_0'
@@ -68,20 +68,33 @@ class Dbase:
         export_dir.mkdir(parents=True, exist_ok=True)
 
         # Try to preserve columns if the file & sheet exist
+        preserved_data = {}
         if export_path.exists():
             try:
                 existing_df = read_excel(export_path, sheet_name=sheet_name)
-                existing_cols = [col for col in preserve_cols if
-                                 col in existing_df.columns and col in self.dbase_df.columns]
-                for col in existing_cols:
-                    self.dbase_df[col] = existing_df[col]
+                for col in preserve_cols:
+                    if col in existing_df.columns and col in self.dbase_df.columns:
+                        preserved_data[col] = existing_df[col]
             except Exception:
                 pass
+
+        # Restore preserved columns
+        for col, data in preserved_data.items():
+            self.dbase_df[col] = data
+
+        # Ensure correct column order based on PV_TOOL_DBASE_COLUMNS
+        from pv_tool.imports.globals import PV_TOOL_DBASE_COLUMNS
+        ordered_columns = [col for col in PV_TOOL_DBASE_COLUMNS if col in self.dbase_df.columns]
+        extra_columns = [col for col in self.dbase_df.columns if col not in PV_TOOL_DBASE_COLUMNS]
+        final_columns = ordered_columns + extra_columns
+
+        # Reorder columns
+        self.dbase_df = self.dbase_df[final_columns]
 
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(f"Excel sheet Dbase5_0 wordt overschreven met een nieuwe database op {timestamp}")
 
-        # Write the DataFrame to Excel, handling mode and if_sheet_exists correctly
+        # Write the DataFrame to Excel
         if export_path.exists():
             with ExcelWriter(export_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
                 self.dbase_df.to_excel(writer, sheet_name=sheet_name, index=True)
