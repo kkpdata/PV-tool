@@ -44,20 +44,29 @@ def alg_columns(self):
 
 
 def add_ana_columns(self):
-    """Voegt ANA-kolommen toe aan het dataframe"""
+    """Voegt ANA-kolommen toe aan het dataframe in de juiste volgorde om afhankelijkheden te respecteren"""
+    # First add the structure for all columns
     add_columns(self)
+
+    # Calculate independent values first
     add_terreinspanning(self)
     add_txt_max_vert_consol_sp(self)
     add_dss_max_consol_sp(self)
+
+    # Calculate consolidation types (these don't depend on preserved values)
     add_txt_consol_type(self)
     add_dss_consol_type(self)
-    add_grensspanning_proef(self)
-    calc_pop_veld(self)
+
+    # Now that preserved values are in place from add_columns, calculate dependent values
+    add_grensspanning_proef(self)  # Uses preserved ANA_GRENSSPANNING_HANDMATIG
+    calc_pop_veld(self)  # Depends on grensspanning_proef
     calc_pop_average(self)
     add_grensspanning_voorstel(self)
-    calc_grensspanning_reken(self)
-    calc_ocr_txt(self)
-    calc_ocr_dss(self)
+
+    # Calculate final values that depend on preserved data
+    calc_grensspanning_reken(self)  # Uses preserved ANA_GRENSSPANNING_HANDMATIG
+    calc_ocr_txt(self)  # Uses preserved ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG
+    calc_ocr_dss(self)  # Uses preserved ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG
 
 
 def add_pv_naam(self):

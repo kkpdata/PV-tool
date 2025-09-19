@@ -43,8 +43,9 @@ from pv_tool.imports.import_options import *
 from pv_tool.imports.import_data import Dbase
 
 # path_to_data = Path(get_repo_root()) / "example_files" / "SAFE 2022 Proevenverzameling_tool_v4.2n_test_zonder_functies.xlsm"
-path_to_data = Path(get_repo_root()) / "example_files" / "Template_PVtool5_0.xlsx"
+# path_to_data = Path(get_repo_root()) / "example_files" / "Template_PVtool5_0.xlsx"
 # path_to_data = Path(get_repo_root()) / "example_files" / "23ZP0747_STOWA-definitief.xlsx"
+path_to_data = Path(get_repo_root()) / "example_files" / "Template_PVtool5_0_aanpassingen_handmatig.xlsx"
 
 save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
