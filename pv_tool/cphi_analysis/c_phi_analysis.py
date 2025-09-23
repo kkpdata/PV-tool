@@ -2,7 +2,6 @@ from operator import index
 from typing import Optional, List, Literal
 from datetime import datetime
 from pandas import DataFrame, ExcelWriter, concat, read_excel, isna
-
 from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, ALL_TEXTUAL_NAMES,
                                            NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS, ALL_TEXTUAL_NAMES_DSS)
 
@@ -29,7 +28,7 @@ from pv_tool.cphi_analysis.calc_parameters import (calc_watergehalte_gem, calc_w
                                                 calc_a2_phi_gem_sh, calc_a2_phi_kar_boven_sh, calc_a2_phi_kar_onder_sh,
                                                    calc_tan_phi_kar_sh)
 from openpyxl import load_workbook
-
+from pv_tool.imports.excel_utils import format_excel_sheet
 
 from reportlab.lib import colors
 
@@ -38,8 +37,6 @@ from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import SimpleDocTemplate, Table, LongTable, TableStyle, Paragraph, Spacer, Image
 
-from openpyxl.worksheet.table import Table as XLTable, TableStyleInfo
-from openpyxl.utils import get_column_letter
 
 
 class CPhiAnalyse:
@@ -656,82 +653,16 @@ class CPhiAnalyse:
         # Formatting
         num_columns = df_updated.shape[1]
         num_rows = df_updated.shape[0]
-        self.format_excel_sheet(
+        format_excel_sheet(
             file_path=file_path,
             sheet_name='Resultaten',
             num_columns=num_columns,
             num_rows=num_rows,
-            table_name='ResultatenTable'
+            table_name='ResultatenTable',
+            index=False  # Changed from True to False to match the to_excel call
         )
 
         return df_updated
-
-    @staticmethod
-    def format_excel_sheet(file_path: str, sheet_name: str, num_columns: int, num_rows: int, table_name: str = None):
-        """
-        Formatteert een Excel werkblad als een tabel met filters en aangepaste kolombreedtes.
-
-        Parameters
-        ----------
-        file_path : str
-            Het volledige pad naar het Excel bestand
-        sheet_name : str
-            Naam van het werkblad dat geformatteerd moet worden
-        num_columns : int
-            Aantal kolommen in de tabel
-        num_rows : int
-            Aantal rijen in de tabel (exclusief de header)
-        table_name : str, optioneel
-            Naam voor de Excel tabel. Als None wordt opgegeven, wordt sheet_name + "Table" gebruikt.
-        """
-
-        workbook = load_workbook(file_path)
-        worksheet = workbook[sheet_name]
-
-        # Auto-adjust column widths based on content
-        for column in worksheet.columns:
-            max_length = 0
-            column_letter = get_column_letter(column[0].column)
-
-            for cell in column:
-                if cell.value:
-                    max_length = max(max_length, len(str(cell.value)))
-
-            adjusted_width = max_length + 2
-            worksheet.column_dimensions[column_letter].width = adjusted_width
-
-        # Define table range
-        table_range = f"A1:{get_column_letter(num_columns)}{num_rows + 1}"
-
-        # Create table with filters
-        if table_name is None:
-            table_name = f"{sheet_name}Table"
-
-        # Remove spaces and special characters from table name
-        table_name = "".join(c for c in table_name if c.isalnum())
-
-        table = XLTable(displayName=table_name, ref=table_range)
-
-        # Add a default style
-        style = TableStyleInfo(
-            name="TableStyleMedium2",
-            showFirstColumn=False,
-            showLastColumn=False,
-            showRowStripes=True,
-            showColumnStripes=False
-        )
-        table.tableStyleInfo = style
-
-        # Remove existing table if it exists
-        for existing_table in worksheet.tables.values():
-            if existing_table.name == table_name:
-                del worksheet.tables[existing_table.name]
-                break
-
-        # Add the table to the worksheet
-        worksheet.add_table(table)
-
-        workbook.save(file_path)
 
     def save_total_to_excel(self, path):
         """

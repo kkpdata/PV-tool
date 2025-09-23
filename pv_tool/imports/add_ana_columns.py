@@ -8,14 +8,55 @@ if TYPE_CHECKING:
 
 
 def add_columns(self: Dbase):
-    """Voegt de kolommen toe in de gewenste volgorde zodat ze later gevuld kunnen worden."""
-    columns = ['ANA_TERREINSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
-               'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL',
-               'ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL',
-               'ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_GRENSSPANNING_PROEF', 'ANA_POP_VELD',
-               'ANA_POP_VELD_GEMIDDELD', 'ANA_GRENSSPANNING_VOORSTEL', 'ANA_GRENSSPANNING_HANDMATIG',  # TODO: ANA_GRENSSPANNING_HANDMATIG wordt al eerder ingeladen vanaf de import. Dus volgorde op andere manier veranderen, want ANA_GRENSSPANNING_HANDMATIG staat nu nog niet op de juiste plek
-               'ANA_GRENSSPANNING_REKEN', 'OCR_TXT', 'OCR_DSS']
-    self.dbase_df[columns] = None
+    """
+    Voegt analyse kolommen toe in de gespecificeerde volgorde aan het einde van de DataFrame,
+    waarbij data in 'preserve_cols' behouden blijft indien aanwezig.
+    """
+    analysis_columns = [
+        'ANA_TERREINSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
+        'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL',
+        'ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL',
+        'ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_GRENSSPANNING_PROEF', 'ANA_POP_VELD',
+        'ANA_POP_VELD_GEMIDDELD', 'ANA_GRENSSPANNING_VOORSTEL', 'ANA_GRENSSPANNING_HANDMATIG',
+        'ANA_GRENSSPANNING_REKEN', 'OCR_TXT', 'OCR_DSS'
+    ]
+    preserve_cols = [
+        'ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG',
+        'ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG',
+        'ANA_GRENSSPANNING_HANDMATIG'
+    ]
+    df = self.dbase_df
+
+    # Store preserved values with proper type conversion
+    preserved_data = {}
+    for col in preserve_cols:
+        if col in df.columns:
+            if col.endswith('_HANDMATIG') and 'CONSOLIDATIE_TYPE' in col:
+                # For consolidation type columns, preserve as string
+                preserved_data[col] = df[col].astype(str).where(df[col].notna(), None)
+            elif col == 'ANA_GRENSSPANNING_HANDMATIG':
+                # For numerical columns, convert to float
+                preserved_data[col] = pd.to_numeric(df[col], errors='coerce')
+            else:
+                preserved_data[col] = df[col].copy()
+
+    # Get non-analysis columns
+    other_columns = [col for col in df.columns if col not in analysis_columns]
+
+    # Create new DataFrame with correct order
+    new_df = df[other_columns].copy()
+
+    # Add analysis columns with proper types
+    for col in analysis_columns:
+        if col in preserve_cols and col in preserved_data:
+            new_df[col] = preserved_data[col]
+        else:
+            if 'CONSOLIDATIE_TYPE' in col:
+                new_df[col] = None  # Will be filled with 'OC' or 'NC' later
+            else:
+                new_df[col] = pd.Series(dtype='float64')  # For numerical columns
+
+    self.dbase_df = new_df
 
 
 def add_terreinspanning(self: Dbase):
