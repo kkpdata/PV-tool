@@ -15,6 +15,7 @@ from pv_tool.imports.validation import Validation
 from pv_tool.imports.import_data import Dbase
 from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 from pv_tool.imports.import_options import *
+from typing import Literal
 
 
 def get_repo_root(root_search_dir: Optional[str] = None) -> str:
@@ -56,25 +57,42 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     return repo.working_tree_dir
 
 
-def test_database_import():
+def test_database_import(source: Literal['Stowa', 'PV-tool', 'Dbase'],
+                                 file_name_import: str, file_name_export: str = 'Template_PVtool5_0.xlsx', short=False, validate=False, export=False):
     """Test de database import en validatie functionaliteit."""
     repo_root = Path(get_repo_root())
-    path_to_data = repo_root / "example_files" / "Template_PVtool5_0.xlsx"
+    path_to_data = repo_root / "example_files" / file_name_import
     save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
-    # Database import
-    dbase = Dbase()
-    dbase.import_data(source='Dbase', source_dir=path_to_data)
+    if short and not validate:
+        print("Uitvoeren van korte database import test...")
+        dbase = Dbase()
+        dbase.import_dbase_short(source=source, source_dir=path_to_data)
+        if export:
+            dbase.export_dbase_to_excel(export_dir = save_test, filename=file_name_export)
+        return dbase
+    elif validate and not short:
+        print("Uitvoeren van database import en validatie test...")
+        dbase = Dbase()
+        dbase.import_data(source=source, source_dir=path_to_data)
+        dbase.validate_data(export_path=save_test)
+        if export:
+            dbase.export_dbase_to_excel(export_dir = save_test, filename=file_name_export)
+        return dbase
+    elif short and validate:
+        print("Korte import en validatie kan niet samen worden uitgevoerd. Kies één optie.")
+        return None
+    else:
+        print("Uitvoeren van volledige database import test...")
+        # Database import
+        dbase = Dbase()
+        dbase.import_data(source=source, source_dir=path_to_data)
+        if export:
+            dbase.export_dbase_to_excel(export_dir = save_test, filename=file_name_export)
+        return dbase
 
-    # Print unieke verzamelingen
-    print('\nUnieke verzamelingen:')
-    for pvnaam in dbase.dbase_df['PV_NAAM'].unique():
-        print(pvnaam)
 
-    return dbase
-
-
-def test_cphi_analysis_txt(dbase: Dbase):
+def test_cphi_analysis_txt(dbase: Dbase, file_name: str = 'Template_PVtool5_0.xlsx'):
     """
     Test een TXT C-phi analyse.
 
@@ -95,12 +113,12 @@ def test_cphi_analysis_txt(dbase: Dbase):
 
     # Pas instellingen toe
     analyse.apply_settings(alpha=0.75)
-    analyse.apply_parameters(cohesie_kar=0)
+    analyse.apply_parameters(cohesie_kar=0.0)
 
     # Print en exporteer resultaten
     print('\nResultaten TXT C-phi analyse:')
     print(analyse.print_short_results())
-    analyse.add_results_to_dbase(path=str(save_test))
+    analyse.add_results_to_dbase(path=str(save_test), file_name=file_name)
 
     # Visualisatie
     analyse.show_figure()
@@ -205,13 +223,19 @@ def test_cphi_analysis_dss_sh(dbase: Dbase):
 
 if __name__ == "__main__":
     # Test database import
-    dbase = test_database_import()
+    source = 'Dbase'  # Opties: 'Stowa', 'PV-tool', 'Dbase'
+    import_name = 'Template_PVtool5_0_SAFE_2022_PV_zonder_resultaten.xlsx'
+    export_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
+    import_name2 = export_name  # TODO eventueel: import naam kan nu niet export naam zijn, dan kan die niet de layout aanpassen. Moet nog worden aangepast in de toekomst.
+    print("Start van de tests...\n")
+    dbase = test_database_import(source=source, file_name_import=import_name, file_name_export=export_name, short=True, validate=False, export=True)
 
     # Test verschillende analyses
     print("\nUitvoeren van verschillende test cases...")
 
     print("\n1. TXT C-phi analyse test")
-    test_cphi_analysis_txt(dbase)
+    file_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
+    test_cphi_analysis_txt(dbase, file_name=file_name)
 
     # print("\n2. DSS C-phi analyse test")
     # test_cphi_analysis_dss(dbase)

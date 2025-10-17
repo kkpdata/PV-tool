@@ -64,59 +64,82 @@ class Dbase:
     def export_dbase_to_excel(self, export_dir: Path, filename: str = 'Template_PVtool5_0.xlsx'):
         """
         Exports the Dbase DataFrame to an Excel file, maintaining the correct column order
-        and preserving specified columns if they exist.
+        and preserving specified columns from the current DataFrame.
         """
         export_path = export_dir / filename
         sheet_name = 'Dbase5_0'
-        preserve_cols = [
-            'ANA_GRENSSPANNING_HANDMATIG',
-            'ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG',
-            'ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'
-        ]
 
         # Ensure the export directory exists
         export_dir.mkdir(parents=True, exist_ok=True)
 
-        # Try to preserve columns if the file & sheet exist
-        preserved_data = {}
-        if export_path.exists():
-            try:
-                existing_df = read_excel(export_path, sheet_name=sheet_name)
-                for col in preserve_cols:
-                    if col in existing_df.columns and col in self.dbase_df.columns:
-                        preserved_data[col] = existing_df[col]
-            except Exception:
-                pass
+        # Define analysis columns in their correct order
+        analysis_columns = [
+            'ANA_TERREINSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
+            'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL',
+            'ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_TXT_CONSOLIDATIE_TYPE_REKEN',
+            'ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL', 'ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG',
+            'ANA_DSS_CONSOLIDATIE_TYPE_REKEN', 'ANA_GRENSSPANNING_PROEF', 'ANA_POP_VELD',
+            'ANA_POP_VELD_GEMIDDELD', 'ANA_GRENSSPANNING_VOORSTEL', 'ANA_GRENSSPANNING_HANDMATIG',
+            'ANA_GRENSSPANNING_REKEN', 'OCR_TXT', 'OCR_DSS'
+        ]
 
-        # Restore preserved columns
-        for col, data in preserved_data.items():
-            self.dbase_df[col] = data
-
-        # Ensure correct column order based on PV_TOOL_DBASE_COLUMNS
+        # Get base columns from PV_TOOL_DBASE_COLUMNS
         from pv_tool.imports.globals import PV_TOOL_DBASE_COLUMNS
-        ordered_columns = [col for col in PV_TOOL_DBASE_COLUMNS if col in self.dbase_df.columns]
-        extra_columns = [col for col in self.dbase_df.columns if col not in PV_TOOL_DBASE_COLUMNS]
-        final_columns = ordered_columns + extra_columns
+        base_columns = [col for col in PV_TOOL_DBASE_COLUMNS if col in self.dbase_df.columns]
 
-        # Reorder columns
-        self.dbase_df = self.dbase_df[final_columns]
+        # Remove any analysis columns that might be in base_columns to prevent duplication
+        base_columns = [col for col in base_columns if col not in analysis_columns]
+
+        # Get analysis columns that exist in the DataFrame
+        ana_columns = [col for col in analysis_columns if col in self.dbase_df.columns]
+
+        # Get any remaining columns that aren't in either list, excluding duplicates
+        used_columns = set(base_columns + ana_columns)
+        other_columns = [col for col in self.dbase_df.columns if col not in used_columns]
+
+        # Combine all columns in the correct order
+        final_columns = base_columns + ana_columns + other_columns
+
+        # Create a copy of the DataFrame with reordered columns, ensuring no duplicates
+        export_df = self.dbase_df[final_columns].copy()
+
+        # rond waarden af voor consistentie
+        cols_to_round = ['ANA_TERREINSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
+                         'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_GRENSSPANNING_PROEF',
+                         'ANA_POP_VELD', 'ANA_POP_VELD_GEMIDDELD', 'ANA_GRENSSPANNING_VOORSTEL',
+                         'ANA_GRENSSPANNING_REKEN', 'OCR_TXT', 'OCR_DSS']
+        for col in cols_to_round:
+            if col in export_df.columns:
+                export_df[col] = export_df[col].round(2)
 
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(f"Excel sheet Dbase5_0 wordt overschreven met een nieuwe database op {timestamp}")
+        print(f"Excel sheet Dbase5_0 wordt weggeschreven op {timestamp}")
 
-        # Write the DataFrame to Excel
+        # Write the DataFrame to Excel with improved settings to prevent corruption
         if export_path.exists():
             with ExcelWriter(export_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
-                self.dbase_df.to_excel(writer, sheet_name=sheet_name, index=True)
+                export_df.to_excel(
+                    writer,
+                    sheet_name=sheet_name,
+                    index=True,
+                    engine='openpyxl',
+                    float_format="%.6f"  # Use consistent float format
+                )
         else:
             with ExcelWriter(export_path, engine='openpyxl', mode='w') as writer:
-                self.dbase_df.to_excel(writer, sheet_name=sheet_name, index=True)
+                export_df.to_excel(
+                    writer,
+                    sheet_name=sheet_name,
+                    index=True,
+                    engine='openpyxl',
+                    float_format="%.6f"  # Use consistent float format
+                )
 
         print(f"Excel file exported to: {export_path}")
 
         # Formatting
-        num_columns = self.dbase_df.shape[1]
-        num_rows = self.dbase_df.shape[0]
+        num_columns = export_df.shape[1]
+        num_rows = export_df.shape[0]
         format_excel_sheet(
             file_path=str(export_path),
             sheet_name='Dbase5_0',
