@@ -5,93 +5,167 @@ if TYPE_CHECKING:
     from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
 from pv_tool.shansep_analysis.variables import *
 
+# -------------------------- algemeen ---------------------------------------
+
 def calculate_ln_ocr(self: SHANSEP):
-    self.shansep_analyses_data_df['LN(OCR)'] = (
-        self.shansep_analyses_data_df['OCR'].apply
+    self.shansep_data_df['LN(OCR)'] = (
+        self.shansep_data_df['OCR'].apply
         (lambda x: np.log(x) if x is not None and x > 0 else ""))
 
-def calculate_s_spop(self: SHANSEP):
-    self.shansep_analyses_data_df['S'] = self.shansep_analyses_data_df['Su'] / self.shansep_analyses_data_df['S\'v']
+def calculate_sv_spop(self: SHANSEP):
+    self.shansep_data_df['S'] = self.shansep_data_df['Su'] / self.shansep_data_df['S\'v']
 
-def calculate_ln_s_spop(self: SHANSEP):
-    self.shansep_analyses_data_df['LN(su/svc)'] = (
-        self.shansep_analyses_data_df['S'].apply
+def calculate_ln_sv_spop(self: SHANSEP):
+    self.shansep_data_df['LN(su/svc)'] = (
+        self.shansep_data_df['S'].apply
         (lambda x: np.log(x) if x is not None and x > 0 else ""))
 
 def calculate_pop(self: SHANSEP):
-    self.shansep_analyses_data_df['POP'] = ((self.shansep_analyses_data_df['terreinspanning'] *
-                                            self.shansep_analyses_data_df['OCR']) -
-                                            self.shansep_analyses_data_df['terreinspanning'])
+    self.shansep_data_df['POP'] = ((self.shansep_data_df['terreinspanning'] *
+                                            self.shansep_data_df['OCR']) -
+                                            self.shansep_data_df['terreinspanning'])
 
-def calculate_s_tt(self: SHANSEP):
-    df = self.shansep_analyses_data_df.copy()
-    df['s_tt'] = (df['S\'v'] - sum_s(self) / count_s(self)) ** 2
-    self.shansep_analyses_data_df = df
+# -------------------------- alleen OC ---------------------------------------
 
-def calculate_s_ty(self: SHANSEP):
-    df = self.shansep_analyses_data_df.copy()
-    mean_s = sum_s(self) / count_s(self)
-    df['s_ty'] = (df['S\'v'] - mean_s) * df['T']
-    self.shansep_analyses_data_df = df
+def calculate_sv_tt_oc(self: SHANSEP):
+    df = self.shansep_data_df_oc.copy()
+    df['s_tt'] = (df['S\'v'] - sum_sv_oc(self) / count_sv_oc(self)) ** 2
+    self.shansep_data_df_oc = df
 
-def calculate_kappa_2(self: SHANSEP):
-    formule = (self.shansep_analyses_data_df['T'] - e_a1(self) - e_a2(self) * self.shansep_analyses_data_df['S\'v']) ** 2
-    self.shansep_analyses_data_df['kappa_2'] = formule
+def calculate_sv_ty_oc(self: SHANSEP):
+    df = self.shansep_data_df_oc.copy()
+    mean_s = sum_sv_oc(self) / count_sv_oc(self)
+    df['s_ty'] = (df['S\'v'] - mean_s) * df['Su']
+    self.shansep_data_df_oc = df
 
-def s_min(self: SHANSEP):
-    return self.shansep_analyses_data_df['S\'v'].min()
+def calculate_kappa_2_oc(self: SHANSEP):
+    formule = (self.shansep_data_df_oc['Su'] - e_a1_oc(self) - e_a2_oc(self) * self.shansep_data_df_oc['S\'v']) ** 2
+    self.shansep_data_df_oc['kappa_2'] = formule
 
-def s_max(self: SHANSEP):
-    return self.shansep_analyses_data_df['S\'v'].max()
+def s_min_oc(self: SHANSEP):
+    return self.shansep_data_df_oc['S\'v'].min()
 
-def calculate_s_sutabel(self: SHANSEP):
-    lijst = [s_min(self)]
+def s_max_oc(self: SHANSEP):
+    return self.shansep_data_df_oc['S\'v'].max()
 
-    formule = (s_max(self) - s_min(self)) / (count_s(self) - 1)
-
-    aantal_waarden = len(self.shansep_analyses_data_df)
-
+def calculate_sv_eff_oc(self: SHANSEP):
+    """Berekent s' waarden met gelijke intervallen tussen min en max."""
+    lijst = [s_min_oc(self)]
+    formule = (s_max_oc(self) - s_min_oc(self)) / (count_sv_oc(self) - 1)
+    aantal_waarden = len(self.shansep_data_df_oc)
     for i in range(1, aantal_waarden):
         nieuwe_waarde = lijst[i - 1] + formule
         lijst.append(nieuwe_waarde)
+    self.shansep_data_df_oc['s\''] = lijst
 
-    self.shansep_analyses_data_df['s\''] = lijst
-
-
-def calculate_5pr_ondergrens(self: SHANSEP):
+def calculate_5pr_ondergrens_oc(self: SHANSEP):
     formule = (
-            e_a1(self) +
-            e_a2(self) * self.shansep_analyses_data_df['s\''] - t_n_2(self) *
-            (sigma_a1(self) ** 2 + self.shansep_analyses_data_df['s\''] ** 2 * sigma_a2(self) ** 2 +
-             2 * rho_a1_a2(self) * self.shansep_analyses_data_df['s\''] * sigma_a1(self) * sigma_a2(self) +
-             (1.0 - self.alpha) * (sum_kappa_2(self) / (count_s(self) - 2))) ** 0.5
+            e_a1_oc(self) +
+            e_a2_oc(self) * self.shansep_data_df_oc['s\''] - t_n_2_oc(self) *
+            (sigma_a1_oc(self) ** 2 + self.shansep_data_df_oc['s\''] ** 2 * sigma_a2_oc(self) ** 2 +
+             2 * rho_a1_a2_oc(self) * self.shansep_data_df_oc['s\''] * sigma_a1_oc(self) * sigma_a2_oc(self) +
+             (1.0 - self.alpha) * (sum_kappa_2_oc(self) / (count_sv_oc(self) - 2))) ** 0.5
     )
-    self.shansep_analyses_data_df['5_pr_ondergrens'] = formule
+    self.shansep_data_df_oc['5_pr_ondergrens'] = formule
 
 
-def calculate_5pr_bovengrens(self: SHANSEP):
+def calculate_5pr_bovengrens_oc(self: SHANSEP):
     formule = (
-            e_a1(self) +
-            e_a2(self) * self.shansep_analyses_data_df['s\''] + t_n_2(self) *
-            (sigma_a1(self) ** 2 + self.shansep_analyses_data_df['s\''] ** 2 * sigma_a2(self) ** 2 +
-             2 * rho_a1_a2(self) * self.shansep_analyses_data_df['s\''] * sigma_a1(self) * sigma_a2(self) +
-             (1 - self.alpha) * (sum_kappa_2(self) / (count_s(self) - 2))) ** 0.5
+            e_a1_oc(self) +
+            e_a2_oc(self) * self.shansep_data_df_oc['s\''] + t_n_2_oc(self) *
+            (sigma_a1_oc(self) ** 2 + self.shansep_data_df_oc['s\''] ** 2 * sigma_a2_oc(self) ** 2 +
+             2 * rho_a1_a2_oc(self) * self.shansep_data_df_oc['s\''] * sigma_a1_oc(self) * sigma_a2_oc(self) +
+             (1 - self.alpha) * (sum_kappa_2_oc(self) / (count_sv_oc(self) - 2))) ** 0.5
     )
-    self.shansep_analyses_data_df['5_pr_bovengrens'] = formule
+    self.shansep_data_df_oc['5_pr_bovengrens'] = formule
 
 
-def calculate_s_tt_ondergrens(self: SHANSEP):
-    formule = (self.shansep_analyses_data_df['s\''] - sum_s2(self) / count_s2(self)) ** 2
-    self.shansep_analyses_data_df['s_tt_ondergrens'] = formule
+def calculate_sv_tt_ondergrens_oc(self: SHANSEP):
+    formule = (self.shansep_data_df_oc['s\''] - sum_s_eff_oc(self) / count_s_eff_oc(self)) ** 2
+    self.shansep_data_df_oc['s_tt_ondergrens'] = formule
 
 
-def calculate_s_ty_ondergrens(self: SHANSEP):
-    formule = (self.shansep_analyses_data_df['s\''] - sum_s2(self) /
-               count_s2(self)) * self.shansep_analyses_data_df['5_pr_ondergrens']
-    self.shansep_analyses_data_df['s_ty_ondergrens'] = formule
+def calculate_sv_ty_ondergrens_oc(self: SHANSEP):
+    formule = (self.shansep_data_df_oc['s\''] - sum_s_eff_oc(self) /
+               count_s_eff_oc(self)) * self.shansep_data_df_oc['5_pr_ondergrens']
+    self.shansep_data_df_oc['s_ty_ondergrens'] = formule
 
 
-def calculate_kappa_2_ondergrens(self: SHANSEP):
-    formule = (self.shansep_analyses_data_df['5_pr_ondergrens'] - a1_kar(self) -
-               a2_kar(self) * self.shansep_analyses_data_df['s\'']) ** 2
-    self.shansep_analyses_data_df['kappa_2_ondergrens'] = formule
+def calculate_kappa_2_ondergrens_oc(self: SHANSEP):
+    formule = (self.shansep_data_df_oc['5_pr_ondergrens'] - a1_kar_oc(self) -
+               a2_kar_oc(self) * self.shansep_data_df_oc['s\'']) ** 2
+    self.shansep_data_df_oc['kappa_2_ondergrens'] = formule
+
+
+# -------------------------- NC en OC ---------------------------------------
+
+def calculate_sv_tt_nc_oc(self: SHANSEP):
+    df = self.shansep_data_df_nc_oc.copy()
+    df['s_tt'] = (df['LN(OCR)'] - sum_sv_nc_oc(self) / count_sv_nc_oc(self)) ** 2
+    self.shansep_data_df_nc_oc = df
+
+def calculate_sv_ty_nc_oc(self: SHANSEP):
+    df = self.shansep_data_df_nc_oc.copy()
+    mean_s = sum_sv_nc_oc(self) / count_sv_nc_oc(self)
+    df['s_ty'] = (df['LN(OCR)'] - mean_s) * df['LN(su/svc)']
+    self.shansep_data_df_nc_oc = df
+
+# TODO vanaf hier verder met aanpassen namen variabelen en functies
+
+def calculate_kappa_2_nc_oc(self: SHANSEP):
+    formule = (self.shansep_data_df_nc_oc['Su'] - e_a1_nc_oc(self) - e_a2_nc_oc(self) * self.shansep_data_df_nc_oc['S\'v']) ** 2
+    self.shansep_data_df_nc_oc['kappa_2'] = formule
+
+def s_min_nc_oc(self: SHANSEP):
+    return self.shansep_data_df_nc_oc['S\'v'].min()
+
+def s_max_nc_oc(self: SHANSEP):
+    return self.shansep_data_df_nc_oc['S\'v'].max()
+
+def calculate_sv_eff_nc_oc(self: SHANSEP):
+    """Berekent s' waarden met gelijke intervallen tussen min en max."""
+    lijst = [s_min_nc_oc(self)]
+    formule = (s_max_nc_oc(self) - s_min_nc_oc(self)) / (count_sv_nc_oc(self) - 1)
+    aantal_waarden = len(self.shansep_data_df_nc_oc)
+    for i in range(1, aantal_waarden):
+        nieuwe_waarde = lijst[i - 1] + formule
+        lijst.append(nieuwe_waarde)
+    self.shansep_data_df_nc_oc['s\''] = lijst
+
+def calculate_5pr_ondergrens_nc_oc(self: SHANSEP):
+    formule = (
+            e_a1_nc_oc(self) +
+            e_a2_nc_oc(self) * self.shansep_data_df_nc_oc['s\''] - t_n_2_nc_oc(self) *
+            (sigma_a1_nc_oc(self) ** 2 + self.shansep_data_df_nc_oc['s\''] ** 2 * sigma_a2_nc_oc(self) ** 2 +
+             2 * rho_a1_a2_nc_oc(self) * self.shansep_data_df_nc_oc['s\''] * sigma_a1_nc_oc(self) * sigma_a2_nc_oc(self) +
+             (1.0 - self.alpha) * (sum_kappa_2_nc_oc(self) / (count_sv_nc_oc(self) - 2))) ** 0.5
+    )
+    self.shansep_data_df_nc_oc['5_pr_ondergrens'] = formule
+
+
+def calculate_5pr_bovengrens_nc_oc(self: SHANSEP):
+    formule = (
+            e_a1_nc_oc(self) +
+            e_a2_nc_oc(self) * self.shansep_data_df_nc_oc['s\''] + t_n_2_nc_oc(self) *
+            (sigma_a1_nc_oc(self) ** 2 + self.shansep_data_df_nc_oc['s\''] ** 2 * sigma_a2_nc_oc(self) ** 2 +
+             2 * rho_a1_a2_nc_oc(self) * self.shansep_data_df_nc_oc['s\''] * sigma_a1_nc_oc(self) * sigma_a2_nc_oc(self) +
+             (1 - self.alpha) * (sum_kappa_2_nc_oc(self) / (count_sv_nc_oc(self) - 2))) ** 0.5
+    )
+    self.shansep_data_df_nc_oc['5_pr_bovengrens'] = formule
+
+
+def calculate_sv_tt_ondergrens_nc_oc(self: SHANSEP):
+    formule = (self.shansep_data_df_nc_oc['s\''] - sum_s_eff_nc_oc(self) / count_s_eff_nc_oc(self)) ** 2
+    self.shansep_data_df_nc_oc['s_tt_ondergrens'] = formule
+
+
+def calculate_sv_ty_ondergrens_nc_oc(self: SHANSEP):
+    formule = (self.shansep_data_df_nc_oc['s\''] - sum_s_eff_nc_oc(self) /
+               count_s_eff_nc_oc(self)) * self.shansep_data_df_nc_oc['5_pr_ondergrens']
+    self.shansep_data_df_nc_oc['s_ty_ondergrens'] = formule
+
+
+def calculate_kappa_2_ondergrens_nc_oc(self: SHANSEP):
+    formule = (self.shansep_data_df_nc_oc['5_pr_ondergrens'] - a1_kar_nc_oc(self) -
+               a2_kar_nc_oc(self) * self.shansep_data_df_nc_oc['s\'']) ** 2
+    self.shansep_data_df_nc_oc['kappa_2_ondergrens'] = formule

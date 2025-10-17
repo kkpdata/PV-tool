@@ -45,8 +45,10 @@ class SHANSEP:
         self.calc_vgwnat_sd: Optional[float] = None
 
         # Placeholder
-        self.shansep_analyses_data_df: Optional[DataFrame] = None
-        self.total_shansep_analyses_data_df: Optional[DataFrame] = None
+        self.shansep_data_df: Optional[DataFrame] = None
+        self.total_shansep_data_df: Optional[DataFrame] = None
+        self.shansep_data_df_oc: Optional[DataFrame] = None
+        self.shansep_data_df_nc_oc: Optional[DataFrame] = None
 
         pass
 
@@ -55,36 +57,57 @@ class SHANSEP:
         Daarnaast worden de kolomnamen aangepast zodat ze ongeacht het rekpercentage allemaal dezelfde kolomnaam hebben.
         """
         if self.analysis_type in ['TXT_S_POP', 'TXT_su_tabel']:
-            self.shansep_analyses_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
-            self.shansep_analyses_data_df = self.shansep_analyses_data_df[self.shansep_analyses_data_df['PV_NAAM'].isin(
+            self.shansep_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
+            self.shansep_data_df = self.shansep_data_df[self.shansep_data_df['PV_NAAM'].isin(
                     self.investigation_groups)]
             self.calc_watergehalte_gem = calc_watergehalte_gem(self)
             self.calc_watergehalte_sd = calc_watergehalte_sd(self)
             self.calc_vgwnat_gem = calc_vgwnat_gem(self)
             self.calc_vgwnat_sd = calc_vgwnat_sd(self)
-            self.total_shansep_analyses_data_df = self.shansep_analyses_data_df
-            self.shansep_analyses_data_df = self.shansep_analyses_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
+            self.total_shansep_data_df = self.shansep_data_df
+            self.shansep_data_df = self.shansep_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
 
         elif self.analysis_type in ['DSS_S_POP', 'DSS_su_tabel']:
-            self.shansep_analyses_data_df = self.dbase_df[self.dbase_df['ALG__DSS']]
-            self.shansep_analyses_data_df = self.shansep_analyses_data_df[self.shansep_analyses_data_df['PV_NAAM'].isin(
+            self.shansep_data_df = self.dbase_df[self.dbase_df['ALG__DSS']]
+            self.shansep_data_df = self.shansep_data_df[self.shansep_data_df['PV_NAAM'].isin(
                     self.investigation_groups)]
             self.calc_watergehalte_gem = calc_watergehalte_gem(self)
             self.calc_watergehalte_sd = calc_watergehalte_sd(self)
             self.calc_vgwnat_gem = calc_vgwnat_gem(self)
             self.calc_vgwnat_sd = calc_vgwnat_sd(self)
-            self.total_shansep_analyses_data_df = self.shansep_analyses_data_df
-            self.shansep_analyses_data_df = self.shansep_analyses_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])]
+            self.total_shansep_data_df = self.shansep_data_df
+            self.shansep_data_df = self.shansep_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])]
 
-        self.shansep_analyses_data_df.columns = NEW_COLUMN_NAMES
+        self.shansep_data_df.columns = NEW_COLUMN_NAMES
+
+
 
     def apply_settings(self, alpha: Optional[float] = None):
         """Met deze functie kan je de alpha en materiaalfactoren opgeven."""
         self.alpha = alpha if alpha is not None else self.alpha
 
-
     def expand_analysis_df_sutabel(self):
         """Deze functie berekent alle benodigde parameters per monster voor de analyse."""
+        # calculate_s_tt(self)
+        # calculate_s_ty(self)
+        # calculate_kappa_2(self)
+        # calculate_s_sutabel(self)
+        # calculate_5pr_ondergrens(self)
+        # calculate_5pr_bovengrens(self)
+        # calculate_s_tt_ondergrens(self)
+        # calculate_s_ty_ondergrens(self)
+        # calculate_kappa_2_ondergrens(self)
+        return f"Deze functie is nog niet geïmplementeerd voor de su tabel analyse."
+
+    def expand_analysis_df_s_pop_alleen_oc(self):
+        """Deze functie berekent alle benodigde parameters per monster voor de analyse."""
+        calculate_ln_ocr(self)
+        calculate_s_spop(self)
+        calculate_ln_s_spop(self)
+        calculate_pop(self)
+
+        self.shansep_data_df_oc = self.shansep_data_df[self.shansep_data_df['consolidatietype'] == 'OC'].copy()
+
         calculate_s_tt(self)
         calculate_s_ty(self)
         calculate_kappa_2(self)
@@ -101,7 +124,9 @@ class SHANSEP:
         calculate_s_spop(self)
         calculate_ln_s_spop(self)
         calculate_pop(self)
-        # TODO nog toevoegen 'alleen op OC' of 'OC en NC'
+
+        self.shansep_data_df_nc_oc = self.shansep_data_df.copy()
+
         calculate_s_tt(self)
         calculate_s_ty(self)
         calculate_kappa_2(self)
