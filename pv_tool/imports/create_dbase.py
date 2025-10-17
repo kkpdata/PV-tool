@@ -2,7 +2,7 @@ from __future__ import annotations
 import pandas as pd
 import numpy as np
 
-from imports.add_ana_columns import add_txt_consol_type_reken, add_dss_consol_type_reken
+from pv_tool.imports.add_ana_columns import add_txt_consol_type_reken, add_dss_consol_type_reken
 from pv_tool.imports.globals import (PV_TOOL_DBASE_COLUMNS, CLAS_COLUMNS, CRS_COLUMNS, SD_COLUMNS, DSS_COLUMNS,
                                      TXT_COLUMNS)
 from pv_tool.imports.add_ana_columns import (add_columns, add_terreinspanning, add_txt_max_vert_consol_sp,
