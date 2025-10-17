@@ -555,7 +555,7 @@ class CPhiAnalyse:
             analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
         return analyse_output_df
 
-    def add_results_to_dbase(self, path):
+    def add_results_to_dbase(self, path, file_name: str = 'Template_PVtool5_0.xlsx'):
         """
         Voegt analyseresultaten toe aan de database export.
 
@@ -566,13 +566,14 @@ class CPhiAnalyse:
         ----------
         path : str
             Map locatie waar het Excel-bestand staat of moet komen
+        file_name : str, optioneel
+            Naam van het Excel-bestand (standaard 'Template_PVtool5_0.xlsx')
 
         Returns
         -------
         DataFrame
             DataFrame met alle resultaten in het tabblad
         """
-        file_name = 'Template_PVtool5_0.xlsx'
         file_path = f"{path}/{file_name}"
 
         if self.analysis_type in ['TXT_SH', 'DSS_SH']:
@@ -584,7 +585,7 @@ class CPhiAnalyse:
             with open(file_path, 'r'):
                 pass
         except FileNotFoundError:
-            raise FileNotFoundError("Er is geen dbase aanwezig onder de naam Template_PVtool5_0.xlsx")
+            raise FileNotFoundError(f"Er is geen dbase aanwezig onder de naam {file_name}")
 
         expected_columns = [
             'PV_RESULTAAT_ID', 'PVNAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE',
