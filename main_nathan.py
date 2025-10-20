@@ -223,19 +223,19 @@ def test_cphi_analysis_dss_sh(dbase: Dbase):
 
 if __name__ == "__main__":
     # Test database import
-    source = 'Dbase'  # Opties: 'Stowa', 'PV-tool', 'Dbase'
-    import_name = 'Template_PVtool5_0_SAFE_2022_PV_zonder_resultaten.xlsx'
-    export_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
+    source = 'PV-tool'  # Opties: 'Stowa', 'PV-tool', 'Dbase'
+    import_name = 'WSRL 2025 Proevenverzameling_tool_v4.2n_gevalideerd_nieuw4.xlsm'
+    export_name = 'Template_PVtool5_0_WSRL_2025_PV.xlsx'
     import_name2 = export_name  # TODO eventueel: import naam kan nu niet export naam zijn, dan kan die niet de layout aanpassen. Moet nog worden aangepast in de toekomst.
     print("Start van de tests...\n")
-    dbase = test_database_import(source=source, file_name_import=import_name, file_name_export=export_name, short=True, validate=False, export=True)
+    dbase = test_database_import(source=source, file_name_import=import_name, file_name_export=export_name, short=False, validate=False, export=True)
 
     # Test verschillende analyses
     print("\nUitvoeren van verschillende test cases...")
 
     print("\n1. TXT C-phi analyse test")
-    file_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
-    test_cphi_analysis_txt(dbase, file_name=file_name)
+    # file_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
+    # test_cphi_analysis_txt(dbase, file_name=file_name)
 
     # print("\n2. DSS C-phi analyse test")
     # test_cphi_analysis_dss(dbase)

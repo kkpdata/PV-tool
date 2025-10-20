@@ -236,7 +236,7 @@ def save_to_pdf(self: "CPhiAnalyse", path: str) -> str:
         Het absolute bestandspad van het aangemaakte PDF-bestand
     """
     # Maak titel en bestandsnaam
-    title = f'{self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]} analyse met {self.effective_stress} op {self.investigation_groups[0]}'
+    title = f"{self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]} analyse met {self.effective_stress} op {self.investigation_groups[0]}"
     file_name = f"c_phi_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf"
     file_path = f"{path}/{file_name}"
 

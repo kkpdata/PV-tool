@@ -108,8 +108,9 @@ class Dbase:
                          'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_GRENSSPANNING_PROEF',
                          'ANA_POP_VELD', 'ANA_POP_VELD_GEMIDDELD', 'ANA_GRENSSPANNING_VOORSTEL',
                          'ANA_GRENSSPANNING_REKEN', 'OCR_TXT', 'OCR_DSS']
+        numeric_columns = export_df.select_dtypes(include=['float64', 'int64']).columns
         for col in cols_to_round:
-            if col in export_df.columns:
+            if col in numeric_columns:
                 export_df[col] = export_df[col].round(2)
 
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
