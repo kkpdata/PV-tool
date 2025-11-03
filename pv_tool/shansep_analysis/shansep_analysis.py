@@ -13,6 +13,8 @@ from pv_tool.shansep_analysis.expand_analysis import (calculate_s_tt, calculate_
                                                  calculate_s_tt_ondergrens, calculate_s_ty_ondergrens,
                                                  calculate_kappa_2_ondergrens)
 
+#-------------------------- SHANSEP Analysis Class ---------------------------------------#
+
 class SHANSEP:
 
     def __init__(self, dbase: Dbase,
