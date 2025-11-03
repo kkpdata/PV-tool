@@ -3,7 +3,15 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
-from pv_tool.shansep_analysis.variables import *
+from pv_tool.shansep_analysis.variables import (count_sv_oc, sum_sv_oc, e_a1_oc, e_a2_oc,
+                                                t_n_2_oc, sigma_a1_oc, sigma_a2_oc, rho_a1_a2_oc,
+                                                sum_kappa_2_oc, count_s_eff_oc, sum_s_eff_oc,
+                                                count_sv_nc_oc, sum_sv_nc_oc, e_a1_nc_oc, e_a2_nc_oc,
+                                                t_n_2_nc_oc, sigma_a1_nc_oc, sigma_a2_nc_oc, rho_a1_a2_nc_oc,
+                                                sum_kappa_2_nc_oc, count_s_eff_nc_oc, sum_s_eff_nc_oc,
+                                                a1_kar_oc, a2_kar_oc,
+                                                a1_kar_nc_oc, a2_kar_nc_oc)
+import numpy as np
 
 # -------------------------- algemeen ---------------------------------------
 
@@ -110,10 +118,8 @@ def calculate_sv_ty_nc_oc(self: SHANSEP):
     df['s_ty'] = (df['LN(OCR)'] - mean_s) * df['LN(su/svc)']
     self.shansep_data_df_nc_oc = df
 
-# TODO vanaf hier verder met aanpassen namen variabelen en functies
-
 def calculate_kappa_2_nc_oc(self: SHANSEP):
-    formule = (self.shansep_data_df_nc_oc['Su'] - e_a1_nc_oc(self) - e_a2_nc_oc(self) * self.shansep_data_df_nc_oc['S\'v']) ** 2
+    formule = (self.shansep_data_df_nc_oc['LN(su/svc)'] - e_a1_nc_oc(self) - e_a2_nc_oc(self) * self.shansep_data_df_nc_oc['LN(OCR)']) ** 2
     self.shansep_data_df_nc_oc['kappa_2'] = formule
 
 def s_min_nc_oc(self: SHANSEP):

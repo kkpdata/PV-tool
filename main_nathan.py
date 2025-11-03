@@ -14,6 +14,7 @@ import git
 from pv_tool.imports.validation import Validation
 from pv_tool.imports.import_data import Dbase
 from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
+from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
 from pv_tool.imports.import_options import *
 from typing import Literal
 
@@ -57,7 +58,7 @@ def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     return repo.working_tree_dir
 
 
-def test_database_import(source: Literal['Stowa', 'PV-tool', 'Dbase'],
+def database_import_test(source: Literal['Stowa', 'PV-tool', 'Dbase'],
                                  file_name_import: str, file_name_export: str = 'Template_PVtool5_0.xlsx', short=False, validate=False, export=False):
     """Test de database import en validatie functionaliteit."""
     repo_root = Path(get_repo_root())
@@ -92,7 +93,7 @@ def test_database_import(source: Literal['Stowa', 'PV-tool', 'Dbase'],
         return dbase
 
 
-def test_cphi_analysis_txt(dbase: Dbase, file_name: str = 'Template_PVtool5_0.xlsx'):
+def cphi_analysis_txt_test(dbase: Dbase, file_name: str = 'Template_PVtool5_0.xlsx'):
     """
     Test een TXT C-phi analyse.
 
@@ -125,7 +126,7 @@ def test_cphi_analysis_txt(dbase: Dbase, file_name: str = 'Template_PVtool5_0.xl
     analyse.save_to_pdf(path=str(save_test))
 
 
-def test_cphi_analysis_dss(dbase: Dbase):
+def cphi_analysis_dss_test(dbase: Dbase):
     """
     Test een DSS C-phi analyse.
 
@@ -157,7 +158,7 @@ def test_cphi_analysis_dss(dbase: Dbase):
     analyse.save_to_pdf(path=str(save_test))
 
 
-def test_cphi_analysis_txt_sh(dbase: Dbase):
+def cphi_analysis_txt_sh_test(dbase: Dbase):
     """
     Test een TXT C-phi analyse volgens schematiseringshandleiding (SH).
 
@@ -189,7 +190,7 @@ def test_cphi_analysis_txt_sh(dbase: Dbase):
     analyse.save_to_pdf(path=str(save_test))
 
 
-def test_cphi_analysis_dss_sh(dbase: Dbase):
+def cphi_analysis_dss_sh_test(dbase: Dbase):
     """
     Test een DSS C-phi analyse volgens schematiseringshandleiding (SH).
 
@@ -220,30 +221,53 @@ def test_cphi_analysis_dss_sh(dbase: Dbase):
     analyse.show_figure()
     analyse.save_to_pdf(path=str(save_test))
 
+# function for testing shansep analysis
+def shansep_analysis_test(dbase: Dbase):
+    analyse = SHANSEP(
+        dbase=dbase,
+        investigation_groups=['TXT_SAFE_klei_licht_16_175'],
+        effective_stress='15% rek',
+        analysis_type='TXT_S_POP')
+
+    # Pas instellingen toe
+    analyse.apply_settings(alpha=0.75)
+
+    # Print en exporteer resultaten
+    print('\nResultaten SHANSEP analyse:')
+    analyse.get_shansep_data()
+    analyse.expand_analysis_df_s_pop_alleen_oc()
+    analyse.expand_analysis_df_s_pop()
+    analyse.write_analysis_to_excel(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output\shansep_test_output.xlsx")
+    print("resultaten weggeschreven naar excel.")
+
 
 if __name__ == "__main__":
     # Test database import
-    source = 'PV-tool'  # Opties: 'Stowa', 'PV-tool', 'Dbase'
-    import_name = 'WSRL 2025 Proevenverzameling_tool_v4.2n_gevalideerd_nieuw4.xlsm'
-    export_name = 'Template_PVtool5_0_WSRL_2025_PV.xlsx'
+    source = 'Dbase'  # Opties: 'Stowa', 'PV-tool', 'Dbase'
+    # import_name = 'WSRL 2025 Proevenverzameling_tool_v4.2n_gevalideerd_nieuw4.xlsm'
+    import_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
+    export_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
     import_name2 = export_name  # TODO eventueel: import naam kan nu niet export naam zijn, dan kan die niet de layout aanpassen. Moet nog worden aangepast in de toekomst.
     print("Start van de tests...\n")
-    dbase = test_database_import(source=source, file_name_import=import_name, file_name_export=export_name, short=False, validate=False, export=True)
+    dbase = database_import_test(source=source, file_name_import=import_name, file_name_export=export_name, short=True, validate=False, export=False)
 
     # Test verschillende analyses
     print("\nUitvoeren van verschillende test cases...")
 
-    print("\n1. TXT C-phi analyse test")
+    print("\n1. TXT SHANSEP analyse test")
+    shansep_analysis_test(dbase)
+
+    # print("\n1. TXT C-phi analyse test")
     # file_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
-    # test_cphi_analysis_txt(dbase, file_name=file_name)
+    # cphi_analysis_txt_test(dbase, file_name=file_name)
 
     # print("\n2. DSS C-phi analyse test")
-    # test_cphi_analysis_dss(dbase)
+    # cphi_analysis_dss_test(dbase)
     #
     # print("\n3. TXT C-phi analyse test (schematiseringshandleiding)")
-    # test_cphi_analysis_txt_sh(dbase)
+    # cphi_analysis_txt_sh_test(dbase)
     #
     # print("\n4. DSS C-phi analyse test (schematiseringshandleiding)")
-    # test_cphi_analysis_dss_sh(dbase)
+    # cphi_analysis_dss_sh_test(dbase)
 
     print("\nAlle tests zijn voltooid!")

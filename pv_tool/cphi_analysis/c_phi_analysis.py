@@ -35,7 +35,7 @@ class CPhiAnalyse:
     Klasse voor het uitvoeren van c-phi analyses op grondmonsters.
 
     Ondersteunt zowel triaxiaal (TXT) als direct simple shear (DSS) testen,
-    en kan zowel reguliere c-phi als shansep (SH) analyses uitvoeren.
+    en kan zowel reguliere c-phi als schematiseringshandleiding (SH) analyses uitvoeren.
     """
 
     def __init__(self, dbase: Dbase,
@@ -371,7 +371,7 @@ class CPhiAnalyse:
 
     def expand_analysis_df_sh(self):
         """
-        Berekent afgeleide parameters voor de shansep analyse.
+        Berekent afgeleide parameters voor de schematiseringshandleiding analyse.
 
         Voegt kolommen toe aan het dataframe met berekende waarden voor
         tan(alpha) en ln(tan(alpha)).
@@ -436,7 +436,7 @@ class CPhiAnalyse:
 
     def result_values_sh(self):
         """
-        Berekent de definitieve resultaten van de shansep analyse:
+        Berekent de definitieve resultaten van de c-phi schematiseringshandleiding analyse:
         gemiddelde, karakteristieke en rekenwaarden voor phi,
         inclusief standaarddeviatie.
 
@@ -470,7 +470,7 @@ class CPhiAnalyse:
 
     def _run_sh(self):
         """
-        Voert de volledige shansep analyse uit in de juiste volgorde:
+        Voert de volledige c-phi schematiseringshandleiding analyse uit in de juiste volgorde:
         data ophalen, parameters berekenen en resultaten bepalen.
         """
         self.get_cphi_data()
