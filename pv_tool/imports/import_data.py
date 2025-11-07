@@ -104,14 +104,14 @@ class Dbase:
         export_df = self.dbase_df[final_columns].copy()
 
         # rond waarden af voor consistentie
-        cols_to_round = ['ANA_TERREINSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
-                         'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_GRENSSPANNING_PROEF',
-                         'ANA_POP_VELD', 'ANA_POP_VELD_GEMIDDELD', 'ANA_GRENSSPANNING_VOORSTEL',
-                         'ANA_GRENSSPANNING_REKEN', 'OCR_TXT', 'OCR_DSS']
-        numeric_columns = export_df.select_dtypes(include=['float64', 'int64']).columns
-        for col in cols_to_round:
-            if col in numeric_columns:
-                export_df[col] = export_df[col].round(2)
+        # cols_to_round = ['ANA_TERREINSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
+        #                  'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_GRENSSPANNING_PROEF',
+        #                  'ANA_POP_VELD', 'ANA_POP_VELD_GEMIDDELD', 'ANA_GRENSSPANNING_VOORSTEL',
+        #                  'ANA_GRENSSPANNING_REKEN', 'OCR_TXT', 'OCR_DSS']
+        # numeric_columns = export_df.select_dtypes(include=['float64', 'int64']).columns
+        # for col in cols_to_round:
+        #     if col in numeric_columns:
+        #         export_df[col] = export_df[col].round(2)
 
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(f"Excel sheet Dbase5_0 wordt weggeschreven op {timestamp}")

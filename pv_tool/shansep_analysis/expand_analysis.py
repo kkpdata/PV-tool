@@ -37,6 +37,9 @@ def calculate_pop(self: SHANSEP):
 
 def calculate_sv_tt_oc(self: SHANSEP):
     df = self.shansep_data_df_oc.copy()
+    print(df['S\'v'])
+    print(sum_sv_oc(self))
+    print(count_sv_oc(self))
     df['s_tt'] = (df['S\'v'] - sum_sv_oc(self) / count_sv_oc(self)) ** 2
     self.shansep_data_df_oc = df
 
@@ -106,6 +109,7 @@ def calculate_kappa_2_ondergrens_oc(self: SHANSEP):
 
 
 # -------------------------- NC en OC ---------------------------------------
+# TODO omdat OCR niet goed wordt berekend, werkt deze fout door in de hele analyse vanaf hier
 
 def calculate_sv_tt_nc_oc(self: SHANSEP):
     df = self.shansep_data_df_nc_oc.copy()
@@ -123,12 +127,12 @@ def calculate_kappa_2_nc_oc(self: SHANSEP):
     self.shansep_data_df_nc_oc['kappa_2'] = formule
 
 def s_min_nc_oc(self: SHANSEP):
-    return self.shansep_data_df_nc_oc['S\'v'].min()
+    return self.shansep_data_df_nc_oc['LN(OCR)'].min()
 
 def s_max_nc_oc(self: SHANSEP):
-    return self.shansep_data_df_nc_oc['S\'v'].max()
+    return self.shansep_data_df_nc_oc['LN(OCR)'].max()
 
-def calculate_sv_eff_nc_oc(self: SHANSEP):
+def calculate_sv_eff_nc_oc(self: SHANSEP): # TODO de uitgerekende waardes zijn te klein, ligt dit alleen aan de OCR berekening?
     """Berekent s' waarden met gelijke intervallen tussen min en max."""
     lijst = [s_min_nc_oc(self)]
     formule = (s_max_nc_oc(self) - s_min_nc_oc(self)) / (count_sv_nc_oc(self) - 1)

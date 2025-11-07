@@ -65,32 +65,44 @@ def database_import_test(source: Literal['Stowa', 'PV-tool', 'Dbase'],
     path_to_data = repo_root / "example_files" / file_name_import
     save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
-    if short and not validate:
-        print("Uitvoeren van korte database import test...")
-        dbase = Dbase()
-        dbase.import_dbase_short(source=source, source_dir=path_to_data)
-        if export:
-            dbase.export_dbase_to_excel(export_dir = save_test, filename=file_name_export)
-        return dbase
-    elif validate and not short:
-        print("Uitvoeren van database import en validatie test...")
-        dbase = Dbase()
-        dbase.import_data(source=source, source_dir=path_to_data)
-        dbase.validate_data(export_path=save_test)
-        if export:
-            dbase.export_dbase_to_excel(export_dir = save_test, filename=file_name_export)
-        return dbase
-    elif short and validate:
-        print("Korte import en validatie kan niet samen worden uitgevoerd. Kies één optie.")
+    # Check if input file exists
+    if not path_to_data.exists():
+        print(f"Error: Input file not found at {path_to_data}")
         return None
-    else:
-        print("Uitvoeren van volledige database import test...")
-        # Database import
-        dbase = Dbase()
-        dbase.import_data(source=source, source_dir=path_to_data)
+
+    # Create save directory if it doesn't exist
+    save_test.mkdir(parents=True, exist_ok=True)
+
+    dbase = Dbase()
+    try:
+        if short and not validate:
+            print(f"Uitvoeren van korte database import test voor {path_to_data}...")
+            dbase.import_dbase_short(source=source, source_dir=path_to_data)
+        elif validate and not short:
+            print(f"Uitvoeren van database import en validatie test voor {path_to_data}...")
+            dbase.import_data(source=source, source_dir=path_to_data)
+            dbase.validate_data(export_path=save_test)
+        elif short and validate:
+            print("Korte import en validatie kan niet samen worden uitgevoerd. Kies één optie.")
+            return None
+        else:
+            print(f"Uitvoeren van volledige database import test voor {path_to_data}...")
+            dbase.import_data(source=source, source_dir=path_to_data)
+
+        # Verify database was loaded successfully
+        if dbase.dbase_df is None or dbase.dbase_df.empty:
+            print("Error: Database import failed - dataframe is None or empty")
+            return None
+
         if export:
-            dbase.export_dbase_to_excel(export_dir = save_test, filename=file_name_export)
+            print(f"Exporting database to {save_test / file_name_export}")
+            dbase.export_dbase_to_excel(export_dir=save_test, filename=file_name_export)
+
         return dbase
+
+    except Exception as e:
+        print(f"Error during database import/export: {str(e)}")
+        return None
 
 
 def cphi_analysis_txt_test(dbase: Dbase, file_name: str = 'Template_PVtool5_0.xlsx'):
@@ -244,30 +256,33 @@ def shansep_analysis_test(dbase: Dbase):
 if __name__ == "__main__":
     # Test database import
     source = 'Dbase'  # Opties: 'Stowa', 'PV-tool', 'Dbase'
-    # import_name = 'WSRL 2025 Proevenverzameling_tool_v4.2n_gevalideerd_nieuw4.xlsm'
     import_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
     export_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
-    import_name2 = export_name  # TODO eventueel: import naam kan nu niet export naam zijn, dan kan die niet de layout aanpassen. Moet nog worden aangepast in de toekomst.
+
     print("Start van de tests...\n")
-    dbase = database_import_test(source=source, file_name_import=import_name, file_name_export=export_name, short=True, validate=False, export=False)
+    print(f"Using source: {source}")
+    print(f"Import file: {import_name}")
+    print(f"Export file: {export_name}")
+
+    dbase = database_import_test(
+        source=source,
+        file_name_import=import_name,
+        file_name_export=export_name,
+        short=True,
+        validate=False,
+        export=False
+    )
+
+    if dbase is None or dbase.dbase_df is None:
+        print("ERROR: Database import failed!")
+        exit(1)
+
+    print(f"Database successfully imported with {len(dbase.dbase_df)} rows")
 
     # Test verschillende analyses
     print("\nUitvoeren van verschillende test cases...")
 
     print("\n1. TXT SHANSEP analyse test")
     shansep_analysis_test(dbase)
-
-    # print("\n1. TXT C-phi analyse test")
-    # file_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
-    # cphi_analysis_txt_test(dbase, file_name=file_name)
-
-    # print("\n2. DSS C-phi analyse test")
-    # cphi_analysis_dss_test(dbase)
-    #
-    # print("\n3. TXT C-phi analyse test (schematiseringshandleiding)")
-    # cphi_analysis_txt_sh_test(dbase)
-    #
-    # print("\n4. DSS C-phi analyse test (schematiseringshandleiding)")
-    # cphi_analysis_dss_sh_test(dbase)
 
     print("\nAlle tests zijn voltooid!")
