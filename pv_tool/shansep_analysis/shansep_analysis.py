@@ -1,3 +1,4 @@
+import math
 from pv_tool.imports.import_data import Dbase
 from typing import Optional, List, Literal
 from pv_tool.shansep_analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS)
@@ -21,11 +22,21 @@ from pv_tool.shansep_analysis.visualization_shansep import (
     add_gemiddelde,
     set_layout
 )
+
+from pv_tool.shansep_analysis.variables import (
+    gem_ln_su_svc_nc, exp_gem_ln_su_svc_nc,
+    std_ln_su_svc_nc, kar_ln_su_svc_nc, exp_kar_ln_su_svc_nc,
+    gem_pop_oc, std_pop_oc, kar_pop_oc,
+    e_a1_oc, e_a2_oc, e_a1_nc_oc, e_a2_nc_oc,
+    a1_kar_oc, a2_kar_oc,
+    a1_kar_nc_oc, a2_kar_nc_oc, exp_gem_ln_su_svc_nc, gem_pop_oc,
+    exp_kar_ln_su_svc_nc, kar_pop_oc)
+
 from pv_tool.shansep_analysis.expand_analysis import (calculate_ln_ocr, calculate_pop,
-                                                          calculate_kappa_2_nc_oc, calculate_sv_tt_oc, calculate_sv_spop,
-                                                          calculate_kappa_2_oc, calculate_ln_sv_spop, calculate_sv_ty_oc,
-                                                          calculate_kappa_2_ondergrens_nc_oc, calculate_sv_tt_ondergrens_nc_oc,
-                                                          calculate_kappa_2_ondergrens_oc, calculate_sv_tt_nc_oc,
+                                                          calculate_chi_2_nc_oc, calculate_sv_tt_oc, calculate_sv_spop,
+                                                          calculate_chi_2_oc, calculate_ln_sv_spop, calculate_sv_ty_oc,
+                                                          calculate_chi_2_ondergrens_nc_oc, calculate_sv_tt_ondergrens_nc_oc,
+                                                          calculate_chi_2_ondergrens_oc, calculate_sv_tt_nc_oc,
                                                           calculate_sv_ty_ondergrens_nc_oc, calculate_sv_ty_ondergrens_oc,
                                                           calculate_5pr_ondergrens_nc_oc, calculate_5pr_ondergrens_oc,
                                                           calculate_sv_ty_nc_oc, calculate_sv_tt_ondergrens_oc, calculate_sv_eff_oc,
@@ -59,17 +70,43 @@ class SHANSEP:
         self.alpha: Optional[float] = 0.75
         
         # Parameters
-        
         self.calc_watergehalte_gem: Optional[float] = None
         self.calc_watergehalte_sd: Optional[float] = None
         self.calc_vgwnat_gem: Optional[float] = None
         self.calc_vgwnat_sd: Optional[float] = None
 
-        # Placeholder
+        self.e_a2_oc: Optional[float] = None
+        self.e_a1_oc: Optional[float] = None
+        self.e_a2_nc_oc: Optional[float] = None
+        self.e_a1_nc_oc: Optional[float] = None
+        self.exp_e_a1_nc_oc: Optional[float] = None
+        self.exp_gem_ln_su_svc_nc: Optional[float] = None
+        self.pop_gem_oc: Optional[float] = None
+
+        self.a2_kar_oc: Optional[float] = None
+        self.a1_kar_oc: Optional[float] = None
+        self.a2_kar_nc_oc: Optional[float] = None
+        self.a1_kar_nc_oc: Optional[float] = None
+        self.exp_a1_kar_nc_oc: Optional[float] = None
+        self.exp_kar_ln_su_svc_nc: Optional[float] = None
+        self.pop_kar_oc: Optional[float] = None
+
+        # Handmatige parameters
+        self.snijpunt_gem_handmatig: Optional[float] = None
+        self.s_gem_handmatig: Optional[float] = None
+        self.m_gem_handmatig: Optional[float] = None
+
+        self.snijpunt_kar_handmatig: Optional[float] = None
+        self.s_kar_handmatig: Optional[float] = None
+        self.m_kar_handmatig: Optional[float] = None
+
+        # dataframes
         self.shansep_data_df: Optional[DataFrame] = None
         self.total_shansep_data_df: Optional[DataFrame] = None
         self.shansep_data_df_oc: Optional[DataFrame] = None
         self.shansep_data_df_nc_oc: Optional[DataFrame] = None
+        self.df_results_shansep_gem: Optional[DataFrame] = None
+        self.df_results_shansep_kar: Optional[DataFrame] = None
 
         pass
 
@@ -152,13 +189,13 @@ class SHANSEP:
         """Deze functie berekent alle benodigde parameters per monster voor de analyse."""
         # calculate_s_tt(self)
         # calculate_s_ty(self)
-        # calculate_kappa_2(self)
+        # calculate_chi_2(self)
         # calculate_s_sutabel(self)
         # calculate_5pr_ondergrens(self)
         # calculate_5pr_bovengrens(self)
         # calculate_s_tt_ondergrens(self)
         # calculate_s_ty_ondergrens(self)
-        # calculate_kappa_2_ondergrens(self)
+        # calculate_chi_2_ondergrens(self)
         return f"Deze functie is nog niet geïmplementeerd voor de su tabel analyse."
 
     def expand_analysis_df_s_pop_alleen_oc(self):
@@ -172,13 +209,13 @@ class SHANSEP:
 
         calculate_sv_tt_oc(self)
         calculate_sv_ty_oc(self)
-        calculate_kappa_2_oc(self)
+        calculate_chi_2_oc(self)
         calculate_sv_eff_oc(self)
         calculate_5pr_ondergrens_oc(self)
         calculate_5pr_bovengrens_oc(self)
         calculate_sv_tt_ondergrens_oc(self)
         calculate_sv_ty_ondergrens_oc(self)
-        calculate_kappa_2_ondergrens_oc(self)
+        calculate_chi_2_ondergrens_oc(self)
 
     def expand_analysis_df_s_pop(self):
         """Deze functie berekent alle benodigde parameters per monster voor de analyse."""
@@ -188,21 +225,20 @@ class SHANSEP:
         calculate_pop(self)
 
         self.shansep_data_df_nc_oc = self.shansep_data_df.copy()
+        self.shansep_data_df_nc_oc = self.shansep_data_df_nc_oc.sort_values(
+            by=['consolidatietype', self.shansep_data_df_nc_oc.index.name or self.shansep_data_df_nc_oc.index],
+            ascending=[False, True]
+        )
 
         calculate_sv_tt_nc_oc(self)
         calculate_sv_ty_nc_oc(self)
-        calculate_kappa_2_nc_oc(self)
+        calculate_chi_2_nc_oc(self)
         calculate_sv_eff_nc_oc(self)
         calculate_5pr_ondergrens_nc_oc(self)
         calculate_5pr_bovengrens_nc_oc(self)
         calculate_sv_tt_ondergrens_nc_oc(self)
         calculate_sv_ty_ondergrens_nc_oc(self)
-        calculate_kappa_2_ondergrens_nc_oc(self)
-
-        self.shansep_data_df_nc_oc = self.shansep_data_df_nc_oc.sort_values(
-            by=['consolidatietype', self.shansep_data_df_nc_oc.index.name or self.shansep_data_df_nc_oc.index],
-            ascending=[False, True]
-        )
+        calculate_chi_2_ondergrens_nc_oc(self)
 
     def write_analysis_to_excel(self, file_path: str):
         """
@@ -221,10 +257,25 @@ class SHANSEP:
             if self.shansep_data_df_nc_oc is not None:
                 self.shansep_data_df_nc_oc.to_excel(writer, sheet_name='Shansep Data NC_OC', index=False)
 
-    def result_values_shansep(self):
+    def get_shansep_parameters(self):
         """
-        Berekent de definitieve resultaten van de shansep analyse
+        Berekent de parameters van de shansep analyse
         """
+        self.e_a2_oc = e_a2_oc(self)
+        self.e_a1_oc = e_a1_oc(self)
+        self.e_a2_nc_oc = e_a2_nc_oc(self)
+        self.e_a1_nc_oc = e_a1_nc_oc(self)
+        self.exp_e_a1_nc_oc = math.exp(e_a1_nc_oc(self))
+        self.exp_gem_ln_su_svc_nc = exp_gem_ln_su_svc_nc(self)
+        self.pop_gem_oc = gem_pop_oc(self)
+
+        self.a2_kar_oc = a2_kar_oc(self)
+        self.a1_kar_oc = a1_kar_oc(self)
+        self.a2_kar_nc_oc = a2_kar_nc_oc(self)
+        self.a1_kar_nc_oc = a1_kar_nc_oc(self)
+        self.exp_a1_kar_nc_oc = math.exp(a1_kar_nc_oc(self))
+        self.exp_kar_ln_su_svc_nc = exp_kar_ln_su_svc_nc(self)
+        self.pop_kar_oc = kar_pop_oc(self)
 
     def _run_shansep(self):
         """
@@ -233,15 +284,43 @@ class SHANSEP:
         """
         self.get_shansep_data()
 
-        if self.analysis_type in ['TXT_S_POP', 'DSS_S_POP']: # TODO volgens mij klopt dit voorgestelde verhaaltje niet helemaal
-            if all(self.shansep_data_df['consolidatietype'] == 'OC'):
-                self.expand_analysis_df_s_pop_alleen_oc()
-            else:
-                self.expand_analysis_df_s_pop()
+        if self.analysis_type in ['TXT_S_POP', 'DSS_S_POP']:
+            self.expand_analysis_df_s_pop_alleen_oc()
+            self.expand_analysis_df_s_pop()
         elif self.analysis_type in ['TXT_su_tabel', 'DSS_su_tabel']:
             self.expand_analysis_df_sutabel()
 
-        self.result_values_shansep()
+        self.get_shansep_parameters()
+
+
+    def export_result_values_shansep(self):
+        """
+        Berekent de definitieve resultaten van de shansep analyse
+        """
+        self._run_shansep()
+        self.df_results_shansep_gem = DataFrame(
+            index=['bepaling S en POP uit triaxiaal- of DSS proeven', 'bepaling S en m uit triaxiaal- of DSS proeven',
+                    'o.b.v. opgegeven POP bij triaxiaal- of DSS proeven',
+                   'bepaling S uit triaxiaal- of DSS proeven OCR=1',
+                   'gemiddeld handmatige keuze'])
+        self.df_results_shansep_gem['snijpunt y-as [kPa]'] = [self.e_a1_oc, None, None, None, None]
+        self.df_results_shansep_gem['Schuifsterkteratio S [-]'] = [self.e_a2_oc, self.exp_e_a1_nc_oc, None, self.exp_gem_ln_su_svc_nc, None]
+        self.df_results_shansep_gem['sterkte toename exponent = m [-]'] = [None, self.e_a2_nc_oc, None, None, None]
+        pop_bepaald = self.e_a1_oc/self.e_a2_oc/self.e_a2_nc_oc
+        self.df_results_shansep_gem['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_gem_oc, None, None]
+
+        self.df_results_shansep_kar = DataFrame(
+            index=['bepaling S en POP uit triaxiaal- of DSS proeven', 'bepaling S en m uit triaxiaal- of DSS proeven',
+                   'o.b.v. opgegeven POP bij triaxiaal- of DSS proeven',
+                   'bepaling S uit triaxiaal- of DSS proeven OCR=1',
+                   'karakteristiek handmatige keuze'])
+
+        self.df_results_shansep_gem['snijpunt y-as [kPa]'] = [self.a1_kar_oc, None, None, None, None]
+        self.df_results_shansep_gem['Schuifsterkteratio S [-]'] = [self.a2_kar_oc, self.exp_a1_kar_nc_oc, None, self.exp_kar_ln_su_svc_nc, None]
+        self.df_results_shansep_gem['sterkte toename exponent = m [-]'] = [None, self.a2_kar_nc_oc, None, None, None]
+        pop_bepaald = self.a1_kar_oc/self.a2_kar_oc/self.a2_kar_nc_oc
+        self.df_results_shansep_gem['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_kar_oc, None, None]
+
 
     def set_figure(self, plot_extra_dataset: Optional[List] = None, plot_spanningspaden: bool = False):
         """
@@ -255,7 +334,7 @@ class SHANSEP:
         plot_spanningspaden : bool, optioneel
             Of de spanningspaden moeten worden weergegeven
         """
-
+        self._run_shansep()
         add_proefresultaten_su_sv(self)
         if plot_extra_dataset is not None:
             add_extra_proefresultaten(self, plot_extra_dataset)

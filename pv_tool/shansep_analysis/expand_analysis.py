@@ -5,10 +5,10 @@ if TYPE_CHECKING:
     from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
 from pv_tool.shansep_analysis.variables import (count_sv_oc, sum_sv_oc, e_a1_oc, e_a2_oc,
                                                 t_n_2_oc, sigma_a1_oc, sigma_a2_oc, rho_a1_a2_oc,
-                                                sum_kappa_2_oc, count_s_eff_oc, sum_s_eff_oc,
-                                                count_sv_nc_oc, sum_sv_nc_oc, e_a1_nc_oc, e_a2_nc_oc,
+                                                sum_chi_2_oc, count_s_eff_oc, sum_s_eff_oc,
+                                                count_ln_ocr_nc_oc, sum_ln_ocr_nc_oc, e_a1_nc_oc, e_a2_nc_oc,
                                                 t_n_2_nc_oc, sigma_a1_nc_oc, sigma_a2_nc_oc, rho_a1_a2_nc_oc,
-                                                sum_kappa_2_nc_oc, count_s_eff_nc_oc, sum_s_eff_nc_oc,
+                                                sum_chi_2_nc_oc, count_s_eff_nc_oc, sum_s_eff_nc_oc,
                                                 a1_kar_oc, a2_kar_oc,
                                                 a1_kar_nc_oc, a2_kar_nc_oc)
 import numpy as np
@@ -49,9 +49,9 @@ def calculate_sv_ty_oc(self: SHANSEP):
     df['s_ty'] = (df['S\'v'] - mean_s) * df['Su']
     self.shansep_data_df_oc = df
 
-def calculate_kappa_2_oc(self: SHANSEP):
+def calculate_chi_2_oc(self: SHANSEP):
     formule = (self.shansep_data_df_oc['Su'] - e_a1_oc(self) - e_a2_oc(self) * self.shansep_data_df_oc['S\'v']) ** 2
-    self.shansep_data_df_oc['kappa_2'] = formule
+    self.shansep_data_df_oc['chi_2'] = formule
 
 def s_min_oc(self: SHANSEP):
     return self.shansep_data_df_oc['S\'v'].min()
@@ -75,7 +75,7 @@ def calculate_5pr_ondergrens_oc(self: SHANSEP):
             e_a2_oc(self) * self.shansep_data_df_oc['s\''] - t_n_2_oc(self) *
             (sigma_a1_oc(self) ** 2 + self.shansep_data_df_oc['s\''] ** 2 * sigma_a2_oc(self) ** 2 +
              2 * rho_a1_a2_oc(self) * self.shansep_data_df_oc['s\''] * sigma_a1_oc(self) * sigma_a2_oc(self) +
-             (1.0 - self.alpha) * (sum_kappa_2_oc(self) / (count_sv_oc(self) - 2))) ** 0.5
+             (1.0 - self.alpha) * (sum_chi_2_oc(self) / (count_sv_oc(self) - 2))) ** 0.5
     )
     self.shansep_data_df_oc['5_pr_ondergrens'] = formule
 
@@ -86,7 +86,7 @@ def calculate_5pr_bovengrens_oc(self: SHANSEP):
             e_a2_oc(self) * self.shansep_data_df_oc['s\''] + t_n_2_oc(self) *
             (sigma_a1_oc(self) ** 2 + self.shansep_data_df_oc['s\''] ** 2 * sigma_a2_oc(self) ** 2 +
              2 * rho_a1_a2_oc(self) * self.shansep_data_df_oc['s\''] * sigma_a1_oc(self) * sigma_a2_oc(self) +
-             (1 - self.alpha) * (sum_kappa_2_oc(self) / (count_sv_oc(self) - 2))) ** 0.5
+             (1 - self.alpha) * (sum_chi_2_oc(self) / (count_sv_oc(self) - 2))) ** 0.5
     )
     self.shansep_data_df_oc['5_pr_bovengrens'] = formule
 
@@ -102,10 +102,10 @@ def calculate_sv_ty_ondergrens_oc(self: SHANSEP):
     self.shansep_data_df_oc['s_ty_ondergrens'] = formule
 
 
-def calculate_kappa_2_ondergrens_oc(self: SHANSEP):
+def calculate_chi_2_ondergrens_oc(self: SHANSEP):
     formule = (self.shansep_data_df_oc['5_pr_ondergrens'] - a1_kar_oc(self) -
                a2_kar_oc(self) * self.shansep_data_df_oc['s\'']) ** 2
-    self.shansep_data_df_oc['kappa_2_ondergrens'] = formule
+    self.shansep_data_df_oc['chi_2_ondergrens'] = formule
 
 
 # -------------------------- NC en OC ---------------------------------------
@@ -113,18 +113,18 @@ def calculate_kappa_2_ondergrens_oc(self: SHANSEP):
 
 def calculate_sv_tt_nc_oc(self: SHANSEP):
     df = self.shansep_data_df_nc_oc.copy()
-    df['s_tt'] = (df['LN(OCR)'] - sum_sv_nc_oc(self) / count_sv_nc_oc(self)) ** 2
+    df['s_tt'] = (df['LN(OCR)'] - sum_ln_ocr_nc_oc(self) / count_ln_ocr_nc_oc(self)) ** 2
     self.shansep_data_df_nc_oc = df
 
 def calculate_sv_ty_nc_oc(self: SHANSEP):
     df = self.shansep_data_df_nc_oc.copy()
-    mean_s = sum_sv_nc_oc(self) / count_sv_nc_oc(self)
+    mean_s = sum_ln_ocr_nc_oc(self) / count_ln_ocr_nc_oc(self)
     df['s_ty'] = (df['LN(OCR)'] - mean_s) * df['LN(su/svc)']
     self.shansep_data_df_nc_oc = df
 
-def calculate_kappa_2_nc_oc(self: SHANSEP):
+def calculate_chi_2_nc_oc(self: SHANSEP):
     formule = (self.shansep_data_df_nc_oc['LN(su/svc)'] - e_a1_nc_oc(self) - e_a2_nc_oc(self) * self.shansep_data_df_nc_oc['LN(OCR)']) ** 2
-    self.shansep_data_df_nc_oc['kappa_2'] = formule
+    self.shansep_data_df_nc_oc['chi_2'] = formule
 
 def s_min_nc_oc(self: SHANSEP):
     return self.shansep_data_df_nc_oc['LN(OCR)'].min()
@@ -135,7 +135,7 @@ def s_max_nc_oc(self: SHANSEP):
 def calculate_sv_eff_nc_oc(self: SHANSEP): # TODO de uitgerekende waardes zijn te klein, ligt dit alleen aan de OCR berekening?
     """Berekent s' waarden met gelijke intervallen tussen min en max."""
     lijst = [s_min_nc_oc(self)]
-    formule = (s_max_nc_oc(self) - s_min_nc_oc(self)) / (count_sv_nc_oc(self) - 1)
+    formule = (s_max_nc_oc(self) - s_min_nc_oc(self)) / (count_ln_ocr_nc_oc(self) - 1)
     aantal_waarden = len(self.shansep_data_df_nc_oc)
     for i in range(1, aantal_waarden):
         nieuwe_waarde = lijst[i - 1] + formule
@@ -148,8 +148,11 @@ def calculate_5pr_ondergrens_nc_oc(self: SHANSEP):
             e_a2_nc_oc(self) * self.shansep_data_df_nc_oc['s\''] - t_n_2_nc_oc(self) *
             (sigma_a1_nc_oc(self) ** 2 + self.shansep_data_df_nc_oc['s\''] ** 2 * sigma_a2_nc_oc(self) ** 2 +
              2 * rho_a1_a2_nc_oc(self) * self.shansep_data_df_nc_oc['s\''] * sigma_a1_nc_oc(self) * sigma_a2_nc_oc(self) +
-             (1.0 - self.alpha) * (sum_kappa_2_nc_oc(self) / (count_sv_nc_oc(self) - 2))) ** 0.5
+             (1.0 - self.alpha) * (sum_chi_2_nc_oc(self) / (count_ln_ocr_nc_oc(self) - 2))) ** 0.5
     )
+    print(f"e_a1: {e_a1_nc_oc(self)}, e_a2: {e_a2_nc_oc(self)}, t_n_2: {t_n_2_nc_oc(self)}")
+    print(f"sigma_a1: {sigma_a1_nc_oc(self)}, sigma_a2: {sigma_a2_nc_oc(self)}, rho_a1_a2: {rho_a1_a2_nc_oc(self)}")
+    print(f"sum_chi_2: {sum_chi_2_nc_oc(self)}, count_sv: {count_ln_ocr_nc_oc(self)}")
     self.shansep_data_df_nc_oc['5_pr_ondergrens'] = formule
 
 
@@ -159,7 +162,7 @@ def calculate_5pr_bovengrens_nc_oc(self: SHANSEP):
             e_a2_nc_oc(self) * self.shansep_data_df_nc_oc['s\''] + t_n_2_nc_oc(self) *
             (sigma_a1_nc_oc(self) ** 2 + self.shansep_data_df_nc_oc['s\''] ** 2 * sigma_a2_nc_oc(self) ** 2 +
              2 * rho_a1_a2_nc_oc(self) * self.shansep_data_df_nc_oc['s\''] * sigma_a1_nc_oc(self) * sigma_a2_nc_oc(self) +
-             (1 - self.alpha) * (sum_kappa_2_nc_oc(self) / (count_sv_nc_oc(self) - 2))) ** 0.5
+             (1 - self.alpha) * (sum_chi_2_nc_oc(self) / (count_ln_ocr_nc_oc(self) - 2))) ** 0.5
     )
     self.shansep_data_df_nc_oc['5_pr_bovengrens'] = formule
 
@@ -175,7 +178,7 @@ def calculate_sv_ty_ondergrens_nc_oc(self: SHANSEP):
     self.shansep_data_df_nc_oc['s_ty_ondergrens'] = formule
 
 
-def calculate_kappa_2_ondergrens_nc_oc(self: SHANSEP):
+def calculate_chi_2_ondergrens_nc_oc(self: SHANSEP):
     formule = (self.shansep_data_df_nc_oc['5_pr_ondergrens'] - a1_kar_nc_oc(self) -
                a2_kar_nc_oc(self) * self.shansep_data_df_nc_oc['s\'']) ** 2
-    self.shansep_data_df_nc_oc['kappa_2_ondergrens'] = formule
+    self.shansep_data_df_nc_oc['chi_2_ondergrens'] = formule
