@@ -11,16 +11,18 @@ from pv_tool.shansep_analysis.calc_parameters import (
 )
 
 from pv_tool.shansep_analysis.visualization_shansep import (
-    add_proefresultaten_su_sv,
+    add_proefresultaten_sv_su,
     add_extra_proefresultaten,
-    add_gemiddelde_sh,
-    add_raaklijn_kar_onder,
-    add_raaklijn_kar_boven,
-    add_5pr_bovengrens,
-    add_5pr_ondergrens,
-    add_fysische_realiseerbare_ondergrens,
-    add_gemiddelde,
-    set_layout
+    add_5pr_bovengrens_sv_su,
+    add_5pr_ondergrens_sv_su,
+    add_fysische_realiseerbare_ondergrens_sv_su,
+    add_lineair_fit_sv_su,
+    add_proefresultaten_ln_ocr_ln_s,
+    add_5pr_bovengrens_ln_ocr_ln_s,
+    add_5pr_ondergrens_ln_ocr_ln_s,
+    add_lineair_fit_ln_ocr_ln_s,
+    set_layout_sv_su,
+    set_layout_ln_ocr_ln_s
 )
 
 from pv_tool.shansep_analysis.variables import (
@@ -99,6 +101,9 @@ class SHANSEP:
         self.snijpunt_kar_handmatig: Optional[float] = None
         self.s_kar_handmatig: Optional[float] = None
         self.m_kar_handmatig: Optional[float] = None
+
+        self.pop_kar_handmatig: Optional[float] = None
+        self.pop_gem_handmatig: Optional[float] = None
 
         # dataframes
         self.shansep_data_df: Optional[DataFrame] = None
@@ -293,7 +298,7 @@ class SHANSEP:
         self.get_shansep_parameters()
 
 
-    def export_result_values_shansep(self):
+    def get_result_values_shansep(self):
         """
         Berekent de definitieve resultaten van de shansep analyse
         """
@@ -301,28 +306,65 @@ class SHANSEP:
         self.df_results_shansep_gem = DataFrame(
             index=['bepaling S en POP uit triaxiaal- of DSS proeven', 'bepaling S en m uit triaxiaal- of DSS proeven',
                     'o.b.v. opgegeven POP bij triaxiaal- of DSS proeven',
-                   'bepaling S uit triaxiaal- of DSS proeven OCR=1',
-                   'gemiddeld handmatige keuze'])
-        self.df_results_shansep_gem['snijpunt y-as [kPa]'] = [self.e_a1_oc, None, None, None, None]
-        self.df_results_shansep_gem['Schuifsterkteratio S [-]'] = [self.e_a2_oc, self.exp_e_a1_nc_oc, None, self.exp_gem_ln_su_svc_nc, None]
-        self.df_results_shansep_gem['sterkte toename exponent = m [-]'] = [None, self.e_a2_nc_oc, None, None, None]
+                   'bepaling S uit triaxiaal- of DSS proeven OCR=1'])
+        self.df_results_shansep_gem['snijpunt y-as [kPa]'] = [self.e_a1_oc, None, None, None]
+        self.df_results_shansep_gem['Schuifsterkteratio S [-]'] = [self.e_a2_oc, self.exp_e_a1_nc_oc, None, self.exp_gem_ln_su_svc_nc]
+        self.df_results_shansep_gem['sterkte toename exponent = m [-]'] = [None, self.e_a2_nc_oc, None, None]
         pop_bepaald = self.e_a1_oc/self.e_a2_oc/self.e_a2_nc_oc
-        self.df_results_shansep_gem['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_gem_oc, None, None]
+        self.df_results_shansep_gem['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_gem_oc, None]
 
         self.df_results_shansep_kar = DataFrame(
             index=['bepaling S en POP uit triaxiaal- of DSS proeven', 'bepaling S en m uit triaxiaal- of DSS proeven',
                    'o.b.v. opgegeven POP bij triaxiaal- of DSS proeven',
-                   'bepaling S uit triaxiaal- of DSS proeven OCR=1',
-                   'karakteristiek handmatige keuze'])
-
-        self.df_results_shansep_gem['snijpunt y-as [kPa]'] = [self.a1_kar_oc, None, None, None, None]
-        self.df_results_shansep_gem['Schuifsterkteratio S [-]'] = [self.a2_kar_oc, self.exp_a1_kar_nc_oc, None, self.exp_kar_ln_su_svc_nc, None]
-        self.df_results_shansep_gem['sterkte toename exponent = m [-]'] = [None, self.a2_kar_nc_oc, None, None, None]
+                   'bepaling S uit triaxiaal- of DSS proeven OCR=1'])
+        self.df_results_shansep_gem['snijpunt y-as [kPa]'] = [self.a1_kar_oc, None, None, None]
+        self.df_results_shansep_gem['Schuifsterkteratio S [-]'] = [self.a2_kar_oc, self.exp_a1_kar_nc_oc, None, self.exp_kar_ln_su_svc_nc]
+        self.df_results_shansep_gem['sterkte toename exponent = m [-]'] = [None, self.a2_kar_nc_oc, None, None]
         pop_bepaald = self.a1_kar_oc/self.a2_kar_oc/self.a2_kar_nc_oc
-        self.df_results_shansep_gem['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_kar_oc, None, None]
+        self.df_results_shansep_gem['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_kar_oc, None]
+
+        # write these dataframes to excel
+        return self.df_results_shansep_gem, self.df_results_shansep_kar
+
+    def export_shansep_results_excel(self, file_path: str):
+        """
+        Exporteert de shansep resultaten naar een Excel-bestand.
+
+        Parameters
+        ----------
+        file_path : str
+            Pad naar de map waar het Excel-bestand moet worden opgeslagen plus de bestandsnaam
+        """
+        df_gem, df_kar = self.get_result_values_shansep()
+        with ExcelWriter(file_path) as writer:
+            df_gem.to_excel(writer, sheet_name='Gemiddeld')
+            df_kar.to_excel(writer, sheet_name='Karakteristiek')
+
+    def print_sutabel(self):
+        """print de blauwe tabel in de excel naar excel
+        wordt ook weggeschreven naar pdf bij save_to_pdf
+        wordt nu bij visualisation ook aangeroepen all
+        """
+
+    def set_parameters_handmatig(self, snijpunt_gem: float, s_gem: float, m_gem: float,
+                              snijpunt_kar: float, s_kar: float, m_kar: float):
+        """
+        Stelt de handmatige parameters in voor de analyse. De invoer moet handmatig worden gedaan door de gebruiker op basis van de resultaten tabel
+        """
+        self.snijpunt_gem_handmatig = snijpunt_gem
+        self.s_gem_handmatig = s_gem
+        self.m_gem_handmatig = m_gem
+        self.pop_gem_handmatig = snijpunt_gem / s_gem / m_gem
+
+        self.snijpunt_kar_handmatig = snijpunt_kar
+        self.s_kar_handmatig = s_kar
+        self.m_kar_handmatig = m_kar
+        self.pop_kar_handmatig = snijpunt_kar / s_kar / m_kar
 
 
-    def set_figure(self, plot_extra_dataset: Optional[List] = None, plot_spanningspaden: bool = False):
+
+
+    def set_figure_sv_su(self, plot_extra_dataset: Optional[List] = None, plot_spanningspaden: bool = False):
         """
         Maakt een visualisatie van de analyseresultaten.
 
@@ -335,18 +377,29 @@ class SHANSEP:
             Of de spanningspaden moeten worden weergegeven
         """
         self._run_shansep()
-        add_proefresultaten_su_sv(self)
+        add_proefresultaten_sv_su(self)
         if plot_extra_dataset is not None:
             add_extra_proefresultaten(self, plot_extra_dataset)
+        add_5pr_bovengrens_sv_su(self)
+        add_5pr_ondergrens_sv_su(self)
+        add_fysische_realiseerbare_ondergrens_sv_su(self)
+        add_lineair_fit_sv_su(self)
+        set_layout_sv_su(self)
 
-        if self.analysis_type in ['TXT_SH', 'DSS_SH']:
-            add_gemiddelde_sh(self)
-            add_raaklijn_kar_onder(self)
-            add_raaklijn_kar_boven(self)
-        else:
-            add_5pr_bovengrens(self)
-            add_5pr_ondergrens(self)
-            add_fysische_realiseerbare_ondergrens(self)
-            add_gemiddelde(self)
+    def set_figure_ln_ocr_ln_s(self, plot_extra_dataset: Optional[List] = None):
+        """
+        Maakt een visualisatie van de analyseresultaten.
 
-        set_layout(self)
+        Parameters
+        ----------
+        plot_extra_dataset : List, optioneel
+            Extra dataset om in de plot weer te geven
+        """
+        self._run_shansep()
+        add_proefresultaten_ln_ocr_ln_s(self)
+        if plot_extra_dataset is not None:
+            add_extra_proefresultaten(self, plot_extra_dataset)
+        add_5pr_bovengrens_ln_ocr_ln_s(self)
+        add_5pr_ondergrens_ln_ocr_ln_s(self)
+        add_lineair_fit_ln_ocr_ln_s(self)
+        set_layout_ln_ocr_ln_s(self)
