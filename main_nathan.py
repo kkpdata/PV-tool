@@ -249,54 +249,15 @@ def shansep_analysis_test(dbase: Dbase):
 
     save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
-    # Test de nieuwe functies
-    print("\n=== Test nieuwe SHANSEP functies ===")
+    df_updated = analyse.add_results_to_dbase(path=str(save_test), file_name='Template_PVtool5_0_SAFE_2022_PV.xlsx')
+    analyse.save_total_to_excel(path=str(save_test))
 
-    # 1. Test add_results_to_dbase
-    print("1. Test add_results_to_dbase...")
-    try:
-        df_updated = analyse.add_results_to_dbase(path=str(save_test), file_name='Template_PVtool5_0_SAFE_2022_PV.xlsx')
-        print(f"   ✓ Database bijgewerkt met {len(df_updated)} rijen")
-    except Exception as e:
-        print(f"   ✗ Fout bij add_results_to_dbase: {e}")
-
-    # 2. Test save_total_to_excel
-    print("2. Test save_total_to_excel...")
-    try:
-        analyse.save_total_to_excel(path=str(save_test))
-        print("   ✓ Volledige analyse data geëxporteerd naar Excel")
-    except Exception as e:
-        print(f"   ✗ Fout bij save_total_to_excel: {e}")
-
-    # 3. Test save_to_pdf
-    print("3. Test save_to_pdf...")
-    try:
-        pdf_path = analyse.save_to_pdf(path=str(save_test))
-        print(f"   ✓ PDF gemaakt: {pdf_path}")
-    except Exception as e:
-        print(f"   ✗ Fout bij save_to_pdf: {e}")
-
-    # 4. Test bestaande export functie
-    print("4. Test bestaande export_shansep_results_excel...")
-    try:
-        analyse.export_shansep_results_excel(file_path=str(save_test / "shansep_results.xlsx"))
-        print("   ✓ SHANSEP resultaten geëxporteerd")
-    except Exception as e:
-        print(f"   ✗ Fout bij export_shansep_results_excel: {e}")
-
-    # 5. Test handmatige parameters en visualisatie
-    print("5. Test handmatige parameters...")
-    try:
-        analyse.set_parameters_handmatig(snijpunt_gem=11, s_gem=0.31, m_gem=0.9, snijpunt_kar=7, s_kar=0.28, m_kar=0.9)
-        sutabel = analyse.calculate_sutabel()
-        print("   ✓ Handmatige parameters toegepast en su-tabel berekend")
-        print("   ✓ Figuren worden getoond...")
-        analyse.show_figure(plot_extra_dataset=None, plot_spanningspaden=False)
-    except Exception as e:
-        print(f"   ✗ Fout bij handmatige parameters: {e}")
-
-    print("\n=== SHANSEP functies test voltooid ===\n")
-
+    analyse.set_parameters_handmatig(snijpunt_gem=11, s_gem=0.31, m_gem=0.9, snijpunt_kar=7, s_kar=0.28, m_kar=0.9)
+    sutabel = analyse.calculate_sutabel()
+    analyse.show_figure_sv_su(plot_extra_dataset=None, plot_spanningspaden=False)
+    analyse.show_figure_ln_ocr_ln_s(plot_extra_dataset=None)
+    pdf_path = analyse.save_to_pdf(path=str(save_test))
+    analyse.export_shansep_results_excel(file_path=str(save_test / "shansep_results.xlsx"))
 
 if __name__ == "__main__":
     # Test database import

@@ -6,8 +6,15 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_LEFT
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, LongTable
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, LongTable, Image as RLImage
 from pv_tool.imports.excel_utils import format_excel_sheet
+
+try:
+    from PIL import Image as PILImage
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+    print("Waarschuwing: PIL (Pillow) is niet beschikbaar. Figuren kunnen niet aan PDF worden toegevoegd.")
 
 if TYPE_CHECKING:
     from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
@@ -367,27 +374,129 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
     # Ensure analysis is run
     self._run_shansep()
 
-    # Generate figures if not already done
-    if not hasattr(self, 'figure') or len(self.figure.data) == 0:
-        self.show_title = False
-        # We would need to implement show_figure methods similar to c_phi analysis
-        # For now, we'll skip the figure generation and add a placeholder
-
     # Maak het PDF document
     doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
     styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='Left', parent=styles['Normal'], alignment=TA_LEFT))
-    styles.add(ParagraphStyle(name='TitleLeft', parent=styles['Title'], alignment=TA_LEFT))
+
+    # Voeg alleen styles toe die nog niet bestaan
+    if 'Left' not in styles:
+        styles.add(ParagraphStyle(name='Left', parent=styles['Normal'], alignment=TA_LEFT))
+    if 'TitleLeft' not in styles:
+        styles.add(ParagraphStyle(name='TitleLeft', parent=styles['Title'], alignment=TA_LEFT))
+    if 'Heading3' not in styles:
+        styles.add(ParagraphStyle(name='Heading3', parent=styles['Heading2'], alignment=TA_LEFT))
     story = []
 
     # Voeg titel toe
     story.append(Paragraph(title, styles['TitleLeft']))
     story.append(Spacer(width=1, height=12))
 
-    # TODO: Add figure export when visualization functions are ready
-    # For now, add placeholder text
-    story.append(Paragraph("Figuren: (implementatie volgt wanneer visualisatie functies beschikbaar zijn)", styles['Heading2']))
-    story.append(Spacer(width=1, height=12))
+    # Probeer figuren te genereren en toe te voegen
+    try:
+        # Controleer of handmatige parameters zijn ingesteld
+        has_manual_params = hasattr(self, 'parameters_handmatig') and self.parameters_handmatig
+
+        # Eerste figuur: sv-su plot
+        fig_path1 = f"{path}/temp_plot1.png"
+        self.show_title = False
+
+        # Genereer figuur met juiste parameters (handmatig of berekend)
+        if has_manual_params:
+            # Als handmatige parameters zijn ingesteld, zorg dat die worden gebruikt
+            self.show_figure_sv_su()
+        else:
+            # Anders gebruik de standaard berekende parameters
+            self.show_figure_sv_su()
+
+        if hasattr(self, 'figure') and self.figure is not None:
+            fig_width = 1280
+            fig_height = 720
+            self.figure.write_image(fig_path1, width=fig_width, height=fig_height, scale=4, format="png")
+
+            # Voeg figuur toe met aangepaste grootte
+            from PIL import Image as PILImage
+            from reportlab.platypus import Image as RLImage
+
+            # Laad PNG en bepaal pixelafmetingen
+            with PILImage.open(fig_path1) as im:
+                img_width_px, img_height_px = im.size
+
+            # Stel gewenste breedte in punten (bijv. 95% van PDF breedte)
+            max_width_pt = doc.width * 0.95
+
+            # Bereken hoogte zodat verhouding gelijk blijft
+            aspect = img_height_px / img_width_px
+            img_width_pt = min(max_width_pt, doc.width)  # niet breder dan pagina
+            img_height_pt = img_width_pt * aspect
+
+            # Maak ReportLab Image aan
+            img1 = RLImage(fig_path1)
+            img1.drawWidth = img_width_pt
+            img1.drawHeight = img_height_pt
+            img1.hAlign = 'LEFT'
+
+            # Voeg titel toe die aangeeft of handmatige parameters zijn gebruikt
+            if has_manual_params:
+                story.append(Paragraph("Figuur 1: Sv-Su Relatie (met handmatige parameters)", styles['Heading3']))
+            else:
+                story.append(Paragraph("Figuur 1: Sv-Su Relatie (berekende parameters)", styles['Heading3']))
+            story.append(img1)
+            story.append(Spacer(width=1, height=12))
+
+        # Tweede figuur: ln(OCR) - ln(su/svc) plot
+        fig_path2 = f"{path}/temp_plot2.png"
+        self.show_title = False
+
+        # Genereer figuur met juiste parameters (handmatig of berekend)
+        if has_manual_params:
+            # Als handmatige parameters zijn ingesteld, zorg dat die worden gebruikt
+            self.show_figure_ln_ocr_ln_s()
+        else:
+            # Anders gebruik de standaard berekende parameters
+            self.show_figure_ln_ocr_ln_s()
+
+        if hasattr(self, 'figure') and self.figure is not None:
+            fig_width = 1280
+            fig_height = 720
+            self.figure.write_image(fig_path2, width=fig_width, height=fig_height, scale=4, format="png")
+
+            # Voeg figuur toe met aangepaste grootte
+            from PIL import Image as PILImage
+            from reportlab.platypus import Image as RLImage
+
+            # Laad PNG en bepaal pixelafmetingen
+            with PILImage.open(fig_path2) as im:
+                img_width_px, img_height_px = im.size
+
+            # Stel gewenste breedte in punten (bijv. 95% van PDF breedte)
+            max_width_pt = doc.width * 0.95
+
+            # Bereken hoogte zodat verhouding gelijk blijft
+            aspect = img_height_px / img_width_px
+            img_width_pt = min(max_width_pt, doc.width)  # niet breder dan pagina
+            img_height_pt = img_width_pt * aspect
+
+            # Maak ReportLab Image aan
+            img2 = RLImage(fig_path2)
+            img2.drawWidth = img_width_pt
+            img2.drawHeight = img_height_pt
+            img2.hAlign = 'LEFT'
+
+            # Voeg titel toe die aangeeft of handmatige parameters zijn gebruikt
+            if has_manual_params:
+                story.append(Paragraph("Figuur 2: ln(OCR) - ln(su/svc) Relatie (met handmatige parameters)", styles['Heading3']))
+            else:
+                story.append(Paragraph("Figuur 2: ln(OCR) - ln(su/svc) Relatie (berekende parameters)", styles['Heading3']))
+            story.append(img2)
+            story.append(Spacer(width=1, height=12))
+
+        # Reset title setting
+        self.show_title = True
+
+    except Exception as e:
+        print(f"Waarschuwing: Kon figuren niet toevoegen aan PDF: {e}")
+        story.append(Paragraph("Figuren: (kon niet worden gegenereerd)", styles['Heading3']))
+        story.append(Spacer(width=1, height=12))
 
     # Voeg parameters toe
     story.append(Paragraph("SHANSEP Parameters", styles['Heading2']))

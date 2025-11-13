@@ -16,20 +16,20 @@ import numpy as np
 # -------------------------- algemeen ---------------------------------------
 
 def calculate_ln_ocr(self: SHANSEP):
-    self.shansep_data_df['LN(OCR)'] = (
+    self.shansep_data_df.loc[:, 'LN(OCR)'] = (
         self.shansep_data_df['OCR'].apply
         (lambda x: np.log(x) if x is not None and x > 0 else ""))
 
 def calculate_sv_spop(self: SHANSEP):
-    self.shansep_data_df['S'] = self.shansep_data_df['Su'] / self.shansep_data_df['S\'v']
+    self.shansep_data_df.loc[:, 'S'] = self.shansep_data_df['Su'] / self.shansep_data_df['S\'v']
 
 def calculate_ln_sv_spop(self: SHANSEP):
-    self.shansep_data_df['LN(su/svc)'] = (
+    self.shansep_data_df.loc[:, 'LN(su/svc)'] = (
         self.shansep_data_df['S'].apply
         (lambda x: np.log(x) if x is not None and x > 0 else ""))
 
 def calculate_pop(self: SHANSEP):
-    self.shansep_data_df['POP'] = ((self.shansep_data_df['terreinspanning'] *
+    self.shansep_data_df.loc[:, 'POP'] = ((self.shansep_data_df['terreinspanning'] *
                                             self.shansep_data_df['OCR']) -
                                             self.shansep_data_df['terreinspanning'])
 
@@ -37,9 +37,6 @@ def calculate_pop(self: SHANSEP):
 
 def calculate_sv_tt_oc(self: SHANSEP):
     df = self.shansep_data_df_oc.copy()
-    print(df['S\'v'])
-    print(sum_sv_oc(self))
-    print(count_sv_oc(self))
     df['s_tt'] = (df['S\'v'] - sum_sv_oc(self) / count_sv_oc(self)) ** 2
     self.shansep_data_df_oc = df
 
@@ -150,9 +147,6 @@ def calculate_5pr_ondergrens_nc_oc(self: SHANSEP):
              2 * rho_a1_a2_nc_oc(self) * self.shansep_data_df_nc_oc['s\''] * sigma_a1_nc_oc(self) * sigma_a2_nc_oc(self) +
              (1.0 - self.alpha) * (sum_chi_2_nc_oc(self) / (count_ln_ocr_nc_oc(self) - 2))) ** 0.5
     )
-    print(f"e_a1: {e_a1_nc_oc(self)}, e_a2: {e_a2_nc_oc(self)}, t_n_2: {t_n_2_nc_oc(self)}")
-    print(f"sigma_a1: {sigma_a1_nc_oc(self)}, sigma_a2: {sigma_a2_nc_oc(self)}, rho_a1_a2: {rho_a1_a2_nc_oc(self)}")
-    print(f"sum_chi_2: {sum_chi_2_nc_oc(self)}, count_sv: {count_ln_ocr_nc_oc(self)}")
     self.shansep_data_df_nc_oc['5_pr_ondergrens'] = formule
 
 

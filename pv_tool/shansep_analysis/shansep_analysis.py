@@ -135,26 +135,26 @@ class SHANSEP:
         Daarnaast worden de kolomnamen aangepast zodat ze ongeacht het rekpercentage allemaal dezelfde kolomnaam hebben.
         """
         if self.analysis_type in ['TXT_S_POP', 'TXT_su_tabel']:
-            self.shansep_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
+            self.shansep_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']].copy()
             self.shansep_data_df = self.shansep_data_df[self.shansep_data_df['PV_NAAM'].isin(
-                    self.investigation_groups)]
+                    self.investigation_groups)].copy()
             self.calc_watergehalte_gem = calc_watergehalte_gem(self.shansep_data_df)
             self.calc_watergehalte_sd = calc_watergehalte_sd(self.shansep_data_df)
             self.calc_vgwnat_gem = calc_vgwnat_gem(self.shansep_data_df)
             self.calc_vgwnat_sd = calc_vgwnat_sd(self.shansep_data_df)
-            self.total_shansep_data_df = self.shansep_data_df
-            self.shansep_data_df = self.shansep_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
+            self.total_shansep_data_df = self.shansep_data_df.copy()
+            self.shansep_data_df = self.shansep_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])].copy()
 
         elif self.analysis_type in ['DSS_S_POP', 'DSS_su_tabel']:
-            self.shansep_data_df = self.dbase_df[self.dbase_df['ALG__DSS']]
+            self.shansep_data_df = self.dbase_df[self.dbase_df['ALG__DSS']].copy()
             self.shansep_data_df = self.shansep_data_df[self.shansep_data_df['PV_NAAM'].isin(
-                    self.investigation_groups)]
+                    self.investigation_groups)].copy()
             self.calc_watergehalte_gem = calc_watergehalte_gem(self.shansep_data_df)
             self.calc_watergehalte_sd = calc_watergehalte_sd(self.shansep_data_df)
             self.calc_vgwnat_gem = calc_vgwnat_gem(self.shansep_data_df)
             self.calc_vgwnat_sd = calc_vgwnat_sd(self.shansep_data_df)
-            self.total_shansep_data_df = self.shansep_data_df
-            self.shansep_data_df = self.shansep_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])]
+            self.total_shansep_data_df = self.shansep_data_df.copy()
+            self.shansep_data_df = self.shansep_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])].copy()
 
         self.shansep_data_df.columns = NEW_COLUMN_NAMES
 
@@ -248,7 +248,7 @@ class SHANSEP:
         self.shansep_data_df_nc_oc = self.shansep_data_df_nc_oc.sort_values(
             by=['consolidatietype', self.shansep_data_df_nc_oc.index.name or self.shansep_data_df_nc_oc.index],
             ascending=[False, True]
-        )
+        ).copy()
 
         calculate_sv_tt_nc_oc(self)
         calculate_sv_ty_nc_oc(self)
@@ -470,7 +470,7 @@ class SHANSEP:
 
         set_layout_ln_ocr_ln_s(self)
 
-    def show_figure(self, plot_extra_dataset: Optional[List] = None, plot_spanningspaden: bool = False):
+    def show_figure_sv_su(self, plot_extra_dataset: Optional[List] = None, plot_spanningspaden: bool = False):
         """
         Toont de visualisatie van de analyseresultaten.
 
@@ -488,6 +488,18 @@ class SHANSEP:
         self.set_figure_sv_su(plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
         self.figure.show()
 
+    def show_figure_ln_ocr_ln_s(self, plot_extra_dataset: Optional[List] = None):
+        """
+            Toont de visualisatie van de analyseresultaten.
+
+            Parameters
+            ----------
+            plot_extra_dataset : List, optioneel
+                Extra dataset om in de plot weer te geven
+
+            plot_spanningspaden : bool, optioneel
+                Of de spanningspaden moeten worden weergegeven
+        """
         self._run_shansep()
         self.figure = go.Figure()
         self.set_figure_ln_ocr_ln_s(plot_extra_dataset)
