@@ -333,7 +333,7 @@ class CPhiAnalyse:
             raise FileNotFoundError("Er is geen dbase aanwezig onder de naam Template_PVtool5_0.xlsx")
 
         try:
-            results_df = read_excel(file_path, sheet_name='Resultaten')
+            results_df = read_excel(file_path, sheet_name='Resultaten c-phi')
         except ValueError:
             print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
             return None
@@ -634,7 +634,7 @@ class CPhiAnalyse:
 
         if 'Resultaten' in workbook.sheetnames:
             print('Tabblad resultaten in dbase excel bestaat al en wordt aangevuld')
-            df_existing = read_excel(file_path, sheet_name='Resultaten') # TODO pas aan naar resultaten c-phi zodat shansep resultaten een plek kunnen krijgen in een ander tabblad
+            df_existing = read_excel(file_path, sheet_name='Resultaten c-phi') # TODO pas aan naar resultaten c-phi zodat shansep resultaten een plek kunnen krijgen in een ander tabblad
             # Filter out empty rows and ensure consistent types before concatenation
             df_existing = df_existing.dropna(how='all')
             new_row_df = DataFrame([new_row], columns=df_existing.columns)
@@ -645,14 +645,14 @@ class CPhiAnalyse:
 
         # Write data to Excel
         with ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
-            df_updated.to_excel(writer, sheet_name='Resultaten', index=False)
+            df_updated.to_excel(writer, sheet_name='Resultaten c-phi', index=False)
 
         # Formatting
         num_columns = df_updated.shape[1]
         num_rows = df_updated.shape[0]
         format_excel_sheet(
             file_path=file_path,
-            sheet_name='Resultaten',
+            sheet_name='Resultaten c-phi',
             num_columns=num_columns,
             num_rows=num_rows,
             table_name='ResultatenTable',

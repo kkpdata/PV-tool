@@ -3,12 +3,14 @@ from pv_tool.imports.import_data import Dbase
 from typing import Optional, List, Literal
 from pv_tool.shansep_analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS)
 from pandas import DataFrame, ExcelWriter, read_excel
+import plotly.graph_objects as go
 from pv_tool.shansep_analysis.calc_parameters import (
     calc_watergehalte_gem,
     calc_watergehalte_sd,
     calc_vgwnat_gem,
     calc_vgwnat_sd
 )
+from pv_tool.imports.excel_utils import format_excel_sheet
 
 from pv_tool.shansep_analysis.visualization_shansep import (
     add_proefresultaten_sv_su,
@@ -22,7 +24,7 @@ from pv_tool.shansep_analysis.visualization_shansep import (
     add_5pr_ondergrens_ln_ocr_ln_s,
     add_lineair_fit_ln_ocr_ln_s,
     set_layout_sv_su,
-    set_layout_ln_ocr_ln_s
+    set_layout_ln_ocr_ln_s, add_shansep_lijn_sv_su, add_shansep_lijn_ln_ocr_ln_s
 )
 
 from pv_tool.shansep_analysis.variables import (
@@ -43,6 +45,12 @@ from pv_tool.shansep_analysis.expand_analysis import (calculate_ln_ocr, calculat
                                                           calculate_5pr_ondergrens_nc_oc, calculate_5pr_ondergrens_oc,
                                                           calculate_sv_ty_nc_oc, calculate_sv_tt_ondergrens_oc, calculate_sv_eff_oc,
                                                           calculate_sv_eff_nc_oc, calculate_5pr_bovengrens_oc, calculate_5pr_bovengrens_nc_oc)
+
+from pv_tool.shansep_analysis.save_and_export import (
+    add_results_to_dbase as _add_results_to_dbase,
+    save_total_to_excel as _save_total_to_excel,
+    save_to_pdf as _save_to_pdf
+)
 
 
 #-------------------------- SHANSEP Analysis Class ---------------------------------------#
@@ -94,6 +102,8 @@ class SHANSEP:
         self.pop_kar_oc: Optional[float] = None
 
         # Handmatige parameters
+        self.parameters_handmatig: Optional[bool] = False
+
         self.snijpunt_gem_handmatig: Optional[float] = None
         self.s_gem_handmatig: Optional[float] = None
         self.m_gem_handmatig: Optional[float] = None
@@ -112,8 +122,13 @@ class SHANSEP:
         self.shansep_data_df_nc_oc: Optional[DataFrame] = None
         self.df_results_shansep_gem: Optional[DataFrame] = None
         self.df_results_shansep_kar: Optional[DataFrame] = None
+        self.sutabel: Optional[DataFrame] = None
 
-        pass
+        # Figure
+        self.figure = go.Figure()
+        self.show_title: Optional[bool] = True
+
+
 
     def get_shansep_data(self):
         """Deze functie filtert de dbase-dataframe op basis van type analyse, PV_NAAM en de gewenste effectieve stress.
@@ -306,22 +321,24 @@ class SHANSEP:
         self.df_results_shansep_gem = DataFrame(
             index=['bepaling S en POP uit triaxiaal- of DSS proeven', 'bepaling S en m uit triaxiaal- of DSS proeven',
                     'o.b.v. opgegeven POP bij triaxiaal- of DSS proeven',
-                   'bepaling S uit triaxiaal- of DSS proeven OCR=1'])
-        self.df_results_shansep_gem['snijpunt y-as [kPa]'] = [self.e_a1_oc, None, None, None]
-        self.df_results_shansep_gem['Schuifsterkteratio S [-]'] = [self.e_a2_oc, self.exp_e_a1_nc_oc, None, self.exp_gem_ln_su_svc_nc]
-        self.df_results_shansep_gem['sterkte toename exponent = m [-]'] = [None, self.e_a2_nc_oc, None, None]
+                   'bepaling S uit triaxiaal- of DSS proeven OCR=1',
+                   'gemiddelde handmatige keuze snijput, S en m'])
+        self.df_results_shansep_gem['snijpunt y-as [kPa]'] = [self.e_a1_oc, None, None, None, self.snijpunt_gem_handmatig]
+        self.df_results_shansep_gem['Schuifsterkteratio S [-]'] = [self.e_a2_oc, self.exp_e_a1_nc_oc, None, self.exp_gem_ln_su_svc_nc, self.s_gem_handmatig]
+        self.df_results_shansep_gem['sterkte toename exponent = m [-]'] = [None, self.e_a2_nc_oc, None, None, self.m_gem_handmatig]
         pop_bepaald = self.e_a1_oc/self.e_a2_oc/self.e_a2_nc_oc
-        self.df_results_shansep_gem['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_gem_oc, None]
+        self.df_results_shansep_gem['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_gem_oc, None, self.pop_gem_handmatig]
 
         self.df_results_shansep_kar = DataFrame(
             index=['bepaling S en POP uit triaxiaal- of DSS proeven', 'bepaling S en m uit triaxiaal- of DSS proeven',
                    'o.b.v. opgegeven POP bij triaxiaal- of DSS proeven',
-                   'bepaling S uit triaxiaal- of DSS proeven OCR=1'])
-        self.df_results_shansep_gem['snijpunt y-as [kPa]'] = [self.a1_kar_oc, None, None, None]
-        self.df_results_shansep_gem['Schuifsterkteratio S [-]'] = [self.a2_kar_oc, self.exp_a1_kar_nc_oc, None, self.exp_kar_ln_su_svc_nc]
-        self.df_results_shansep_gem['sterkte toename exponent = m [-]'] = [None, self.a2_kar_nc_oc, None, None]
+                   'bepaling S uit triaxiaal- of DSS proeven OCR=1',
+                   'karakteristieke handmatige keuze snijput, S en m'])
+        self.df_results_shansep_kar['snijpunt y-as [kPa]'] = [self.a1_kar_oc, None, None, None, self.snijpunt_kar_handmatig]
+        self.df_results_shansep_kar['Schuifsterkteratio S [-]'] = [self.a2_kar_oc, self.exp_a1_kar_nc_oc, None, self.exp_kar_ln_su_svc_nc, self.s_kar_handmatig]
+        self.df_results_shansep_kar['sterkte toename exponent = m [-]'] = [None, self.a2_kar_nc_oc, None, None, self.m_kar_handmatig]
         pop_bepaald = self.a1_kar_oc/self.a2_kar_oc/self.a2_kar_nc_oc
-        self.df_results_shansep_gem['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_kar_oc, None]
+        self.df_results_shansep_kar['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_kar_oc, None, self.pop_kar_handmatig]
 
         # write these dataframes to excel
         return self.df_results_shansep_gem, self.df_results_shansep_kar
@@ -336,21 +353,47 @@ class SHANSEP:
             Pad naar de map waar het Excel-bestand moet worden opgeslagen plus de bestandsnaam
         """
         df_gem, df_kar = self.get_result_values_shansep()
-        with ExcelWriter(file_path) as writer:
-            df_gem.to_excel(writer, sheet_name='Gemiddeld')
-            df_kar.to_excel(writer, sheet_name='Karakteristiek')
 
-    def print_sutabel(self):
-        """print de blauwe tabel in de excel naar excel
-        wordt ook weggeschreven naar pdf bij save_to_pdf
-        wordt nu bij visualisation ook aangeroepen all
-        """
+        # Prepare DataFrames for Excel export to prevent corruption
+        # Ensure index is strings and has a name
+        df_gem.index = df_gem.index.astype(str)
+        df_kar.index = df_kar.index.astype(str)
+        if df_gem.index.name is None:
+            df_gem.index.name = 'Parameters'
+        if df_kar.index.name is None:
+            df_kar.index.name = 'Parameters'
+
+        with ExcelWriter(file_path) as writer:
+            df_gem.to_excel(writer, sheet_name='Gemiddeld', index=True)
+            df_kar.to_excel(writer, sheet_name='Karakteristiek', index=True)
+
+        # Format the Excel sheets
+        format_excel_sheet(
+            file_path=file_path,
+            sheet_name='Gemiddeld',
+            num_columns=len(df_gem.columns),
+            num_rows=len(df_gem),
+            table_name='GemiddeldResultaten',
+            index=True
+        )
+
+        format_excel_sheet(
+            file_path=file_path,
+            sheet_name='Karakteristiek',
+            num_columns=len(df_kar.columns),
+            num_rows=len(df_kar),
+            table_name='KarakteristiekResultaten',
+            index=True
+        )
 
     def set_parameters_handmatig(self, snijpunt_gem: float, s_gem: float, m_gem: float,
                               snijpunt_kar: float, s_kar: float, m_kar: float):
         """
         Stelt de handmatige parameters in voor de analyse. De invoer moet handmatig worden gedaan door de gebruiker op basis van de resultaten tabel
         """
+        self._run_shansep()
+        self.parameters_handmatig = True
+
         self.snijpunt_gem_handmatig = snijpunt_gem
         self.s_gem_handmatig = s_gem
         self.m_gem_handmatig = m_gem
@@ -361,8 +404,20 @@ class SHANSEP:
         self.m_kar_handmatig = m_kar
         self.pop_kar_handmatig = snijpunt_kar / s_kar / m_kar
 
+    def calculate_sutabel(self):
+        """print de blauwe tabel in de excel naar excel
+        wordt ook weggeschreven naar pdf bij save_to_pdf
+        wordt nu bij visualisation ook aangeroepen all
+        """
+        self.sutabel = DataFrame(columns=['S\'v [kPa]', 'SHANSEP handmatig in-situ karakteristiek', 'SHANSEP handmatig in-situ gemiddeld'])
+        x = [0.1, 1, 5, 10, 20, 30, self.shansep_data_df_oc['S\'v'].max()]
+        shansep_kar = [self.s_kar_handmatig * x * ((self.pop_kar_handmatig + x) / x) ** self.m_kar_handmatig for x in x]
+        shansep_gem = [self.s_gem_handmatig * x * ((self.pop_gem_handmatig + x) / x) ** self.m_gem_handmatig for x in x]
 
-
+        self.sutabel['S\'v [kPa]'] = x
+        self.sutabel['SHANSEP handmatig in-situ karakteristiek'] = shansep_kar
+        self.sutabel['SHANSEP handmatig in-situ gemiddeld'] = shansep_gem
+        return self.sutabel
 
     def set_figure_sv_su(self, plot_extra_dataset: Optional[List] = None, plot_spanningspaden: bool = False):
         """
@@ -382,8 +437,14 @@ class SHANSEP:
             add_extra_proefresultaten(self, plot_extra_dataset)
         add_5pr_bovengrens_sv_su(self)
         add_5pr_ondergrens_sv_su(self)
-        add_fysische_realiseerbare_ondergrens_sv_su(self)
         add_lineair_fit_sv_su(self)
+
+        if self.parameters_handmatig:
+            add_fysische_realiseerbare_ondergrens_sv_su(self)
+            self.calculate_sutabel()
+            add_shansep_lijn_sv_su(self)
+
+
         set_layout_sv_su(self)
 
     def set_figure_ln_ocr_ln_s(self, plot_extra_dataset: Optional[List] = None):
@@ -402,4 +463,87 @@ class SHANSEP:
         add_5pr_bovengrens_ln_ocr_ln_s(self)
         add_5pr_ondergrens_ln_ocr_ln_s(self)
         add_lineair_fit_ln_ocr_ln_s(self)
+
+        if self.parameters_handmatig:
+            self.calculate_sutabel()
+            add_shansep_lijn_ln_ocr_ln_s(self)
+
         set_layout_ln_ocr_ln_s(self)
+
+    def show_figure(self, plot_extra_dataset: Optional[List] = None, plot_spanningspaden: bool = False):
+        """
+        Toont de visualisatie van de analyseresultaten.
+
+        Parameters
+        ----------
+        plot_extra_dataset : List, optioneel
+            Extra dataset om in de plot weer te geven
+
+        plot_spanningspaden : bool, optioneel
+            Of de spanningspaden moeten worden weergegeven
+        """
+
+        self._run_shansep()
+        self.figure = go.Figure()
+        self.set_figure_sv_su(plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
+        self.figure.show()
+
+        self._run_shansep()
+        self.figure = go.Figure()
+        self.set_figure_ln_ocr_ln_s(plot_extra_dataset)
+        self.figure.show()
+
+    def add_results_to_dbase(self, path: str, file_name: str = 'Template_PVtool5_0.xlsx'):
+        """
+        Voegt de SHANSEP analyseresultaten toe aan de database Excel-bestand.
+
+        Parameters
+        ----------
+        path : str
+            Pad naar de map waar het Excel-bestand staat
+        file_name : str, optioneel
+            Naam van het Excel-bestand (default: 'Template_PVtool5_0.xlsx')
+
+        Returns
+        -------
+        DataFrame
+            Bijgewerkte DataFrame met alle resultaten
+        """
+        return _add_results_to_dbase(self, path, file_name)
+
+    def save_total_to_excel(self, path: str):
+        """
+        Exporteert alle SHANSEP analysegegevens naar Excel.
+
+        Slaat de volledige dataset met alle berekende kolommen op in een Excel bestand.
+        De bestandsnaam wordt automatisch gegenereerd op basis van de analyse-instellingen.
+
+        Parameters
+        ----------
+        path : str
+            Map locatie waar het Excel-bestand moet worden opgeslagen
+        """
+        return _save_total_to_excel(self, path)
+
+    def save_to_pdf(self, path: str) -> str:
+        """
+        Slaat de SHANSEP analyseresultaten op in een PDF-document.
+
+        De PDF bevat:
+        - Titel met analysedetails
+        - Beide overzichtsfiguren van de analyse (sv-su en ln(OCR)-ln(su/svc))
+        - Su tabel
+        - Tabel met gemiddelde en karakteristieke resultaten
+        - Tabel met invoerselectie informatie
+
+        Parameters
+        ----------
+        path : str
+            Map locatie waar het PDF-bestand moet worden opgeslagen
+
+        Returns
+        -------
+        str
+            Het absolute bestandspad van het aangemaakte PDF-bestand
+        """
+        return _save_to_pdf(self, path)
