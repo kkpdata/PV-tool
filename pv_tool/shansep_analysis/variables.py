@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
 import numpy as np
-from scipy.stats import t
+from scipy.stats import t, norm
 
 # -------------------------- alleen OC ---------------------------------------
 def count_sv_oc(self: SHANSEP):
@@ -205,3 +205,87 @@ def a2_kar_nc_oc(self: SHANSEP):
 def a1_kar_nc_oc(self: SHANSEP):
     return (sum_5_pr_ondergrens_nc_oc(self) - a2_kar_nc_oc(self) * sum_s_eff_nc_oc(self)) / count_s_eff_nc_oc(self)
 
+# --------------------- stdev van resultaten -----------------------
+def st_dev_s_handmatig(self: SHANSEP):
+    """Berekent de standaarddeviatie van s op basis van gemiddelde en rekenwaarde.
+
+    Returns:
+        float or None: De standaarddeviatie van s, of None als de berekening niet mogelijk is.
+    """
+    import warnings
+
+    s_gem = self.s_gem_handmatig
+    s_kar = self.s_kar_handmatig
+
+    # Controleer op fysisch onmogelijke waarden - check None first
+    if s_gem is None or s_gem <= 0:
+        warnings.warn(f"Gemiddelde s waarde moet positief zijn voor berekenen standaarddeviatie, gevonden waarde: {s_gem}")
+        return None
+    if s_kar is None or s_kar <= 0:
+        warnings.warn(f"Karakteristieke s waarde moet positief zijn voor berekenen standaarddeviatie, gevonden waarde: {s_kar}")
+        return None
+
+    try:
+        st_dev = s_gem * math.sqrt(math.exp((((norm.ppf(0.05) * 2) + math.sqrt((norm.ppf(0.05) * 2) ** 2 +
+                                                                               8 * (math.log(s_gem) - math.log(s_kar))))
+                                             / 2) ** 2) - 1)
+        return float(st_dev)
+    except Exception as e:
+        warnings.warn(f"Kon standaarddeviatie van s niet berekenen: {e}")
+        return None
+
+def st_dev_m_handmatig(self: SHANSEP):
+    """Berekent de standaarddeviatie van m op basis van gemiddelde en rekenwaarde.
+
+    Returns:
+        float or None: De standaarddeviatie van m, of None als de berekening niet mogelijk is.
+    """
+    import warnings
+
+    m_gem = self.m_gem_handmatig
+    m_kar = self.m_kar_handmatig
+
+    # Controleer op fysisch onmogelijke waarden - check None first
+    if m_gem is None or m_gem <= 0:
+        warnings.warn(f"Gemiddelde m waarde moet positief zijn voor berekenen standaarddeviatie, gevonden waarde: {m_gem}")
+        return None
+    if m_kar is None or m_kar <= 0:
+        warnings.warn(f"Karakteristieke m waarde moet positief zijn voor berekenen standaarddeviatie, gevonden waarde: {m_kar}")
+        return None
+
+    try:
+        st_dev = m_gem * math.sqrt(math.exp((((norm.ppf(0.05) * 2) + math.sqrt((norm.ppf(0.05) * 2) ** 2 +
+                                                                               8 * (math.log(m_gem) - math.log(m_kar))))
+                                             / 2) ** 2) - 1)
+        return float(st_dev)
+    except Exception as e:
+        warnings.warn(f"Kon standaarddeviatie van m niet berekenen: {e}")
+        return None
+
+def st_dev_pop_handmatig(self: SHANSEP):
+    """Berekent de standaarddeviatie van pop op basis van gemiddelde en rekenwaarde.
+
+    Returns:
+        float or None: De standaarddeviatie van pop, of None als de berekening niet mogelijk is.
+    """
+    import warnings
+
+    pop_gem = self.pop_gem_handmatig
+    pop_kar = self.pop_kar_handmatig
+
+    # Controleer op fysisch onmogelijke waarden - check None first
+    if pop_gem is None or pop_gem <= 0:
+        warnings.warn(f"Gemiddelde pop waarde moet positief zijn voor berekenen standaarddeviatie, gevonden waarde: {pop_gem}")
+        return None
+    if pop_kar is None or pop_kar <= 0:
+        warnings.warn(f"Karakteristieke pop waarde moet positief zijn voor berekenen standaarddeviatie, gevonden waarde: {pop_kar}")
+        return None
+
+    try:
+        st_dev = pop_gem * math.sqrt(math.exp((((norm.ppf(0.05) * 2) + math.sqrt((norm.ppf(0.05) * 2) ** 2 +
+                                                                               8 * (math.log(pop_gem) - math.log(pop_kar))))
+                                             / 2) ** 2) - 1)
+        return float(st_dev)
+    except Exception as e:
+        warnings.warn(f"Kon standaarddeviatie van pop niet berekenen: {e}")
+        return None

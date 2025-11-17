@@ -34,7 +34,7 @@ from pv_tool.shansep_analysis.variables import (
     e_a1_oc, e_a2_oc, e_a1_nc_oc, e_a2_nc_oc,
     a1_kar_oc, a2_kar_oc,
     a1_kar_nc_oc, a2_kar_nc_oc, exp_gem_ln_su_svc_nc, gem_pop_oc,
-    exp_kar_ln_su_svc_nc, kar_pop_oc)
+    exp_kar_ln_su_svc_nc, kar_pop_oc, st_dev_s_handmatig, st_dev_pop_handmatig, st_dev_m_handmatig)
 
 from pv_tool.shansep_analysis.expand_analysis import (calculate_ln_ocr, calculate_pop,
                                                           calculate_chi_2_nc_oc, calculate_sv_tt_oc, calculate_sv_spop,
@@ -115,11 +115,16 @@ class SHANSEP:
         self.pop_kar_handmatig: Optional[float] = None
         self.pop_gem_handmatig: Optional[float] = None
 
+        self.st_dev_s_handmatig: Optional[float] = None
+        self.st_dev_pop_handmatig: Optional[float] = None
+        self.st_dev_m_handmatig: Optional[float] = None
+
         # dataframes
         self.shansep_data_df: Optional[DataFrame] = None
         self.total_shansep_data_df: Optional[DataFrame] = None
         self.shansep_data_df_oc: Optional[DataFrame] = None
         self.shansep_data_df_nc_oc: Optional[DataFrame] = None
+        self.shansep_data_df_nc_oc_unsorted: Optional[DataFrame] = None
         self.df_results_shansep_gem: Optional[DataFrame] = None
         self.df_results_shansep_kar: Optional[DataFrame] = None
         self.sutabel: Optional[DataFrame] = None
@@ -245,6 +250,7 @@ class SHANSEP:
         calculate_pop(self)
 
         self.shansep_data_df_nc_oc = self.shansep_data_df.copy()
+        self.shansep_data_df_nc_oc_unsorted = self.shansep_data_df.copy()
         self.shansep_data_df_nc_oc = self.shansep_data_df_nc_oc.sort_values(
             by=['consolidatietype', self.shansep_data_df_nc_oc.index.name or self.shansep_data_df_nc_oc.index],
             ascending=[False, True]
@@ -296,6 +302,17 @@ class SHANSEP:
         self.exp_a1_kar_nc_oc = math.exp(a1_kar_nc_oc(self))
         self.exp_kar_ln_su_svc_nc = exp_kar_ln_su_svc_nc(self)
         self.pop_kar_oc = kar_pop_oc(self)
+
+        # Only calculate standard deviations if manual parameters are set
+        if hasattr(self, 'parameters_handmatig') and self.parameters_handmatig:
+            self.st_dev_m_handmatig = st_dev_m_handmatig(self)
+            self.st_dev_pop_handmatig = st_dev_pop_handmatig(self)
+            self.st_dev_s_handmatig = st_dev_s_handmatig(self)
+        else:
+            # Initialize as None when manual parameters are not set
+            self.st_dev_m_handmatig = None
+            self.st_dev_pop_handmatig = None
+            self.st_dev_s_handmatig = None
 
     def _run_shansep(self):
         """
@@ -386,8 +403,7 @@ class SHANSEP:
             index=True
         )
 
-    def set_parameters_handmatig(self, snijpunt_gem: float, s_gem: float, m_gem: float,
-                              snijpunt_kar: float, s_kar: float, m_kar: float):
+    def set_parameters_handmatig(self, snijpunt_gem, s_gem, m_gem, snijpunt_kar, s_kar, m_kar):
         """
         Stelt de handmatige parameters in voor de analyse. De invoer moet handmatig worden gedaan door de gebruiker op basis van de resultaten tabel
         """
@@ -403,6 +419,11 @@ class SHANSEP:
         self.s_kar_handmatig = s_kar
         self.m_kar_handmatig = m_kar
         self.pop_kar_handmatig = snijpunt_kar / s_kar / m_kar
+
+        # Recalculate standard deviations now that manual parameters are set
+        self.st_dev_m_handmatig = st_dev_m_handmatig(self)
+        self.st_dev_pop_handmatig = st_dev_pop_handmatig(self)
+        self.st_dev_s_handmatig = st_dev_s_handmatig(self)
 
     def calculate_sutabel(self):
         """print de blauwe tabel in de excel naar excel

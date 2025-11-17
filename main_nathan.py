@@ -249,15 +249,15 @@ def shansep_analysis_test(dbase: Dbase):
 
     save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
-    df_updated = analyse.add_results_to_dbase(path=str(save_test), file_name='Template_PVtool5_0_SAFE_2022_PV.xlsx')
-    analyse.save_total_to_excel(path=str(save_test))
+    #df_updated = analyse.add_results_to_dbase(path=str(save_test), file_name='Template_PVtool5_0_SAFE_2022_PV.xlsx')
+
 
     analyse.set_parameters_handmatig(snijpunt_gem=11, s_gem=0.31, m_gem=0.9, snijpunt_kar=7, s_kar=0.28, m_kar=0.9)
     sutabel = analyse.calculate_sutabel()
-    analyse.show_figure_sv_su(plot_extra_dataset=None, plot_spanningspaden=False)
-    analyse.show_figure_ln_ocr_ln_s(plot_extra_dataset=None)
+    #analyse.show_figure_sv_su(plot_extra_dataset=None, plot_spanningspaden=False)
+    #analyse.show_figure_ln_ocr_ln_s(plot_extra_dataset=None)
     pdf_path = analyse.save_to_pdf(path=str(save_test))
-    analyse.export_shansep_results_excel(file_path=str(save_test / "shansep_results.xlsx"))
+    analyse.save_total_to_excel(path=str(save_test))
 
 if __name__ == "__main__":
     # Test database import
