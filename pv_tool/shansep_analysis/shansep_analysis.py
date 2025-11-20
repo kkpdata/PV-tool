@@ -24,7 +24,9 @@ from pv_tool.shansep_analysis.visualization_shansep import (
     add_5pr_ondergrens_ln_ocr_ln_s,
     add_lineair_fit_ln_ocr_ln_s,
     set_layout_sv_su,
-    set_layout_ln_ocr_ln_s, add_shansep_lijn_sv_su, add_shansep_lijn_ln_ocr_ln_s
+    set_layout_ln_ocr_ln_s, add_shansep_lijn_sv_su, add_shansep_lijn_ln_ocr_ln_s,
+    add_proefresultaten_sv_su_nc, add_fysische_realiseerbare_ondergrens_sv_su_nc,
+    add_lineair_fit_sv_su_nc, add_shansep_lijn_sv_su_nc
 )
 
 from pv_tool.shansep_analysis.variables import (
@@ -54,6 +56,8 @@ from pv_tool.shansep_analysis.save_and_export import (
 
 
 #-------------------------- SHANSEP Analysis Class ---------------------------------------#
+
+# TODO voeg de sutabel methode er aan toe. alleen op oc proeven, check of kolommen hetzelfde wordt berekend
 
 class SHANSEP:
 
@@ -122,12 +126,14 @@ class SHANSEP:
         # dataframes
         self.shansep_data_df: Optional[DataFrame] = None
         self.total_shansep_data_df: Optional[DataFrame] = None
+        self.shansep_data_df_nc: Optional[DataFrame] = None
         self.shansep_data_df_oc: Optional[DataFrame] = None
         self.shansep_data_df_nc_oc: Optional[DataFrame] = None
         self.shansep_data_df_nc_oc_unsorted: Optional[DataFrame] = None
         self.df_results_shansep_gem: Optional[DataFrame] = None
         self.df_results_shansep_kar: Optional[DataFrame] = None
         self.sutabel: Optional[DataFrame] = None
+        self.sutabel_nc: Optional[DataFrame] = None
 
         # Figure
         self.figure = go.Figure()
@@ -360,6 +366,45 @@ class SHANSEP:
         # write these dataframes to excel
         return self.df_results_shansep_gem, self.df_results_shansep_kar
 
+    def get_result_values_nc(self):
+        """
+        Berekent de resultaten voor NC (Normal Consolidated) analyse waarbij snijpunt, m en pop waarden op 0 staan.
+        Dit is bedoeld voor visualisatie van alleen NC data zonder overconsolidatie effecten.
+
+        Returns
+        -------
+        tuple[DataFrame, DataFrame]
+            Gemiddelde en karakteristieke resultaten voor NC analyse
+        """
+        self._run_shansep()
+
+        # Maak kopie van bestaande resultaten maar zet specifieke waarden op 0 voor NC analyse
+        df_results_nc_gem = DataFrame(
+            index=['bepaling S en POP uit triaxiaal- of DSS proeven', 'bepaling S en m uit triaxiaal- of DSS proeven',
+                    'o.b.v. opgegeven POP bij triaxiaal- of DSS proeven',
+                   'bepaling S uit triaxiaal- of DSS proeven OCR=1',
+                   'gemiddelde handmatige keuze snijput, S en m'])
+
+        # Voor NC analyse: snijpunt = 0, m = 0, POP = 0
+        df_results_nc_gem['snijpunt y-as [kPa]'] = [0, None, None, None, 0]
+        df_results_nc_gem['Schuifsterkteratio S [-]'] = [self.e_a2_oc, self.exp_e_a1_nc_oc, None, self.exp_gem_ln_su_svc_nc, self.s_gem_handmatig if self.s_gem_handmatig else 0]
+        df_results_nc_gem['sterkte toename exponent = m [-]'] = [None, 0, None, None, 0]
+        df_results_nc_gem['POP [kPa]'] = [0, 0, 0, None, 0]
+
+        df_results_nc_kar = DataFrame(
+            index=['bepaling S en POP uit triaxiaal- of DSS proeven', 'bepaling S en m uit triaxiaal- of DSS proeven',
+                   'o.b.v. opgegeven POP bij triaxiaal- of DSS proeven',
+                   'bepaling S uit triaxiaal- of DSS proeven OCR=1',
+                   'karakteristieke handmatige keuze snijput, S en m'])
+
+        # Voor NC analyse: snijpunt = 0, m = 0, POP = 0
+        df_results_nc_kar['snijpunt y-as [kPa]'] = [0, None, None, None, 0]
+        df_results_nc_kar['Schuifsterkteratio S [-]'] = [self.a2_kar_oc, self.exp_a1_kar_nc_oc, None, self.exp_kar_ln_su_svc_nc, self.s_kar_handmatig if self.s_kar_handmatig else 0]
+        df_results_nc_kar['sterkte toename exponent = m [-]'] = [None, 0, None, None, 0]
+        df_results_nc_kar['POP [kPa]'] = [0, 0, 0, None, 0]
+
+        return df_results_nc_gem, df_results_nc_kar
+
     def export_shansep_results_excel(self, file_path: str):
         """
         Exporteert de shansep resultaten naar een Excel-bestand.
@@ -376,9 +421,9 @@ class SHANSEP:
         df_gem.index = df_gem.index.astype(str)
         df_kar.index = df_kar.index.astype(str)
         if df_gem.index.name is None:
-            df_gem.index.name = 'Parameters'
+            df_gem.index.name = 'Analyse'
         if df_kar.index.name is None:
-            df_kar.index.name = 'Parameters'
+            df_kar.index.name = 'Analyse'
 
         with ExcelWriter(file_path) as writer:
             df_gem.to_excel(writer, sheet_name='Gemiddeld', index=True)
@@ -430,14 +475,14 @@ class SHANSEP:
         wordt ook weggeschreven naar pdf bij save_to_pdf
         wordt nu bij visualisation ook aangeroepen all
         """
-        self.sutabel = DataFrame(columns=['S\'v [kPa]', 'SHANSEP handmatig in-situ karakteristiek', 'SHANSEP handmatig in-situ gemiddeld'])
+        self.sutabel = DataFrame(columns=['S\'v [kPa]', 'Su in-situ karakteristiek', 'Su in-situ gemiddeld'])
         x = [0.1, 1, 5, 10, 20, 30, self.shansep_data_df_oc['S\'v'].max()]
         shansep_kar = [self.s_kar_handmatig * x * ((self.pop_kar_handmatig + x) / x) ** self.m_kar_handmatig for x in x]
         shansep_gem = [self.s_gem_handmatig * x * ((self.pop_gem_handmatig + x) / x) ** self.m_gem_handmatig for x in x]
 
         self.sutabel['S\'v [kPa]'] = x
-        self.sutabel['SHANSEP handmatig in-situ karakteristiek'] = shansep_kar
-        self.sutabel['SHANSEP handmatig in-situ gemiddeld'] = shansep_gem
+        self.sutabel['Su in-situ karakteristiek'] = shansep_kar
+        self.sutabel['Su in-situ gemiddeld'] = shansep_gem
         return self.sutabel
 
     def set_figure_sv_su(self, plot_extra_dataset: Optional[List] = None, plot_spanningspaden: bool = False):
@@ -465,6 +510,34 @@ class SHANSEP:
             self.calculate_sutabel()
             add_shansep_lijn_sv_su(self)
 
+        set_layout_sv_su(self)
+
+    def set_figure_sv_su_nc(self, plot_extra_dataset: Optional[List] = None, plot_spanningspaden: bool = False):
+        """
+        Maakt een visualisatie van de analyseresultaten.
+
+        Parameters
+        ----------
+        plot_extra_dataset : List, optioneel
+            Extra dataset om in de plot weer te geven
+
+        plot_spanningspaden : bool, optioneel
+            Of de spanningspaden moeten worden weergegeven
+        """
+        self._run_shansep()
+
+        self.shansep_data_df_nc = self.shansep_data_df_nc_oc[self.shansep_data_df_nc_oc['consolidatietype'] == 'NC'].copy() if hasattr(
+            self, 'shansep_data_df_nc_oc') and self.shansep_data_df_nc_oc is not None else None
+
+        add_proefresultaten_sv_su_nc(self)
+        if plot_extra_dataset is not None:
+            add_extra_proefresultaten(self, plot_extra_dataset)
+        add_lineair_fit_sv_su_nc(self)
+
+        if self.parameters_handmatig:
+            add_fysische_realiseerbare_ondergrens_sv_su_nc(self)
+            self.calculate_sutabel_nc()
+            add_shansep_lijn_sv_su_nc(self)
 
         set_layout_sv_su(self)
 
@@ -525,6 +598,42 @@ class SHANSEP:
         self.figure = go.Figure()
         self.set_figure_ln_ocr_ln_s(plot_extra_dataset)
         self.figure.show()
+
+    def show_figure_sv_su_nc(self, plot_extra_dataset: Optional[List] = None):
+        """
+        Toont de visualisatie van NC (Normal Consolidated) analyseresultaten met sv-su plot.
+
+        Parameters
+        ----------
+        plot_extra_dataset : List, optioneel
+            Extra dataset om in de plot weer te geven
+        """
+        self._run_shansep()
+        self.figure = go.Figure()
+
+        self.set_figure_sv_su_nc(plot_extra_dataset)
+
+        self.figure.show()
+
+    def calculate_sutabel_nc(self):
+        """
+        Berekent de su tabel voor NC analyse waarbij POP=0, m=0 waardoor de formule
+        vereenvoudigt tot Su = S * sv voor NC condities.
+        """
+        self.sutabel_nc = DataFrame(columns=['S\'v [kPa]', 'Su in-situ karakteristiek', 'Su in-situ gemiddeld'])
+        x = [0.1, 1, 5, 10, 20, 30, self.shansep_data_df_nc['S\'v'].max() if hasattr(self, 'shansep_data_df_oc') and self.shansep_data_df_oc is not None else 50]
+
+        # Voor NC: Su = S * sv (geen POP of m effect)
+        s_kar_nc = self.s_kar_handmatig if self.s_kar_handmatig else self.a2_kar_oc
+        s_gem_nc = self.s_gem_handmatig if self.s_gem_handmatig else self.e_a2_oc
+
+        shansep_kar_nc = [s_kar_nc * sv for sv in x]
+        shansep_gem_nc = [s_gem_nc * sv for sv in x]
+
+        self.sutabel_nc['S\'v [kPa]'] = x
+        self.sutabel_nc['Su in-situ karakteristiek'] = shansep_kar_nc
+        self.sutabel_nc['Su in-situ gemiddeld'] = shansep_gem_nc
+        return self.sutabel_nc
 
     def add_results_to_dbase(self, path: str, file_name: str = 'Template_PVtool5_0.xlsx'):
         """

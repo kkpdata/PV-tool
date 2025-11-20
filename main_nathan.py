@@ -253,9 +253,11 @@ def shansep_analysis_test(dbase: Dbase):
 
 
     analyse.set_parameters_handmatig(snijpunt_gem=11, s_gem=0.31, m_gem=0.9, snijpunt_kar=7, s_kar=0.28, m_kar=0.9)
-    sutabel = analyse.calculate_sutabel()
+    # sutabel = analyse.calculate_sutabel()
     #analyse.show_figure_sv_su(plot_extra_dataset=None, plot_spanningspaden=False)
     #analyse.show_figure_ln_ocr_ln_s(plot_extra_dataset=None)
+
+    analyse.show_figure_sv_su_nc(plot_extra_dataset=None)
     pdf_path = analyse.save_to_pdf(path=str(save_test))
     analyse.save_total_to_excel(path=str(save_test))
 

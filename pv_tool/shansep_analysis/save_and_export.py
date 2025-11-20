@@ -20,6 +20,8 @@ except ImportError:
 if TYPE_CHECKING:
     from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
 
+# TODO c-phi tabblad hernoemen naar 'Resultaten c-phi'
+
 
 def add_results_to_dbase(self: "SHANSEP", path: str, file_name: str = 'Template_PVtool5_0.xlsx'):
     """
@@ -72,6 +74,7 @@ def add_results_to_dbase(self: "SHANSEP", path: str, file_name: str = 'Template_
         pop_sd_dstab = abs(df_gem['POP [kPa]'].iloc[0] - df_kar['POP [kPa]'].iloc[0]) / 2
 
     # Maak nieuwe row met resultaten
+    # TODO handmatige moeten hier komen als die er zijn  -anders None
     new_row = {
         'PVNAAM': self.investigation_groups[0],
         'PV_REK': self.effective_stress,
@@ -79,7 +82,7 @@ def add_results_to_dbase(self: "SHANSEP", path: str, file_name: str = 'Template_
         'PV_ANALYSE': '_'.join(self.analysis_type.split('_')[1:]),
         'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type}",
         'PV_TYPEVERZAMELING': self.alpha,
-        'PV_A1_SNIJPUNT_YAS_GEM [-]': round(df_gem['snijpunt y-as [kPa]'].iloc[0], 3) if df_gem['snijpunt y-as [kPa]'].iloc[0] is not None else None,
+        'PV_A1_SNIJPUNT_YAS_GEM [-]': round(self.snijpunt_gem_handmatig, 3) if self.snijpunt_gem_handmatig is not None else None,
         'PV_A2_S_GEM [-]': round(df_gem['Schuifsterkteratio S [-]'].iloc[0], 3) if df_gem['Schuifsterkteratio S [-]'].iloc[0] is not None else None,
         'PV_m_GEM [-]': round(df_gem['sterkte toename exponent = m [-]'].iloc[1], 3) if df_gem['sterkte toename exponent = m [-]'].iloc[1] is not None else None,
         'PV_POP_GEM [kPa]': round(df_gem['POP [kPa]'].iloc[0], 3) if df_gem['POP [kPa]'].iloc[0] is not None else None,
@@ -173,6 +176,10 @@ def save_total_to_excel(self: "SHANSEP", path: str):
     # Ensure result DataFrames have string columns
     df_gem.columns = df_gem.columns.astype(str)
     df_kar.columns = df_kar.columns.astype(str)
+
+    # Set index names to avoid Excel adding 'Column1' header
+    df_gem.index.name = 'Analyse'
+    df_kar.index.name = 'Analyse'
 
     # Write all data to Excel
     with ExcelWriter(file_path, engine='openpyxl') as writer:
@@ -558,14 +565,14 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
     story.append(Spacer(width=1, height=12))
 
     # Probeer figuren te genereren en toe te voegen
+    # Controleer of handmatige parameters zijn ingesteld
+    has_manual_params = hasattr(self, 'parameters_handmatig') and self.parameters_handmatig
+
+    from reportlab.platypus import PageBreak, Image as RLImage
+    from PIL import Image as PILImage
+
+    # Eerste figuur: sv-su plot
     try:
-        # Controleer of handmatige parameters zijn ingesteld
-        has_manual_params = hasattr(self, 'parameters_handmatig') and self.parameters_handmatig
-
-        from reportlab.platypus import PageBreak, Image as RLImage
-        from PIL import Image as PILImage
-
-        # Eerste figuur: sv-su plot
         fig_path1 = f"{path}/temp_plot1.png"
         self.show_title = False
 
@@ -621,7 +628,14 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
             # Nieuwe pagina voor tweede figuur
             story.append(PageBreak())
 
-        # Tweede figuur: ln(OCR) - ln(su/svc) plot
+    except Exception as e:
+        print(f"Waarschuwing: Kon eerste figuur (Sv-Su) niet toevoegen aan PDF: {e}")
+        story.append(Paragraph("Eerste figuur: (kon niet worden gegenereerd)", styles['Heading3']))
+        story.append(Spacer(width=1, height=12))
+        story.append(PageBreak())
+
+    # Tweede figuur: ln(OCR) - ln(su/svc) plot
+    try:
         fig_path2 = f"{path}/temp_plot2.png"
         self.show_title = False
 
@@ -674,18 +688,80 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
             story.append(Spacer(width=1, height=12))
             story.append(img2)
 
+            # Nieuwe pagina voor derde figuur
+            story.append(PageBreak())
+
+    except Exception as e:
+        print(f"Waarschuwing: Kon tweede figuur (ln(OCR) - ln(su/svc)) niet toevoegen aan PDF: {e}")
+        story.append(Paragraph("Tweede figuur: (kon niet worden gegenereerd)", styles['Heading3']))
+        story.append(Spacer(width=1, height=12))
+        story.append(PageBreak())
+
+    # Derde figuur: sv-su NC plot
+    try:
+        fig_path3 = f"{path}/temp_plot3.png"
+        self.show_title = False
+
+        # Genereer figuur met juiste parameters (handmatig of berekend)
+        if has_manual_params:
+            # Als handmatige parameters zijn ingesteld, zorg dat die worden gebruikt
+            self.show_figure_sv_su_nc()
+        else:
+            # Anders gebruik de standaard berekende parameters
+            self.show_figure_sv_su_nc()
+
+        if hasattr(self, 'figure') and self.figure is not None:
+            fig_width = 1280
+            fig_height = 720
+            self.figure.write_image(fig_path3, width=fig_width, height=fig_height, scale=4, format="png")
+
+            # Bereken figuurgrootte voor pagina 3 (alleen met heading)
+            # Ruimte voor heading (ongeveer 25 pt) + spacer (ongeveer 12 pt)
+            heading_height = 37
+            available_height = doc.height - heading_height
+
+            # Laad PNG en bepaal pixelafmetingen
+            with PILImage.open(fig_path3) as im:
+                img_width_px, img_height_px = im.size
+
+            # Bereken optimale grootte die op de pagina past
+            max_width_pt = doc.width * 0.95
+            aspect = img_height_px / img_width_px
+
+            # Probeer eerst op basis van breedte
+            img_width_pt = min(max_width_pt, doc.width)
+            img_height_pt = img_width_pt * aspect
+
+            # Controleer of het past in de beschikbare hoogte, anders schaal naar hoogte
+            if img_height_pt > available_height:
+                img_height_pt = available_height * 0.95
+                img_width_pt = img_height_pt / aspect
+
+            # Maak ReportLab Image aan
+            img3 = RLImage(fig_path3)
+            img3.drawWidth = img_width_pt
+            img3.drawHeight = img_height_pt
+            img3.hAlign = 'LEFT'
+
+            # Voeg titel toe die aangeeft of handmatige parameters zijn gebruikt
+            if has_manual_params:
+                story.append(Paragraph("Sv-Su NC Relatie (met handmatige parameters)", styles['Heading3']))
+            else:
+                story.append(Paragraph("Sv-Su NC Relatie (met voorgestelde parameters)", styles['Heading3']))
+            story.append(Spacer(width=1, height=12))
+            story.append(img3)
+
             # Nieuwe pagina voor de tabellen en resultaten
             story.append(PageBreak())
 
-        # Reset title setting
-        self.show_title = True
-
     except Exception as e:
-        print(f"Waarschuwing: Kon figuren niet toevoegen aan PDF: {e}")
-        from reportlab.platypus import PageBreak
-        story.append(Paragraph("Figuren: (kon niet worden gegenereerd)", styles['Heading3']))
+        print(f"Waarschuwing: Kon derde figuur (Sv-Su NC) niet toevoegen aan PDF: {e}")
+        story.append(Paragraph("Derde figuur: (kon niet worden gegenereerd)", styles['Heading3']))
         story.append(Spacer(width=1, height=12))
         story.append(PageBreak())
+
+    # Reset title setting
+    self.show_title = True
 
     # Voeg parameters toe
     story.append(Paragraph("SHANSEP Parameters", styles['Heading2']))
@@ -701,6 +777,12 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
     story.append(Paragraph("SHANSEP Resultaten karakteristiek", styles['Heading2']))
     story.append(_create_kar_results_table(self))
     story.append(Spacer(1, 12))
+
+    # TODO haal de gekozen handmatige waardes uit de tabellen en presenteer ze in losse tabel met standaarddev
+    # TODO noem dan de eerdere tabellen 'eerste benadering'
+    # TODO noem de eerste tabel die nu shansep parameters heet 'invoer parameters en eigenschappen' - vgw nat, watergehalte, type verzameling
+    # TODO doe dit ook voor c phi en dan staan part materiaal factoren erbij
+
 
     # Voeg Su tabel toe indien beschikbaar
     if hasattr(self, 'sutabel') and self.sutabel is not None:
@@ -735,6 +817,7 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
         story.append(Spacer(1, 12))
 
     # Voeg invoerselectie toe
+    # TODO haal consol type eruit, grensspanning, terreinspanning en POP erbij
     story.append(Paragraph("Invoerselectie Informatie", styles['Heading2']))
     story.append(_create_input_table(self))
 

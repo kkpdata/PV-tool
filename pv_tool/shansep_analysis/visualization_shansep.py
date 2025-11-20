@@ -12,6 +12,7 @@ from pv_tool.shansep_analysis.globals import (TEXTUAL_NAMES, TEXTUAL_NAMES_DSS, 
 from pandas import DataFrame
 import numpy as np
 
+# TODO overal s_u en sigma'_v in assen titels en in tabellen
 
 def add_proefresultaten_sv_su(self: SHANSEP):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
@@ -19,6 +20,27 @@ def add_proefresultaten_sv_su(self: SHANSEP):
 
     x_proefresultaten = self.shansep_data_df_oc['S\'v']
     y_proefresultaten = self.shansep_data_df_oc['Su']
+
+    self.figure.add_trace(
+        go.Scatter(
+            x=x_proefresultaten,
+            y=y_proefresultaten,
+            mode='markers',
+            marker=dict(
+                color='blue'
+            ),
+            name=f'Geanalyseerd: {self.investigation_groups[0]}',
+            text=boring_monsternummer,
+            hoverinfo='text'
+        )
+    )
+
+def add_proefresultaten_sv_su_nc(self: SHANSEP):
+    """Deze functie voegt de proefresultaten toe aan de figuur."""
+    boring_monsternummer = self.shansep_data_df_nc.index
+
+    x_proefresultaten = self.shansep_data_df_nc['S\'v']
+    y_proefresultaten = self.shansep_data_df_nc['Su']
 
     self.figure.add_trace(
         go.Scatter(
@@ -196,6 +218,27 @@ def add_fysische_realiseerbare_ondergrens_sv_su(self: SHANSEP):
         )
     )
 
+def add_fysische_realiseerbare_ondergrens_sv_su_nc(self: SHANSEP):
+    """Deze functie voegt de fysische realiseerbare ondergrens toe aan de figuur."""
+    raaklijn_kar_x1 = 0
+    raaklijn_kar_x2 = self.shansep_data_df_nc['S\'v'].max() + 5
+
+    raaklijn_kar_y1 = 0 + (raaklijn_kar_x1 * self.s_kar_handmatig)
+    raaklijn_kar_y2 = 0 + (raaklijn_kar_x2 * self.s_kar_handmatig)
+
+    x = [raaklijn_kar_x1, raaklijn_kar_x2]
+    y = [raaklijn_kar_y1, raaklijn_kar_y2]
+
+    self.figure.add_trace(
+        go.Scatter(
+            x=x,
+            y=y,
+            mode='lines',
+            name='Fysische realiseerbare ondergrens',
+            line=dict(color='black', width=2),
+        )
+    )
+
 
 def _get_helling_value(helling):
     """Helper function om de juiste waarde uit helling te halen, ongeacht of het een float of array is."""
@@ -213,6 +256,35 @@ def add_lineair_fit_sv_su(self: SHANSEP):
     # lineaire fit helling berekenen
     x_data = self.shansep_data_df_oc['S\'v'].values
     y_data = self.shansep_data_df_oc['Su'].values
+    # Gebruik numpy polyfit voor lineaire regressie (graad 1 = lineair)
+    helling, intercept = np.polyfit(x_data, y_data, 1)
+
+    # formula voor y1 en y2
+    y1 = x1 * helling + intercept
+    y2 = x2 * helling + intercept
+
+    x = [x1, x2]
+    y = [y1, y2]
+
+    self.figure.add_trace(
+        go.Scatter(
+            x=x,
+            y=y,
+            mode='lines',
+            name='Lineaire fit proefresultaten',
+            line=dict(color='green', width=2),
+        )
+    )
+
+def add_lineair_fit_sv_su_nc(self: SHANSEP):
+    """Deze functie voegt de lineaire fit van de proefresultaten toe aan de figuur."""
+    # Gebruik dezelfde x-range als de andere lijnen (5% grenzen) om overlap te voorkomen
+    x1 = self.shansep_data_df_nc['S\'v'].min()
+    x2 = self.shansep_data_df_nc['S\'v'].max()
+
+    # lineaire fit helling berekenen
+    x_data = self.shansep_data_df_nc['S\'v'].values
+    y_data = self.shansep_data_df_nc['Su'].values
     # Gebruik numpy polyfit voor lineaire regressie (graad 1 = lineair)
     helling, intercept = np.polyfit(x_data, y_data, 1)
 
@@ -262,31 +334,56 @@ def add_lineair_fit_ln_ocr_ln_s(self: SHANSEP):
         )
     )
 
-def add_karakteristieke_lijn_sv_su(self: SHANSEP):
-    """Deze functie voegt de karakteristieke lijn toe aan de figuur."""
-    x1 = 0
-    x2 = self.shansep_data_df_oc['S\'v'].max() + 5
+# def add_karakteristieke_lijn_sv_su(self: SHANSEP):
+#     """Deze functie voegt de karakteristieke lijn toe aan de figuur."""
+#     x1 = 0
+#     x2 = self.shansep_data_df_oc['S\'v'].max() + 5
+#
+#     y1 = x1 + self.snijpunt_kar_handmatig
+#     y2 = self.snijpunt_kar_handmatig + (x2 * self.s_kar_handmatig)
+#
+#     x = [x1, x2]
+#     y = [y1, y2]
+#
+#     self.figure.add_trace(
+#         go.Scatter(
+#             x=x,
+#             y=y,
+#             mode='lines',
+#             name='Karakteristieke lijn',
+#             line=dict(color='black', width=3),
+#         )
+#     )
 
-    y1 = x1 + self.snijpunt_kar_handmatig
-    y2 = self.snijpunt_kar_handmatig + (x2 * self.s_kar_handmatig)
-
-    x = [x1, x2]
-    y = [y1, y2]
+def add_shansep_lijn_sv_su(self: SHANSEP):
+    x = self.sutabel['S\'v [kPa]'].tolist()
+    shansep_kar = self.sutabel['Su in-situ karakteristiek'].tolist()
+    shansep_gem = self.sutabel['Su in-situ gemiddeld'].tolist()
 
     self.figure.add_trace(
         go.Scatter(
             x=x,
-            y=y,
+            y=shansep_gem,
             mode='lines',
-            name='Karakteristieke lijn',
-            line=dict(color='black', width=3),
+            name='SHANSEP gemiddelde lijn',
+            line=dict(color='purple', width=2, dash='dot')
         )
     )
 
-def add_shansep_lijn_sv_su(self: SHANSEP):
-    x = self.sutabel['S\'v [kPa]'].tolist()
-    shansep_kar = self.sutabel['SHANSEP handmatig in-situ karakteristiek'].tolist()
-    shansep_gem = self.sutabel['SHANSEP handmatig in-situ gemiddeld'].tolist()
+    self.figure.add_trace(
+        go.Scatter(
+            x=x,
+            y=shansep_kar,
+            mode='lines',
+            name='SHANSEP karakteristieke lijn',
+            line=dict(color='purple', width=2)
+        )
+    )
+
+def add_shansep_lijn_sv_su_nc(self: SHANSEP):
+    x = self.sutabel_nc['S\'v [kPa]'].tolist()
+    shansep_kar = self.sutabel_nc['Su in-situ karakteristiek'].tolist()
+    shansep_gem = self.sutabel_nc['Su in-situ gemiddeld'].tolist()
 
     self.figure.add_trace(
         go.Scatter(
