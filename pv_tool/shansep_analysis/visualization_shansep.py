@@ -29,7 +29,7 @@ def add_proefresultaten_sv_su(self: SHANSEP):
             marker=dict(
                 color='blue'
             ),
-            name=f'Geanalyseerd: {self.investigation_groups[0]}',
+            name=f'Geanalyseerd: {self.investigation_groups[0]} (OC)',
             text=boring_monsternummer,
             hoverinfo='text'
         )
@@ -50,7 +50,7 @@ def add_proefresultaten_sv_su_nc(self: SHANSEP):
             marker=dict(
                 color='blue'
             ),
-            name=f'Geanalyseerd: {self.investigation_groups[0]}',
+            name=f'Geanalyseerd: {self.investigation_groups[0]} (NC)',
             text=boring_monsternummer,
             hoverinfo='text'
         )

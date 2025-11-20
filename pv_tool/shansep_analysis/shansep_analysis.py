@@ -266,7 +266,7 @@ class SHANSEP:
         calculate_sv_ty_nc_oc(self)
         calculate_chi_2_nc_oc(self)
         calculate_sv_eff_nc_oc(self)
-        calculate_5pr_ondergrens_nc_oc(self)
+        calculate_5pr_ondergrens_nc_oc(self) # TODO vanaf hier sijn de resultaten nog steeds fout (boven en ondergrens enzo)
         calculate_5pr_bovengrens_nc_oc(self)
         calculate_sv_tt_ondergrens_nc_oc(self)
         calculate_sv_ty_ondergrens_nc_oc(self)

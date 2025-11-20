@@ -151,6 +151,8 @@ def save_total_to_excel(self: "SHANSEP", path: str):
     self : SHANSEP
         Instantie van de SHANSEP klasse
     """
+    print("Debug: Starting save_total_to_excel function")
+
     # Pas de effective stress naam aan zodat het weggeschreven kan worden in de bestandsnaam
     effective_stress = str(self.effective_stress).replace('%', 'procent_')
     effective_stress = str(effective_stress).replace(' ', '')
@@ -173,13 +175,17 @@ def save_total_to_excel(self: "SHANSEP", path: str):
     if hasattr(self, 'sutabel') and self.sutabel is not None:
         self.sutabel.columns = self.sutabel.columns.astype(str)
 
-    # Ensure result DataFrames have string columns
+    # Ensure result DataFrames have string columns and index
     df_gem.columns = df_gem.columns.astype(str)
     df_kar.columns = df_kar.columns.astype(str)
 
+    # Ensure index is also string type
+    df_gem.index = df_gem.index.astype(str)
+    df_kar.index = df_kar.index.astype(str)
+
     # Set index names to avoid Excel adding 'Column1' header
-    df_gem.index.name = 'Analyse'
-    df_kar.index.name = 'Analyse'
+    df_gem.index.name = 'analyse'
+    df_kar.index.name = 'analyse'
 
     # Write all data to Excel
     with ExcelWriter(file_path, engine='openpyxl') as writer:
@@ -189,9 +195,16 @@ def save_total_to_excel(self: "SHANSEP", path: str):
         if self.shansep_data_df_nc_oc is not None:
             self.shansep_data_df_nc_oc.to_excel(writer, sheet_name='Analyse Data OC en NC', index=False)
 
-        # Results
-        df_gem.to_excel(writer, sheet_name='Resultaten Gemiddeld', index=True)
-        df_kar.to_excel(writer, sheet_name='Resultaten Karakteristiek', index=True)
+        # Results - clean data before export
+        df_gem_export = df_gem.copy()
+        df_kar_export = df_kar.copy()
+
+        # Replace None values with empty string to avoid Excel issues
+        df_gem_export = df_gem_export.fillna('')
+        df_kar_export = df_kar_export.fillna('')
+
+        df_gem_export.to_excel(writer, sheet_name='Resultaten Gemiddeld', index=True)
+        df_kar_export.to_excel(writer, sheet_name='Resultaten Karakteristiek', index=True)
 
         # Su tabel if available
         if hasattr(self, 'sutabel') and self.sutabel is not None:
@@ -219,7 +232,7 @@ def save_total_to_excel(self: "SHANSEP", path: str):
     format_excel_sheet(
         file_path=file_path,
         sheet_name='Resultaten Gemiddeld',
-        num_columns=df_gem.shape[1] + 1,  # +1 for index
+        num_columns=df_gem.shape[1],  # +1 for index
         num_rows=df_gem.shape[0],
         table_name='ResultatenGemiddeldTable',
         index=True
@@ -227,11 +240,20 @@ def save_total_to_excel(self: "SHANSEP", path: str):
     format_excel_sheet(
         file_path=file_path,
         sheet_name='Resultaten Karakteristiek',
-        num_columns=df_kar.shape[1] + 1,  # +1 for index
+        num_columns=df_kar.shape[1],  # +1 for index
         num_rows=df_kar.shape[0],
         table_name='ResultatenKarakteristiekTable',
         index=True
     )
+    if self.sutabel is not None:
+        format_excel_sheet(
+            file_path=file_path,
+            sheet_name='Su Tabel',
+            num_columns=self.sutabel.shape[1],
+            num_rows=self.sutabel.shape[0],
+            table_name='SuTabelTable',
+            index=False
+        )
 
     print(f"SHANSEP Excel export voltooid: {file_path}")
 
