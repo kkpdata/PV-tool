@@ -12,8 +12,6 @@ from pv_tool.shansep_analysis.globals import (TEXTUAL_NAMES, TEXTUAL_NAMES_DSS, 
 from pandas import DataFrame
 import numpy as np
 
-# TODO overal s_u en sigma'_v in assen titels en in tabellen
-
 def add_proefresultaten_sv_su(self: SHANSEP):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
     boring_monsternummer = self.shansep_data_df_oc.index
@@ -416,9 +414,6 @@ def add_shansep_lijn_ln_ocr_ln_s(self: SHANSEP):
 
     t_gem = [a1gem+(x*a2gem) for x in s]
     t_kar = [a1kar+(x*a2kar) for x in s]
-    print(f"----------------------------------------------------")
-    print(f"a2gem, a1gem: {a2gem}, {a1gem}")
-    print(f"a2kar, a1kar: {a2kar}, {a1kar}")
 
 
     self.figure.add_trace(
@@ -577,8 +572,8 @@ def set_layout_sv_su(self: SHANSEP):
     """
     title = f'Bepaling S en POP uit {self.analysis_type} proef'
 
-    xas_title = '\u03C3 \'v [kPa]'
-    yas_title = 'su [kPa]'
+    xas_title = r"$\sigma'_{v} [kPa]$"
+    yas_title = r'$s_{u} [kPa]$'
 
     legend_title = 'Legenda'
     self.figure.update_layout(
@@ -599,8 +594,8 @@ def set_layout_ln_ocr_ln_s(self: SHANSEP):
     """
     title = f'Bepaling op basis van S en m op {self.analysis_type} proef'
 
-    xas_title = 'LN(OCR) [-]'
-    yas_title = 'LN(su/sv) [-]'
+    xas_title = r'$LN(OCR) [-]$'
+    yas_title = r"$LN(s_{u}/\sigma'_{v}) [-]$"
 
     legend_title = 'Legenda'
     self.figure.update_layout(

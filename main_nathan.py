@@ -126,7 +126,7 @@ def cphi_analysis_txt_test(dbase: Dbase, file_name: str = 'Template_PVtool5_0.xl
 
     # Pas instellingen toe
     analyse.apply_settings(alpha=0.75)
-    analyse.apply_parameters(cohesie_kar=0.0)
+    analyse.apply_parameters(cohesie_kar=6.72, phi_kar=0.53, cohesie_gem=8.0)
 
     # Print en exporteer resultaten
     print('\nResultaten TXT C-phi analyse:')
@@ -249,14 +249,13 @@ def shansep_analysis_test(dbase: Dbase):
 
     save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
-    #df_updated = analyse.add_results_to_dbase(path=str(save_test), file_name='Template_PVtool5_0_SAFE_2022_PV.xlsx')
+    df_updated = analyse.add_results_to_dbase(path=str(save_test), file_name='Template_PVtool5_0_SAFE_2022_PV.xlsx')
 
 
     analyse.set_parameters_handmatig(snijpunt_gem=11, s_gem=0.31, m_gem=0.9, snijpunt_kar=7, s_kar=0.28, m_kar=0.9)
     # sutabel = analyse.calculate_sutabel()
-    #analyse.show_figure_sv_su(plot_extra_dataset=None, plot_spanningspaden=False)
-    #analyse.show_figure_ln_ocr_ln_s(plot_extra_dataset=None)
-
+    # analyse.show_figure_sv_su(plot_extra_dataset=None, plot_spanningspaden=False)
+    # analyse.show_figure_ln_ocr_ln_s(plot_extra_dataset=None)
     # analyse.show_figure_sv_su_nc(plot_extra_dataset=None)
     pdf_path = analyse.save_to_pdf(path=str(save_test))
     analyse.save_total_to_excel(path=str(save_test))
@@ -265,10 +264,11 @@ if __name__ == "__main__":
     # Test database import
     source = 'Dbase'  # Opties: 'Stowa', 'PV-tool', 'Dbase'
     import_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
-    export_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
+    export_name = 'Nieuwe database testje.xlsx'
 
     print("Start van de tests...\n")
     print(f"Using source: {source}")
+
     print(f"Import file: {import_name}")
     print(f"Export file: {export_name}")
 
@@ -282,15 +282,16 @@ if __name__ == "__main__":
     )
 
     if dbase is None or dbase.dbase_df is None:
-        print("ERROR: Database import failed!")
+        print("ERROR: Database import gefaald!")
         exit(1)
-
-    print(f"Database successfully imported with {len(dbase.dbase_df)} rows")
 
     # Test verschillende analyses
     print("\nUitvoeren van verschillende test cases...")
 
-    print("\n1. TXT SHANSEP analyse test")
+    print("\n1. TXT C-phi analyse test")
+    # cphi_analysis_txt_test(dbase, file_name=export_name)
+
+    print("\n2. TXT SHANSEP analyse test")
     shansep_analysis_test(dbase)
 
     print("\nAlle tests zijn voltooid!")

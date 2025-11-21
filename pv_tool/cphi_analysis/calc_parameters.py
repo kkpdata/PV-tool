@@ -126,7 +126,7 @@ def calc_c_gem(self: CPhiAnalyse):
     elif self.analysis_type == 'DSS_CPhi':
         return float(coh_gem)
     else:
-        print('WARNING: analysis type SH does not include cohesion')
+        print('WAARSCHUWING: analysetype SH bevat geen cohesie')
 
 
 def calc_phi_kar(self: CPhiAnalyse):
@@ -152,7 +152,7 @@ def calc_c_kar(self: CPhiAnalyse):
     elif self.analysis_type == 'DSS_CPhi':
         return float(coh_kar)
     else:
-        print('WARNING: analysis type SH does not include cohesion')
+        print('WAARSCHUWING: analysetype SH bevat geen cohesie')
 
 
 def calc_phi_d(self: CPhiAnalyse):
@@ -222,7 +222,7 @@ def calc_tan_phi_kar(self: CPhiAnalyse):
     elif self.analysis_type == 'DSS_CPhi':
         return float(phi_kar)
     else:
-        print('WARNING: tan phi kar for analysis type in SH is calculated with the function calc_tan_phi_kar_sh')
+        print('WAARSCHUWING: tan phi kar voor analysetype SH wordt berekend met de functie calc_tan_phi_kar_sh')
 
 def calc_tan_phi_kar_sh(self: CPhiAnalyse):
     """Berekent de karakteristieke tan(phi) voor shansep analyses."""
@@ -231,4 +231,4 @@ def calc_tan_phi_kar_sh(self: CPhiAnalyse):
     elif self.analysis_type == 'DSS_SH':
         return float(calc_a2_phi_kar_onder_sh(self))
     else:
-        print('WARNING: tan phi kar for analysis type in CPhi is calculated with the function calc_tan_phi_kar')
+        print('WAARSCHUWING: tan phi kar voor analysetype CPhi wordt berekend met de functie calc_tan_phi_kar')

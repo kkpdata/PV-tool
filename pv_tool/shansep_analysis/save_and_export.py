@@ -20,7 +20,6 @@ except ImportError:
 if TYPE_CHECKING:
     from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
 
-# TODO c-phi tabblad hernoemen naar 'Resultaten c-phi'
 
 
 def add_results_to_dbase(self: "SHANSEP", path: str, file_name: str = 'Template_PVtool5_0.xlsx'):
@@ -56,25 +55,6 @@ def add_results_to_dbase(self: "SHANSEP", path: str, file_name: str = 'Template_
         'Timestamp'
     ]
 
-    # Bereken standard deviaties voor DSTAB
-    s_sd_dstab = None
-    m_sd_dstab = None
-    pop_sd_dstab = None
-
-    if (df_gem['Schuifsterkteratio S [-]'].iloc[0] is not None and
-        df_kar['Schuifsterkteratio S [-]'].iloc[0] is not None):
-        s_sd_dstab = abs(df_gem['Schuifsterkteratio S [-]'].iloc[0] - df_kar['Schuifsterkteratio S [-]'].iloc[0]) / 2
-
-    if (df_gem['sterkte toename exponent = m [-]'].iloc[1] is not None and
-        df_kar['sterkte toename exponent = m [-]'].iloc[1] is not None):
-        m_sd_dstab = abs(df_gem['sterkte toename exponent = m [-]'].iloc[1] - df_kar['sterkte toename exponent = m [-]'].iloc[1]) / 2
-
-    if (df_gem['POP [kPa]'].iloc[0] is not None and
-        df_kar['POP [kPa]'].iloc[0] is not None):
-        pop_sd_dstab = abs(df_gem['POP [kPa]'].iloc[0] - df_kar['POP [kPa]'].iloc[0]) / 2
-
-    # Maak nieuwe row met resultaten
-    # TODO handmatige moeten hier komen als die er zijn  -anders None
     new_row = {
         'PVNAAM': self.investigation_groups[0],
         'PV_REK': self.effective_stress,
@@ -83,16 +63,16 @@ def add_results_to_dbase(self: "SHANSEP", path: str, file_name: str = 'Template_
         'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type}",
         'PV_TYPEVERZAMELING': self.alpha,
         'PV_A1_SNIJPUNT_YAS_GEM [-]': round(self.snijpunt_gem_handmatig, 3) if self.snijpunt_gem_handmatig is not None else None,
-        'PV_A2_S_GEM [-]': round(df_gem['Schuifsterkteratio S [-]'].iloc[0], 3) if df_gem['Schuifsterkteratio S [-]'].iloc[0] is not None else None,
-        'PV_m_GEM [-]': round(df_gem['sterkte toename exponent = m [-]'].iloc[1], 3) if df_gem['sterkte toename exponent = m [-]'].iloc[1] is not None else None,
-        'PV_POP_GEM [kPa]': round(df_gem['POP [kPa]'].iloc[0], 3) if df_gem['POP [kPa]'].iloc[0] is not None else None,
-        'PV_A1_SNIJPUNT_YAS_KAR [-]': round(df_kar['snijpunt y-as [kPa]'].iloc[0], 3) if df_kar['snijpunt y-as [kPa]'].iloc[0] is not None else None,
-        'PV_A2_S_KAR [-]': round(df_kar['Schuifsterkteratio S [-]'].iloc[0], 3) if df_kar['Schuifsterkteratio S [-]'].iloc[0] is not None else None,
-        'PV_m_KAR [-]': round(df_kar['sterkte toename exponent = m [-]'].iloc[1], 3) if df_kar['sterkte toename exponent = m [-]'].iloc[1] is not None else None,
-        'PV_POP_KAR [kPa]': round(df_kar['POP [kPa]'].iloc[0], 3) if df_kar['POP [kPa]'].iloc[0] is not None else None,
-        'PV_S_SD_DSTAB [-]': round(s_sd_dstab, 3) if s_sd_dstab is not None else None,
-        'PV_m_SD_DSTAB [-]': round(m_sd_dstab, 3) if m_sd_dstab is not None else None,
-        'PV_POP_SD_DSTAB [-]': round(pop_sd_dstab, 3) if pop_sd_dstab is not None else None,
+        'PV_A2_S_GEM [-]': round(self.s_gem_handmatig, 3) if self.s_gem_handmatig is not None else None,
+        'PV_m_GEM [-]': round(self.m_gem_handmatig, 3) if self.m_gem_handmatig is not None else None,
+        'PV_POP_GEM [kPa]': round(self.pop_gem_handmatig, 3) if self.pop_gem_handmatig is not None else None,
+        'PV_A1_SNIJPUNT_YAS_KAR [-]': round(self.snijpunt_kar_handmatig, 3) if self.snijpunt_kar_handmatig is not None else None,
+        'PV_A2_S_KAR [-]': round(self.s_kar_handmatig, 3) if self.s_kar_handmatig is not None else None,
+        'PV_m_KAR [-]': round(self.m_kar_handmatig, 3) if self.m_kar_handmatig is not None else None,
+        'PV_POP_KAR [kPa]': round(self.pop_kar_handmatig, 3) if self.pop_kar_handmatig is not None else None,
+        'PV_S_SD_DSTAB [-]': round(self.st_dev_s_handmatig, 3) if self.st_dev_s_handmatig is not None else None,
+        'PV_m_SD_DSTAB [-]': round(self.st_dev_m_handmatig, 3) if self.st_dev_s_handmatig is not None else None,
+        'PV_POP_SD_DSTAB [-]': round(self.st_dev_pop_handmatig, 3) if self.st_dev_pop_handmatig is not None else None,
         'PV_VGWNAT_GEM [kN/m3]': round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
         'PV_VGWNAT_SD [kN/m3]': round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
         'PV_WATERGEHALTE_GEM': round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None,
@@ -151,7 +131,6 @@ def save_total_to_excel(self: "SHANSEP", path: str):
     self : SHANSEP
         Instantie van de SHANSEP klasse
     """
-    print("Debug: Starting save_total_to_excel function")
 
     # Pas de effective stress naam aan zodat het weggeschreven kan worden in de bestandsnaam
     effective_stress = str(self.effective_stress).replace('%', 'procent_')
@@ -292,7 +271,8 @@ def _create_input_table(self: "SHANSEP") -> Table:
         return Table([['Geen invoerdata beschikbaar']], hAlign='LEFT')
 
     # Selecteer relevante kolommen
-    columns_base = ['PV_NAAM', 'BORING_POSITIE', 'MONSTER_NIVEAU_NAP_VANAF', 'MONSTER_NIVEAU_NAP_TOT']
+    columns_base = ['PV_NAAM', 'BORING_POSITIE', 'MONSTER_NIVEAU_NAP_VANAF', 'MONSTER_NIVEAU_NAP_TOT',
+                    'ANA_TERREINSPANNING', 'ANA_GRENSSPANNING_REKEN', 'ANA_POP_VELD']
 
     if self.analysis_type.startswith('TXT'):
         columns_extra = ['TXT_SS_VOLUMEGEWICHT_NAT', 'TXT_SS_VOLUMEGEWICHT_DRG', 'TXT_SS_WATERGEHALTE_VOOR']
@@ -321,27 +301,33 @@ def _create_input_table(self: "SHANSEP") -> Table:
                     table_df[col] = self.shansep_data_df_nc_oc_unsorted[col]
 
     else:
-        print(f"WARNING: additional columns {additional_columns} in input table could not be added to input table due to missing or mismatched data.")
+        print(f"WAARSCHUWING: extra kolommen {additional_columns} in invoer tabel konden niet worden toegevoegd aan invoer tabel vanwege ontbrekende of niet-overeenkomende gegevens.")
 
-    # Hernoem kolommen voor leesbaarheid
+    # Hernoem kolommen voor leesbaarheid met kortere namen en line breaks
     column_mapping = {
         'PV_NAAM': 'Groep',
-        'BORING_POSITIE': 'Positie',
-        'MONSTER_NIVEAU_NAP_VANAF': 'NAP Vanaf [m]',
-        'MONSTER_NIVEAU_NAP_TOT': 'NAP Tot [m]',
-        'TXT_SS_VOLUMEGEWICHT_NAT': 'VGW nat',
-        'TXT_SS_VOLUMEGEWICHT_DRG': 'VGW droog',
-        'TXT_SS_WATERGEHALTE_VOOR': 'Watergehalte voor',
-        'DSS_VOLUMEGEWICHT_NAT': 'VGW nat',
-        'DSS_VOLUMEGEWICHT_DRG': 'VGW droog',
-        'DSS_WATERGEHALTE_VOOR': 'Watergehalte voor',
-        'S\'v': "S'v [kPa]",
-        'Su': "Su [kPa]",
-        'consolidatietype': 'consolidatietype',
-        'OCR': 'OCR [-]'
+        'BORING_POSITIE': 'Pos.',
+        'MONSTER_NIVEAU_NAP_VANAF': 'NAP Van\n[m]',
+        'MONSTER_NIVEAU_NAP_TOT': 'NAP Tot\n[m]',
+        'TXT_SS_VOLUMEGEWICHT_NAT': 'VGW nat\n[kN/m3]',
+        'TXT_SS_VOLUMEGEWICHT_DRG': 'VGW drg\n[kN/m3]',
+        'TXT_SS_WATERGEHALTE_VOOR': 'Water\n[%]',
+        'DSS_VOLUMEGEWICHT_NAT': 'VGW nat\n[kN/m3]',
+        'DSS_VOLUMEGEWICHT_DRG': 'VGW drg\n[kN/m3]',
+        'DSS_WATERGEHALTE_VOOR': 'Water\n[%]',
+        'S\'v': "σ'v\n[kPa]",
+        'Su': "su\n[kPa]",
+        'OCR': 'OCR\n[-]',
+        'ANA_TERREINSPANNING': 'Terreinspanning\n[kPa]',
+        'ANA_GRENSSPANNING_REKEN': 'Grensspanning\n[kPa]',
+        'ANA_POP_VELD': 'POP\n[-]'
     }
 
     table_df = table_df.rename(columns={k: v for k, v in column_mapping.items() if k in table_df.columns})
+
+    # replace column POP by new calculation to account for missing values: terreinspanning*ocr-terreinspanning
+    if 'Terreinspanning\n[kPa]' in table_df.columns and 'OCR\n[-]' in table_df.columns:
+        table_df['POP\n[-]'] = table_df['Terreinspanning\n[kPa]'] * table_df['OCR\n[-]'] - table_df['Terreinspanning\n[kPa]']
 
     # Sort table_df in the same way as shansep_data_df_nc_oc
     # Check if consolidatietype column exists in the data (use original column name before renaming)
@@ -353,7 +339,11 @@ def _create_input_table(self: "SHANSEP") -> Table:
             ).copy()
     else:
         table_df = table_df.sort_index()
-        print(f"WARNING: input table could not be sorted by 'consolidatietype' as the column is missing.")
+        print(f"WAARSCHUWING: invoer tabel kon niet worden gesorteerd op 'consolidatietype' omdat de kolom ontbreekt.")
+
+    # delete consolidatietype column after sorting
+    if 'consolidatietype' in table_df.columns:
+        table_df = table_df.drop(columns=['consolidatietype'])
 
     # Handle NaN values and format numeric values properly
     for col in table_df.columns:
@@ -366,18 +356,54 @@ def _create_input_table(self: "SHANSEP") -> Table:
                 lambda x: "" if (isinstance(x, float) and np.isnan(x)) or x is None else str(x)
             )
 
-    t1_data = _df_to_table_with_index(table_df, index_name="Monster ID")
+    # Create table data with proper line break handling
+    # First create the header row with Paragraph objects for consistent formatting
+    from reportlab.lib.styles import getSampleStyleSheet
+    header_style = getSampleStyleSheet()['Normal']
+    header_style.fontSize = 7  # Set to 7 as requested
+    header_style.fontName = 'Helvetica-Bold'
+    header_style.alignment = 0  # Left align
+
+    # Create header row with Paragraph objects for ALL headers (consistent formatting)
+    header_row = []
+    header_row.append(Paragraph('Monster ID', header_style))  # Make Monster ID a Paragraph too
+
+    for col in table_df.columns:
+        if '\n' in col:
+            # Create Paragraph for multi-line headers
+            header_row.append(Paragraph(col.replace('\n', '<br/>'), header_style))
+        else:
+            # Create Paragraph for single-line headers too (for consistency)
+            header_row.append(Paragraph(col, header_style))
+
+    # Create data rows
+    data_rows = []
+    for idx, row in table_df.iterrows():
+        data_row = [str(idx)] + [str(val) if val != "" else "" for val in row]
+        data_rows.append(data_row)
+
+    # Combine header and data
+    t1_data = [header_row] + data_rows
+
+    # Create table with automatic column sizing
     t1 = LongTable(t1_data, repeatRows=1, hAlign='LEFT')
     t1.setStyle(TableStyle([
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 7),  # Kleinere font voor header
-        ('FONTSIZE', (0, 1), (-1, -1), 6),  # Kleinere font voor data
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),  # Only apply font to data rows (headers are Paragraphs)
+        ('FONTSIZE', (0, 1), (-1, -1), 6),  # Set data font size to 6 as requested
+        ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),  # Header row alignment
+        ('VALIGN', (0, 1), (-1, -1), 'TOP'),  # Data row alignment
+        ('LEFTPADDING', (0, 0), (-1, -1), 2),  # Reduce padding
+        ('RIGHTPADDING', (0, 0), (-1, -1), 2),
+        ('TOPPADDING', (0, 0), (-1, -1), 2),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+        # Special styling for header row with Paragraphs
+        ('ROWBACKGROUNDS', (0, 0), (-1, 0), [colors.lightgrey]),
     ]))
     return t1
+
 
 
 def _create_parameters_table(self: "SHANSEP") -> Table:
@@ -394,44 +420,20 @@ def _create_parameters_table(self: "SHANSEP") -> Table:
     # Voeg parameters toe
     if hasattr(self, 'e_a1_oc') and self.e_a1_oc is not None and self.snijpunt_gem_handmatig is None:
         parameters.append(['Snijpunt y-as gemiddeld [kPa] (voorstel)', round(self.e_a1_oc, 3)])
-    else:
-        parameters.append(['Snijpunt y-as gemiddeld [kPa] (handmatig)', self.snijpunt_gem_handmatig])
     if hasattr(self, 'e_a2_oc') and self.e_a2_oc is not None and self.s_gem_handmatig is None:
         parameters.append(['S gemiddeld [-] (voorstel)', round(self.e_a2_oc, 3)])
-    else:
-        parameters.append(['S gemiddeld [-] (handmatig)', self.s_gem_handmatig])
     if hasattr(self, 'e_a2_nc_oc') and self.e_a2_nc_oc is not None and self.m_gem_handmatig is None:
         parameters.append(['m gemiddeld [-] (voorstel)', round(self.e_a2_nc_oc, 3)])
-    else:
-        parameters.append(['m gemiddeld [-] (handmatig)', self.m_gem_handmatig])
     if hasattr(self, 'pop_gem_oc') and self.pop_gem_oc is not None and self.pop_gem_handmatig is None:
         parameters.append(['POP gemiddeld [kPa] (voorstel)', round(self.pop_gem_oc, 3)])
-    else:
-        parameters.append(['POP gemiddeld [kPa] (handmatig)', round(self.pop_gem_handmatig,3)])
-
     if hasattr(self, 'a1_kar_oc') and self.a1_kar_oc is not None and self.snijpunt_kar_handmatig is None:
         parameters.append(['Snijpunt y-as karakteristiek [kPa] (voorstel)', round(self.a1_kar_oc, 3)])
-    else:
-        parameters.append(['Snijpunt y-as karakteristiek [kPa] (handmatig)', self.snijpunt_kar_handmatig])
     if hasattr(self, 'a2_kar_oc') and self.a2_kar_oc is not None and self.s_kar_handmatig is None:
         parameters.append(['S karakteristiek [-] (voorstel)', round(self.a2_kar_oc, 3)])
-    else:
-        parameters.append(['S karakteristiek [-] (handmatig)', self.s_kar_handmatig])
     if hasattr(self, 'a2_kar_nc_oc') and self.a2_kar_nc_oc is not None and self.m_kar_handmatig is None:
         parameters.append(['m karakteristiek [-] (voorstel)', round(self.a2_kar_nc_oc, 3)])
-    else:
-        parameters.append(['m karakteristiek [-] (handmatig)', self.m_kar_handmatig])
     if hasattr(self, 'pop_kar_oc') and self.pop_kar_oc is not None and self.pop_kar_handmatig is None:
         parameters.append(['POP karakteristiek [kPa] (voorstel)', round(self.pop_kar_oc, 3)])
-    else:
-        parameters.append(['POP karakteristiek [kPa] (handmatig)', round(self.pop_kar_handmatig,3)])
-
-    if self.st_dev_s_handmatig is not None:
-        parameters.append(['Standaarddeviatie d-stability s (handmatig)', round(self.st_dev_s_handmatig, 3)])
-    if self.st_dev_m_handmatig is not None:
-        parameters.append(['Standaarddeviatie d-stability m (handmatig)', round(self.st_dev_m_handmatig, 3)])
-    if self.st_dev_pop_handmatig is not None:
-        parameters.append(['Standaarddeviatie d-stability pop (handmatig)', round(self.st_dev_pop_handmatig, 3)])
 
     parameters.append(['Type verzameling: lokaal = 1.0; regionaal = 0.75', self.alpha])
 
@@ -454,22 +456,25 @@ def _create_parameters_table(self: "SHANSEP") -> Table:
 
 def _create_gem_results_table(self: "SHANSEP") -> Table:
     """
-    Maakt een tabel met de SHANSEP resultaten.
+    Maakt een tabel met de SHANSEP gemiddelde resultaten (alleen voorgestelde parameters).
 
     Returns
     -------
     Table
-        ReportLab tabel object met de SHANSEP resultaten
+        ReportLab tabel object met de SHANSEP gemiddelde resultaten
     """
     df_gem, df_kar = self.get_result_values_shansep()
 
-    # Combineer gemiddelde en karakteristieke resultaten
+    # Filter out handmatige rows - alleen voorgestelde parameters behouden
+    df_gem_filtered = df_gem[~df_gem.index.str.contains('handmatig', na=False)]
+
+    # Combineer gemiddelde resultaten
     df_gem_new = DataFrame({
-        'Analyse methode': df_gem.index,
-        'Snijpunt y-as [kPa]': df_gem['snijpunt y-as [kPa]'].values,
-        'S [-]': df_gem['Schuifsterkteratio S [-]'].values,
-        'm [-]': df_gem['sterkte toename exponent = m [-]'].values,
-        'POP [kPa]': df_gem['POP [kPa]'].values
+        'Analyse methode': df_gem_filtered.index,
+        'Snijpunt y-as [kPa]': df_gem_filtered['snijpunt y-as [kPa]'].values,
+        'S [-]': df_gem_filtered['Schuifsterkteratio S [-]'].values,
+        'm [-]': df_gem_filtered['sterkte toename exponent = m [-]'].values,
+        'POP [kPa]': df_gem_filtered['POP [kPa]'].values
     })
 
     # Format numeric values and handle NaN properly
@@ -498,21 +503,24 @@ def _create_gem_results_table(self: "SHANSEP") -> Table:
 
 def _create_kar_results_table(self: "SHANSEP") -> Table:
     """
-    Maakt een tabel met de SHANSEP resultaten.
+    Maakt een tabel met de SHANSEP karakteristieke resultaten (alleen voorgestelde parameters).
 
     Returns
     -------
     Table
-        ReportLab tabel object met de SHANSEP resultaten
+        ReportLab tabel object met de SHANSEP karakteristieke resultaten
     """
     df_gem, df_kar = self.get_result_values_shansep()
 
+    # Filter out handmatige rows - alleen voorgestelde parameters behouden
+    df_kar_filtered = df_kar[~df_kar.index.str.contains('handmatig', na=False)]
+
     df_kar_new = DataFrame({
-        'Analyse methode': df_kar.index,
-        'Snijpunt y-as [kPa]': df_kar['snijpunt y-as [kPa]'].values,
-        'S [-]': df_kar['Schuifsterkteratio S [-]'].values,
-        'm [-]': df_kar['sterkte toename exponent = m [-]'].values,
-        'POP [kPa]': df_kar['POP [kPa]'].values,
+        'Analyse methode': df_kar_filtered.index,
+        'Snijpunt y-as [kPa]': df_kar_filtered['snijpunt y-as [kPa]'].values,
+        'S [-]': df_kar_filtered['Schuifsterkteratio S [-]'].values,
+        'm [-]': df_kar_filtered['sterkte toename exponent = m [-]'].values,
+        'POP [kPa]': df_kar_filtered['POP [kPa]'].values,
     })
 
     # Format numeric values and handle NaN properly
@@ -539,6 +547,56 @@ def _create_kar_results_table(self: "SHANSEP") -> Table:
     ]))
     return t
 
+def _create_handmatig_results_table(self: "SHANSEP") -> Table:
+    """
+    Maakt een tabel met de SHANSEP handmatige parameters in horizontale indeling.
+
+    Returns
+    -------
+    Table
+        ReportLab tabel object met de SHANSEP handmatige parameters
+    """
+    # Verzamel gemiddelde handmatige waarden
+    gem_data = {
+        'Snijpunt y-as [kPa]': round(self.snijpunt_gem_handmatig, 3) if self.snijpunt_gem_handmatig is not None else "",
+        'S [-]': round(self.s_gem_handmatig, 3) if self.s_gem_handmatig is not None else "",
+        'm [-]': round(self.m_gem_handmatig, 3) if self.m_gem_handmatig is not None else "",
+        'POP [kPa]': round(self.pop_gem_handmatig, 3) if self.pop_gem_handmatig is not None else ""
+    }
+
+    # Verzamel karakteristieke handmatige waarden
+    kar_data = {
+        'Snijpunt y-as [kPa]': round(self.snijpunt_kar_handmatig, 3) if self.snijpunt_kar_handmatig is not None else "",
+        'S [-]': round(self.s_kar_handmatig, 3) if self.s_kar_handmatig is not None else "",
+        'm [-]': round(self.m_kar_handmatig, 3) if self.m_kar_handmatig is not None else "",
+        'POP [kPa]': round(self.pop_kar_handmatig, 3) if self.pop_kar_handmatig is not None else ""
+    }
+
+    # Maak DataFrame in hetzelfde formaat als gem/kar tabellen
+    df_handmatig = DataFrame({
+        'Analyse methode': ['Gemiddeld (handmatig)', 'Karakteristiek (handmatig)'],
+        'Snijpunt y-as [kPa]': [gem_data['Snijpunt y-as [kPa]'], kar_data['Snijpunt y-as [kPa]']],
+        'S [-]': [gem_data['S [-]'], kar_data['S [-]']],
+        'm [-]': [gem_data['m [-]'], kar_data['m [-]']],
+        'POP [kPa]': [gem_data['POP [kPa]'], kar_data['POP [kPa]']]
+    })
+
+    # Maak tabel data
+    header = df_handmatig.columns.tolist()
+    data = [row.tolist() for _, row in df_handmatig.iterrows()]
+    t_data = [header] + data
+
+    t = LongTable(t_data, repeatRows=1, hAlign='LEFT')
+    t.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('FONTSIZE', (0, 1), (-1, -1), 9),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+    return t
 
 def save_to_pdf(self: "SHANSEP", path: str) -> str:
     """
@@ -641,9 +699,9 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
 
             # Voeg titel toe die aangeeft of handmatige parameters zijn gebruikt
             if has_manual_params:
-                story.append(Paragraph("Sv-Su Relatie (met handmatige parameters)", styles['Heading3']))
+                story.append(Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie (met handmatige parameters)", styles['Heading3']))
             else:
-                story.append(Paragraph("Sv-Su Relatie (met voorgestelde parameters)", styles['Heading3']))
+                story.append(Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie (met voorgestelde parameters)", styles['Heading3']))
             story.append(Spacer(width=1, height=12))
             story.append(img1)
 
@@ -704,9 +762,9 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
 
             # Voeg titel toe die aangeeft of handmatige parameters zijn gebruikt
             if has_manual_params:
-                story.append(Paragraph("ln(OCR) - ln(su/svc) Relatie (met handmatige parameters)", styles['Heading3']))
+                story.append(Paragraph("LN(OCR) - LN(su/σ'v) Relatie (met handmatige parameters)", styles['Heading3']))
             else:
-                story.append(Paragraph("ln(OCR) - ln(su/svc) Relatie (met voorgestelde parameters)", styles['Heading3']))
+                story.append(Paragraph("LN(OCR) - LN(su/σ'v) Relatie (met voorgestelde parameters)", styles['Heading3']))
             story.append(Spacer(width=1, height=12))
             story.append(img2)
 
@@ -767,9 +825,9 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
 
             # Voeg titel toe die aangeeft of handmatige parameters zijn gebruikt
             if has_manual_params:
-                story.append(Paragraph("Sv-Su NC Relatie (met handmatige parameters)", styles['Heading3']))
+                story.append(Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie op alleen NC proeven (met handmatige parameters)", styles['Heading3']))
             else:
-                story.append(Paragraph("Sv-Su NC Relatie (met voorgestelde parameters)", styles['Heading3']))
+                story.append(Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie op alleen NC proeven (met voorgestelde parameters)", styles['Heading3']))
             story.append(Spacer(width=1, height=12))
             story.append(img3)
 
@@ -786,24 +844,36 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
     self.show_title = True
 
     # Voeg parameters toe
-    story.append(Paragraph("SHANSEP Parameters", styles['Heading2']))
+    story.append(Paragraph("Invoer parameters en eigenschappen", styles['Heading2']))
     story.append(_create_parameters_table(self))
     story.append(Spacer(1, 12))
 
     # Voeg resultaten toe
-    story.append(Paragraph("SHANSEP Resultaten gemiddeld", styles['Heading2']))
+    story.append(Paragraph("SHANSEP Resultaten eerste benadering gemiddeld", styles['Heading2']))
     story.append(_create_gem_results_table(self))
     story.append(Spacer(1, 12))
 
     # Voeg resultaten toe
-    story.append(Paragraph("SHANSEP Resultaten karakteristiek", styles['Heading2']))
+    story.append(Paragraph("SHANSEP Resultaten eerste benadering karakteristiek", styles['Heading2']))
     story.append(_create_kar_results_table(self))
     story.append(Spacer(1, 12))
 
-    # TODO haal de gekozen handmatige waardes uit de tabellen en presenteer ze in losse tabel met standaarddev
-    # TODO noem dan de eerdere tabellen 'eerste benadering'
-    # TODO noem de eerste tabel die nu shansep parameters heet 'invoer parameters en eigenschappen' - vgw nat, watergehalte, type verzameling
-    # TODO doe dit ook voor c phi en dan staan part materiaal factoren erbij
+    story.append(PageBreak())
+
+    # Voeg handmatige resultaten toe (alleen als er handmatige parameters zijn)
+    if any([
+        self.snijpunt_gem_handmatig is not None,
+        self.s_gem_handmatig is not None,
+        self.m_gem_handmatig is not None,
+        self.pop_gem_handmatig is not None,
+        self.snijpunt_kar_handmatig is not None,
+        self.s_kar_handmatig is not None,
+        self.m_kar_handmatig is not None,
+        self.pop_kar_handmatig is not None
+    ]):
+        story.append(Paragraph("SHANSEP Handmatige parameters", styles['Heading2']))
+        story.append(_create_handmatig_results_table(self))
+        story.append(Spacer(1, 12))
 
 
     # Voeg Su tabel toe indien beschikbaar
@@ -839,7 +909,6 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
         story.append(Spacer(1, 12))
 
     # Voeg invoerselectie toe
-    # TODO haal consol type eruit, grensspanning, terreinspanning en POP erbij
     story.append(Paragraph("Invoerselectie Informatie", styles['Heading2']))
     story.append(_create_input_table(self))
 

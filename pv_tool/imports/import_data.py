@@ -136,7 +136,7 @@ class Dbase:
                     float_format="%.6f"  # Use consistent float format
                 )
 
-        print(f"Excel file exported to: {export_path}")
+        print(f"Excel bestand geëxporteerd naar: {export_path}")
 
         # Formatting
         num_columns = export_df.shape[1]

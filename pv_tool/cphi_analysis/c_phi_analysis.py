@@ -335,7 +335,7 @@ class CPhiAnalyse:
         try:
             results_df = read_excel(file_path, sheet_name='Resultaten c-phi')
         except ValueError:
-            print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
+            print("Er is geen tabblad 'Resultaten c-phi' aanwezig in het Excel-bestand.")
             return None
 
         filtered_df = results_df[
@@ -559,7 +559,7 @@ class CPhiAnalyse:
         """
         Voegt analyseresultaten toe aan de database export.
 
-        Voegt de resultaten toe aan een tabblad 'Resultaten' in de Template_PVtool5_0.xlsx.
+        Voegt de resultaten toe aan een tabblad 'Resultaten c-phi' in de Template_PVtool5_0.xlsx.
         Als het tabblad al bestaat wordt het aangevuld, anders wordt het aangemaakt.
 
         Parameters
@@ -632,15 +632,15 @@ class CPhiAnalyse:
 
         workbook = load_workbook(file_path)
 
-        if 'Resultaten' in workbook.sheetnames:
-            print('Tabblad resultaten in dbase excel bestaat al en wordt aangevuld')
-            df_existing = read_excel(file_path, sheet_name='Resultaten c-phi') # TODO pas aan naar resultaten c-phi zodat shansep resultaten een plek kunnen krijgen in een ander tabblad
+        if 'Resultaten c-phi' in workbook.sheetnames:
+            print('Tabblad Resultaten c-phi in dbase excel bestaat al en wordt aangevuld')
+            df_existing = read_excel(file_path, sheet_name='Resultaten c-phi')
             # Filter out empty rows and ensure consistent types before concatenation
             df_existing = df_existing.dropna(how='all')
             new_row_df = DataFrame([new_row], columns=df_existing.columns)
             df_updated = concat([df_existing, new_row_df], ignore_index=True)
         else:
-            print('Tabblad resultaten in dbase excel bestaat nog niet en wordt aangemaakt')
+            print('Tabblad Resultaten c-phi in dbase excel bestaat nog niet en wordt aangemaakt')
             df_updated = DataFrame([new_row], columns=expected_columns)
 
         # Write data to Excel

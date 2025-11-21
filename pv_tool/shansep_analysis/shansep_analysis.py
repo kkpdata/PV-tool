@@ -5,10 +5,10 @@ from pv_tool.shansep_analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES, T
 from pandas import DataFrame, ExcelWriter, read_excel
 import plotly.graph_objects as go
 from pv_tool.shansep_analysis.calc_parameters import (
-    calc_watergehalte_gem,
-    calc_watergehalte_sd,
-    calc_vgwnat_gem,
-    calc_vgwnat_sd
+    calc_watergehalte_gem_txt, calc_watergehalte_gem_dss,
+    calc_watergehalte_sd_txt, calc_watergehalte_sd_dss,
+    calc_vgwnat_gem_txt, calc_vgwnat_gem_dss,
+    calc_vgwnat_sd_txt, calc_vgwnat_sd_dss
 )
 from pv_tool.imports.excel_utils import format_excel_sheet
 
@@ -149,10 +149,10 @@ class SHANSEP:
             self.shansep_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']].copy()
             self.shansep_data_df = self.shansep_data_df[self.shansep_data_df['PV_NAAM'].isin(
                     self.investigation_groups)].copy()
-            self.calc_watergehalte_gem = calc_watergehalte_gem(self.shansep_data_df)
-            self.calc_watergehalte_sd = calc_watergehalte_sd(self.shansep_data_df)
-            self.calc_vgwnat_gem = calc_vgwnat_gem(self.shansep_data_df)
-            self.calc_vgwnat_sd = calc_vgwnat_sd(self.shansep_data_df)
+            self.calc_watergehalte_gem = calc_watergehalte_gem_txt(self.shansep_data_df)
+            self.calc_watergehalte_sd = calc_watergehalte_sd_txt(self.shansep_data_df)
+            self.calc_vgwnat_gem = calc_vgwnat_gem_txt(self.shansep_data_df)
+            self.calc_vgwnat_sd = calc_vgwnat_sd_txt(self.shansep_data_df)
             self.total_shansep_data_df = self.shansep_data_df.copy()
             self.shansep_data_df = self.shansep_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])].copy()
 
@@ -160,10 +160,10 @@ class SHANSEP:
             self.shansep_data_df = self.dbase_df[self.dbase_df['ALG__DSS']].copy()
             self.shansep_data_df = self.shansep_data_df[self.shansep_data_df['PV_NAAM'].isin(
                     self.investigation_groups)].copy()
-            self.calc_watergehalte_gem = calc_watergehalte_gem(self.shansep_data_df)
-            self.calc_watergehalte_sd = calc_watergehalte_sd(self.shansep_data_df)
-            self.calc_vgwnat_gem = calc_vgwnat_gem(self.shansep_data_df)
-            self.calc_vgwnat_sd = calc_vgwnat_sd(self.shansep_data_df)
+            self.calc_watergehalte_gem = calc_watergehalte_gem_dss(self.shansep_data_df)
+            self.calc_watergehalte_sd = calc_watergehalte_sd_dss(self.shansep_data_df)
+            self.calc_vgwnat_gem = calc_vgwnat_gem_dss(self.shansep_data_df)
+            self.calc_vgwnat_sd = calc_vgwnat_sd_dss(self.shansep_data_df)
             self.total_shansep_data_df = self.shansep_data_df.copy()
             self.shansep_data_df = self.shansep_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])].copy()
 
@@ -266,7 +266,7 @@ class SHANSEP:
         calculate_sv_ty_nc_oc(self)
         calculate_chi_2_nc_oc(self)
         calculate_sv_eff_nc_oc(self)
-        calculate_5pr_ondergrens_nc_oc(self) # TODO vanaf hier sijn de resultaten nog steeds fout (boven en ondergrens enzo)
+        calculate_5pr_ondergrens_nc_oc(self) # TODO vanaf hier zijn de resultaten nog steeds fout (boven en ondergrens enzo)
         calculate_5pr_bovengrens_nc_oc(self)
         calculate_sv_tt_ondergrens_nc_oc(self)
         calculate_sv_ty_ondergrens_nc_oc(self)
