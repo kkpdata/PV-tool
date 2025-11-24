@@ -191,6 +191,8 @@ def calc_st_dev_c(self: CPhiAnalyse):
     c_gem = calc_c_gem(self)
     c_d = calc_c_d(self)
 
+    # TODO er komt een melding van een waarde die negatief is maar die waarde is er helemaal niet
+    # invoer: c kar is , phi kar is , phi gem is , uitkomst is -0.641
     if c_gem <= 0:
         warnings.warn(f"Om berekening standaarddeviatie voor D-stability te kunnen doen moet gemiddelde cohesie waarde positief zijn, gevonden waarde: {round(c_gem,3)}."
                       f"Gemiddelde cohesie wordt aangepast naar 0.01 om standaarddeviatie uit te rekenen")

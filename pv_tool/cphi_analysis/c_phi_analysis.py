@@ -657,7 +657,7 @@ class CPhiAnalyse:
             sheet_name='Resultaten c-phi',
             num_columns=num_columns,
             num_rows=num_rows,
-            table_name='ResultatenTable',
+            table_name='Resultaten_CPHI_Table',
             index=False  # Changed from True to False to match the to_excel call
         )
 
