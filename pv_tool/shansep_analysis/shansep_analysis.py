@@ -203,22 +203,24 @@ class SHANSEP:
         """Met deze functie kan je de alpha en materiaalfactoren opgeven."""
         self.alpha = alpha if alpha is not None else self.alpha
 
-    def get_previous_results(self, file_path: str):
+    def get_previous_results(self, path: str, filename: str):
         """
         Zoekt naar eerdere analyseresultaten in een Excel-bestand.
 
         Parameters
         ----------
-        file_path : str
-            Pad naar de map waar het Excel-bestand staat plus de bestandsnaam
+        path: str
+            Pad naar de map waar het Excel-bestand staat
+        filename: str
+            Naam van het Excel-bestand
 
         Returns
         -------
         DataFrame of None
             DataFrame met eerdere resultaten als deze gevonden zijn, anders None
         """
-        # file_name = 'Template_PVtool5_0.xlsx'
-        # file_path = f"{path}/{file_name}"
+
+        file_path = f"{path}/{filename}"
 
         try:
             with open(file_path, 'r'):

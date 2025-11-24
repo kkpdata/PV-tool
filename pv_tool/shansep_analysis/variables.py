@@ -151,9 +151,7 @@ def e_a1_nc_oc(self: SHANSEP):
 
 
 def sum_chi_2_nc_oc(self: SHANSEP):
-    # hier moet ook alleen de som van OC proeven worden genomen, maar dan wel uit de nc_oc dataframe
-    oc = self.shansep_data_df_nc_oc[self.shansep_data_df_nc_oc['consolidatietype'] == 'OC']
-    return oc['chi_2'].sum()
+    return self.shansep_data_df_nc_oc['chi_2'].sum()
 
 
 def var_a2_nc_oc(self: SHANSEP):

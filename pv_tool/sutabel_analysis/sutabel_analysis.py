@@ -58,10 +58,10 @@ class SUTABEL:
         exp(a1_kar) - sutabel parameter karakteristiek [kPa]
     m_kar_sutabel : float
         1 - a2_kar - exponent parameter karakteristiek
-    CV_fit_kar_sutabel : float
+    cv_fit_kar_sutabel : float
         Coefficient of Variation voor fit (user input)
-    STDEV_logn_CV_sutabel : float
-        sqrt(LN(1 + CV^2)) - standaarddeviatie lognormaal
+    STDEV_logn_cv_sutabel : float
+        sqrt(LN(1 + cv^2)) - standaarddeviatie lognormaal
     steyx_sutabel : float
         Standaardfout van de schatting
     """
@@ -89,7 +89,7 @@ class SUTABEL:
             Type verzameling (1.0 = lokaal, 0.75 = regionaal), default 0.75
         """
         self.dbase = dbase
-        self.dbase_df: DataFrame = dbase.df_database
+        self.dbase_df = dbase.dbase_df
         self.analysis_type = analysis_type
         self.investigation_groups = investigation_groups
         self.effective_stress = effective_stress
@@ -114,15 +114,21 @@ class SUTABEL:
         self.m_gem_sutabel: Optional[float] = None     # 1 - e_a2
         self.svgm_kar_sutabel: Optional[float] = None  # exp(a1_kar)
         self.m_kar_sutabel: Optional[float] = None     # 1 - a2_kar
-        self.CV_fit_kar_sutabel: Optional[float] = None  # User input
-        self.STDEV_logn_CV_sutabel: Optional[float] = None  # sqrt(LN(1 + CV^2))
+        self.cv_fit_kar_sutabel: Optional[float] = None  # User input
+        self.STDEV_logn_cv_sutabel: Optional[float] = None  # sqrt(LN(1 + cv^2))
+
+        # Handmatige parameters
+        self.parameters_handmatig: bool = False
+        self.a1_kar_handmatig: Optional[float] = None
+        self.a2_kar_handmatig: Optional[float] = None
+        self.cv_fit_kar_handmatig: Optional[float] = None
 
         # Dataframes
         self.shansep_data_df: Optional[DataFrame] = None
         self.total_shansep_data_df: Optional[DataFrame] = None
         self.shansep_data_df_sutabel: Optional[DataFrame] = None
         self.sutabel_grafiek: Optional[DataFrame] = None
-        self.su_fit_constante_CV: Optional[DataFrame] = None
+        self.su_fit_constante_cv: Optional[DataFrame] = None
 
         # Figure voor plotly
         self.figure: Optional[go.Figure] = None
@@ -195,7 +201,7 @@ class SUTABEL:
         - 5% boven- en ondergrenzen
         - Ondergrens parameters
         """
-        from pv_tool.shansep_analysis.expand_analysis import (
+        from pv_tool.sutabel_analysis.expand_analysis import (
             calculate_ln_sv_sutabel, calculate_ln_su_sutabel,
             calculate_sv_tt_sutabel, calculate_sv_ty_sutabel,
             calculate_chi_2_sutabel, calculate_sv_eff_sutabel,
@@ -232,16 +238,16 @@ class SUTABEL:
         calculate_sv_ty_ondergrens_sutabel(self)
         calculate_chi_2_ondergrens_sutabel(self)
 
-    def get_sutabel_parameters(self, CV_fit_kar_sutabel: Optional[float] = None):
+    def get_sutabel_parameters(self, cv_fit_kar_sutabel: Optional[float] = None):
         """
         Berekent de sutabel-m parameters.
 
         Parameters
         ----------
-        CV_fit_kar_sutabel : float, optioneel
+        cv_fit_kar_sutabel : float, optioneel
             Coefficient of Variation voor sutabel fit (user input)
         """
-        from pv_tool.shansep_analysis.variables import (
+        from pv_tool.sutabel_analysis.variables import (
             e_a2_sutabel, e_a1_sutabel,
             a2_kar_sutabel, a1_kar_sutabel,
             steyx_sutabel
@@ -259,13 +265,13 @@ class SUTABEL:
         self.svgm_kar_sutabel = math.exp(self.a1_kar_sutabel)
         self.m_kar_sutabel = 1 - self.a2_kar_sutabel
 
-        # Sla CV_fit_kar op (kan None zijn als niet opgegeven)
-        if CV_fit_kar_sutabel is not None:
-            self.CV_fit_kar_sutabel = CV_fit_kar_sutabel
-            self.STDEV_logn_CV_sutabel = math.sqrt(math.log(1 + (self.CV_fit_kar_sutabel ** 2)))
+        # Sla cv_fit_kar op (kan None zijn als niet opgegeven)
+        if cv_fit_kar_sutabel is not None:
+            self.cv_fit_kar_sutabel = cv_fit_kar_sutabel
+            self.STDEV_logn_cv_sutabel = math.sqrt(math.log(1 + (self.cv_fit_kar_sutabel ** 2)))
         else:
-            self.CV_fit_kar_sutabel = None
-            self.STDEV_logn_CV_sutabel = None
+            self.cv_fit_kar_sutabel = None
+            self.STDEV_logn_cv_sutabel = None
 
     def calculate_sutabel_grafiek(self):
         """
@@ -273,7 +279,7 @@ class SUTABEL:
 
         Maakt twee dataframes:
         - sutabel_grafiek: bevat su_gem en su_kar lijnen
-        - su_fit_constante_CV: bevat su_kar fit met constante CV lijn
+        - su_fit_constante_cv: bevat su_kar fit met constante cv lijn
         """
         import numpy as np
         from scipy.stats import lognorm
@@ -293,24 +299,24 @@ class SUTABEL:
             "su_kar [kPa]": su_kar_values
         })
 
-        # Als CV_fit_kar is opgegeven, bereken ook de constante CV fit
-        if self.CV_fit_kar_sutabel is not None and self.STDEV_logn_CV_sutabel is not None:
+        # Als cv_fit_kar is opgegeven, bereken ook de constante cv fit
+        if self.cv_fit_kar_sutabel is not None and self.STDEV_logn_cv_sutabel is not None:
             # Bereken ln waarden
-            ln_su_gem = [math.log(su) - 0.5 * (self.STDEV_logn_CV_sutabel ** 2) for su in su_gem_values]
-            ln_su_kar = [math.log(su) - 0.5 * (self.STDEV_logn_CV_sutabel ** 2) for su in su_kar_values]
+            ln_su_gem = [math.log(su) - 0.5 * (self.STDEV_logn_cv_sutabel ** 2) for su in su_gem_values]
+            ln_su_kar = [math.log(su) - 0.5 * (self.STDEV_logn_cv_sutabel ** 2) for su in su_kar_values]
 
-            # Bereken su_kar fit met constante CV
-            su_kar_fit_cv = [lognorm.ppf(0.05, s=self.STDEV_logn_CV_sutabel, scale=math.exp(ln))
+            # Bereken su_kar fit met constante cv
+            su_kar_fit_cv = [lognorm.ppf(0.05, s=self.STDEV_logn_cv_sutabel, scale=math.exp(ln))
                              for ln in ln_su_gem]
 
-            self.su_fit_constante_CV = DataFrame({
+            self.su_fit_constante_cv = DataFrame({
                 "s'v [kPa]": sv_values,
                 "ln(su_gem) [kPa]": ln_su_gem,
                 "ln(su_kar) [kPa]": ln_su_kar,
-                "su_kar fit met constante CV [kPa]": su_kar_fit_cv
+                "su_kar fit met constante cv [kPa]": su_kar_fit_cv
             })
         else:
-            self.su_fit_constante_CV = None
+            self.su_fit_constante_cv = None
 
     def _run_sutabel(self):
         """
@@ -319,6 +325,94 @@ class SUTABEL:
         self.get_shansep_data()
         self.expand_analysis_df_sutabel()
         self.get_sutabel_parameters()
+
+    def set_manual_parameters(self,
+                             a1_kar: Optional[float] = None,
+                             a2_kar: Optional[float] = None,
+                             cv_fit_kar: Optional[float] = None):
+        """
+        Stelt handmatige parameters in voor de sutabel analyse.
+
+        Na het instellen van handmatige parameters worden deze gebruikt in plaats van
+        de berekende parameters. Dit is handig voor iteratieve analyses waarbij de
+        gebruiker verschillende parameterwaarden wil testen.
+
+        De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
+
+        Parameters
+        ----------
+        a1_kar : float, optioneel
+            Handmatig ingesteld karakteristiek snijpunt in ln-ruimte
+        a2_kar : float, optioneel
+            Handmatig ingestelde karakteristieke helling in ln-ruimte
+        cv_fit_kar : float, optioneel
+            Handmatig ingestelde Coefficient of Variation voor fit
+
+        Examples
+        --------
+        >>> sutabel = SUTABEL(...)
+        >>> sutabel.show_figure_sv_su_sutabel()  # Automatisch analyse
+        >>>
+        >>> # Pas parameters aan en analyseer opnieuw
+        >>> sutabel.set_manual_parameters(a1_kar=0.85, a2_kar=0.70, cv_fit_kar=0.25)
+        >>> sutabel.show_figure_sv_su_sutabel()  # Gebruikt nu handmatige parameters
+        """
+        # Zorg dat analyse is uitgevoerd voordat handmatige parameters worden ingesteld
+        if self.shansep_data_df_sutabel is None:
+            self._run_sutabel()
+
+        self.parameters_handmatig = True
+
+        # Sla handmatige parameters op
+        if a1_kar is not None:
+            self.a1_kar_handmatig = a1_kar
+        if a2_kar is not None:
+            self.a2_kar_handmatig = a2_kar
+        if cv_fit_kar is not None:
+            self.cv_fit_kar_handmatig = cv_fit_kar
+
+        # Herbereken de afgeleide parameters met de nieuwe waarden
+        self._update_parameters_from_manual()
+
+    def _update_parameters_from_manual(self):
+        """
+        Update de gebruikte parameters op basis van handmatige input.
+
+        Als handmatige parameters zijn ingesteld, worden deze gebruikt.
+        Anders blijven de berekende parameters behouden.
+        """
+        if not self.parameters_handmatig:
+            return
+
+        # Gebruik handmatige a1_kar of behoud berekende waarde
+        if self.a1_kar_handmatig is not None:
+            a1_kar_te_gebruiken = self.a1_kar_handmatig
+        else:
+            a1_kar_te_gebruiken = self.a1_kar_sutabel
+
+        # Gebruik handmatige a2_kar of behoud berekende waarde
+        if self.a2_kar_handmatig is not None:
+            a2_kar_te_gebruiken = self.a2_kar_handmatig
+        else:
+            a2_kar_te_gebruiken = self.a2_kar_sutabel
+
+        # Gebruik handmatige cv_fit_kar of behoud berekende waarde
+        if self.cv_fit_kar_handmatig is not None:
+            cv_te_gebruiken = self.cv_fit_kar_handmatig
+        else:
+            cv_te_gebruiken = self.cv_fit_kar_sutabel
+
+        # Bereken afgeleide parameters met de te gebruiken waarden
+        self.svgm_kar_sutabel = math.exp(a1_kar_te_gebruiken)
+        self.m_kar_sutabel = 1 - a2_kar_te_gebruiken
+
+        # Update cv parameters
+        if cv_te_gebruiken is not None:
+            self.cv_fit_kar_sutabel = cv_te_gebruiken
+            self.STDEV_logn_cv_sutabel = math.sqrt(math.log(1 + (cv_te_gebruiken ** 2)))
+
+        # Herbereken de grafiek dataframes met de nieuwe parameters
+        self.calculate_sutabel_grafiek()
 
     def write_analysis_to_excel(self, file_path: str):
         """
@@ -336,8 +430,8 @@ class SUTABEL:
                 self.shansep_data_df_sutabel.to_excel(writer, sheet_name='Sutabel Data', index=False)
             if self.sutabel_grafiek is not None:
                 self.sutabel_grafiek.to_excel(writer, sheet_name='Sutabel Grafiek', index=False)
-            if self.su_fit_constante_CV is not None:
-                self.su_fit_constante_CV.to_excel(writer, sheet_name='CV Fit', index=False)
+            if self.su_fit_constante_cv is not None:
+                self.su_fit_constante_cv.to_excel(writer, sheet_name='cv Fit', index=False)
 
     # ========== Visualization Methods ==========
 
@@ -350,8 +444,10 @@ class SUTABEL:
         - Lineaire fit
         - 5% boven- en ondergrens
         - Fysische realiseerbare ondergrens (gebaseerd op a1_kar en a2_kar)
+
+        De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
         """
-        from pv_tool.shansep_analysis.visualization_shansep import (
+        from pv_tool.sutabel_analysis.visualization import (
             add_proefresultaten_ln_sv_ln_su_sutabel,
             add_lineair_fit_ln_sv_ln_su_sutabel,
             add_5pr_bovengrens_ln_sv_ln_su_sutabel,
@@ -360,7 +456,10 @@ class SUTABEL:
             set_layout_ln_sv_ln_su_sutabel
         )
 
-        self._run_sutabel()
+        # Voer analyse uit als nog niet gedaan
+        if self.shansep_data_df_sutabel is None:
+            self._run_sutabel()
+
         add_proefresultaten_ln_sv_ln_su_sutabel(self)
         add_lineair_fit_ln_sv_ln_su_sutabel(self)
         add_5pr_bovengrens_ln_sv_ln_su_sutabel(self)
@@ -371,8 +470,9 @@ class SUTABEL:
     def show_figure_ln_sv_ln_su_sutabel(self):
         """
         Toont de visualisatie van de sutabel analyseresultaten voor ln(s'v) vs ln(su).
+
+        De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
         """
-        self._run_sutabel()
         self.figure = go.Figure()
         self.set_figure_ln_sv_ln_su_sutabel()
         self.figure.show()
@@ -385,9 +485,12 @@ class SUTABEL:
         - Proefresultaten (OC data)
         - Sutabel_gem lijn
         - Sutabel_kar lijn
-        - Su_kar fit met constante VC (als CV_fit_kar is opgegeven)
+        - Su_kar fit met constante VC (als cv_fit_kar is opgegeven)
+
+        Als handmatige parameters zijn ingesteld, worden deze gebruikt voor de visualisatie.
+        De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
         """
-        from pv_tool.shansep_analysis.visualization_shansep import (
+        from pv_tool.sutabel_analysis.visualization import (
             add_proefresultaten_sv_su_sutabel,
             add_sutabel_gem_line,
             add_sutabel_kar_line,
@@ -395,7 +498,13 @@ class SUTABEL:
             set_layout_sv_su_sutabel
         )
 
-        self._run_sutabel()
+        # Voer analyse uit als nog niet gedaan
+        if self.shansep_data_df_sutabel is None:
+            self._run_sutabel()
+
+        # Update parameters als handmatige waarden zijn ingesteld
+        if self.parameters_handmatig:
+            self._update_parameters_from_manual()
 
         # Bereken grafiek dataframes
         self.calculate_sutabel_grafiek()
@@ -405,8 +514,8 @@ class SUTABEL:
         add_sutabel_gem_line(self)
         add_sutabel_kar_line(self)
 
-        # Voeg CV fit lijn toe als deze beschikbaar is
-        if self.su_fit_constante_CV is not None:
+        # Voeg cv fit lijn toe als deze beschikbaar is
+        if self.su_fit_constante_cv is not None:
             add_su_kar_fit_constante_vc(self)
 
         set_layout_sv_su_sutabel(self)
@@ -414,8 +523,9 @@ class SUTABEL:
     def show_figure_sv_su_sutabel(self):
         """
         Toont de visualisatie van de sutabel analyseresultaten voor s'v vs su.
+
+        De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
         """
-        self._run_sutabel()
         self.figure = go.Figure()
         self.set_figure_sv_su_sutabel()
         self.figure.show()
@@ -425,6 +535,8 @@ class SUTABEL:
     def add_results_to_dbase(self, path: str, file_name: str = 'Template_PVtool5_0.xlsx'):
         """
         Voegt de sutabel-m analyseresultaten toe aan de database Excel-bestand.
+
+        De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
 
         Parameters
         ----------
@@ -438,18 +550,27 @@ class SUTABEL:
         DataFrame
             Bijgewerkte DataFrame met alle resultaten
         """
-        from pv_tool.shansep_analysis.save_and_export_sutabel import add_sutabel_results_to_dbase
+        # Voer analyse uit als nog niet gedaan
+        if self.shansep_data_df_sutabel is None or self.e_a1_sutabel is None:
+            self._run_sutabel()
+            # Zorg dat parameters zijn berekend
+            if self.e_a1_sutabel is None:
+                self.get_sutabel_parameters()
+
+        from pv_tool.sutabel_analysis.save_and_export import add_sutabel_results_to_dbase
         return add_sutabel_results_to_dbase(self, path, file_name)
 
-    def save_to_pdf(self, path: str, CV_fit_kar: float = None) -> str:
+    def save_to_pdf(self, path: str, cv_fit_kar: float = None) -> str:
         """
         Slaat de sutabel-m analyseresultaten op in een PDF-document.
+
+        De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
 
         Parameters
         ----------
         path : str
             Map locatie waar het PDF-bestand moet worden opgeslagen
-        CV_fit_kar : float, optioneel
+        cv_fit_kar : float, optioneel
             Coefficient of Variation voor de fit
 
         Returns
@@ -457,6 +578,13 @@ class SUTABEL:
         str
             Het absolute bestandspad van het aangemaakte PDF-bestand
         """
-        from pv_tool.shansep_analysis.save_and_export_sutabel import save_sutabel_to_pdf
-        return save_sutabel_to_pdf(self, path, CV_fit_kar)
+        # Voer analyse uit als nog niet gedaan
+        if self.shansep_data_df_sutabel is None or self.e_a1_sutabel is None:
+            self._run_sutabel()
+            # Zorg dat parameters zijn berekend
+            if self.e_a1_sutabel is None:
+                self.get_sutabel_parameters(cv_fit_kar_sutabel=cv_fit_kar)
+
+        from pv_tool.sutabel_analysis.save_and_export import save_sutabel_to_pdf
+        return save_sutabel_to_pdf(self, path, cv_fit_kar)
 

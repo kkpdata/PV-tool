@@ -26,17 +26,17 @@ except ImportError:
     print("Waarschuwing: PIL (Pillow) is niet beschikbaar. Figuren kunnen niet aan PDF worden toegevoegd.")
 
 if TYPE_CHECKING:
-    from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
+    from pv_tool.sutabel_analysis.sutabel_analysis import SUTABEL
 
 
-def add_sutabel_results_to_dbase(self: "SHANSEP", path: str, file_name: str = 'Template_PVtool5_0.xlsx'):
+def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = 'Template_PVtool5_0.xlsx'):
     """
     Voegt de sutabel-m analyseresultaten toe aan de database Excel-bestand.
 
     Parameters
     ----------
-    self : SHANSEP
-        Instantie van de SHANSEP analyse klasse
+    self : sutabel
+        Instantie van de sutabel analyse klasse
     path : str
         Pad naar de map waar het Excel-bestand staat
     file_name : str
@@ -51,18 +51,18 @@ def add_sutabel_results_to_dbase(self: "SHANSEP", path: str, file_name: str = 'T
 
     # Ensure analysis is run
     if self.sutabel_grafiek is None or self.e_a1_sutabel is None:
-        self._run_shansep()
-        if hasattr(self, 'CV_fit_kar_sutabel') and self.CV_fit_kar_sutabel is not None:
-            self.get_shansep_parameters(CV_fit_kar_sutabel=self.CV_fit_kar_sutabel)
+        self._run_sutabel()
+        if hasattr(self, 'cv_fit_kar_sutabel') and self.cv_fit_kar_sutabel is not None:
+            self.get_sutabel_parameters(cv_fit_kar_sutabel=self.cv_fit_kar_sutabel)
         else:
-            self.get_shansep_parameters()
+            self.get_sutabel_parameters()
 
     # Expected columns structure voor sutabel resultaten
     expected_columns = [
         'PVNAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE', 'PV_RESULTAAT_ID', 'PV_TYPEVERZAMELING',
         'PV_e_a1_GEM [-]', 'PV_e_a2_GEM [-]', 'PV_svgm_GEM [kPa]', 'PV_m_GEM [-]',
         'PV_a1_KAR [-]', 'PV_a2_KAR [-]', 'PV_svgm_KAR [kPa]', 'PV_m_KAR [-]',
-        'PV_CV_FIT_KAR [-]', 'PV_STDEV_LOGN_CV [-]', 'PV_STEYX [-]',
+        'PV_cv_FIT_KAR [-]', 'PV_STDEV_LOGN_cv [-]', 'PV_STEYX [-]',
         'PV_VGWNAT_GEM [kN/m3]', 'PV_VGWNAT_SD [kN/m3]', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD',
         'Timestamp'
     ]
@@ -82,8 +82,8 @@ def add_sutabel_results_to_dbase(self: "SHANSEP", path: str, file_name: str = 'T
         'PV_a2_KAR [-]': round(self.a2_kar_sutabel, 6) if self.a2_kar_sutabel is not None else None,
         'PV_svgm_KAR [kPa]': round(self.svgm_kar_sutabel, 6) if self.svgm_kar_sutabel is not None else None,
         'PV_m_KAR [-]': round(self.m_kar_sutabel, 6) if self.m_kar_sutabel is not None else None,
-        'PV_CV_FIT_KAR [-]': round(self.CV_fit_kar_sutabel, 6) if self.CV_fit_kar_sutabel is not None else None,
-        'PV_STDEV_LOGN_CV [-]': round(self.STDEV_logn_CV_sutabel, 6) if self.STDEV_logn_CV_sutabel is not None else None,
+        'PV_CV_FIT_KAR [-]': round(self.cv_fit_kar_sutabel, 6) if self.cv_fit_kar_sutabel is not None else None,
+        'PV_STDEV_LOGN_cv [-]': round(self.STDEV_logn_cv_sutabel, 6) if self.STDEV_logn_cv_sutabel is not None else None,
         'PV_STEYX [-]': round(self.steyx_sutabel, 6) if self.steyx_sutabel is not None else None,
         'PV_VGWNAT_GEM [kN/m3]': round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
         'PV_VGWNAT_SD [kN/m3]': round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
@@ -128,7 +128,7 @@ def add_sutabel_results_to_dbase(self: "SHANSEP", path: str, file_name: str = 'T
     return df_updated
 
 
-def _create_sutabel_input_table(self: "SHANSEP") -> Table:
+def _create_sutabel_input_table(self: "SUTABEL") -> Table:
     """
     Maakt een tabel met de invoerselectie informatie voor sutabel analyse.
 
@@ -200,7 +200,7 @@ def _create_sutabel_input_table(self: "SHANSEP") -> Table:
     return t1
 
 
-def _create_sutabel_parameters_table(self: "SHANSEP") -> Table:
+def _create_sutabel_parameters_table(self: "SUTABEL") -> Table:
     """
     Maakt een tabel met de sutabel-m parameters.
 
@@ -230,10 +230,10 @@ def _create_sutabel_parameters_table(self: "SHANSEP") -> Table:
     if hasattr(self, 'm_kar_sutabel') and self.m_kar_sutabel is not None:
         parameters.append(['m_kar [-]', f"{self.m_kar_sutabel:.6f}"])
 
-    if hasattr(self, 'CV_fit_kar_sutabel') and self.CV_fit_kar_sutabel is not None:
-        parameters.append(['CV_fit_kar [-]', f"{self.CV_fit_kar_sutabel:.6f}"])
-    if hasattr(self, 'STDEV_logn_CV_sutabel') and self.STDEV_logn_CV_sutabel is not None:
-        parameters.append(['STDEV lognormaal [-]', f"{self.STDEV_logn_CV_sutabel:.6f}"])
+    if hasattr(self, 'cv_fit_kar_sutabel') and self.cv_fit_kar_sutabel is not None:
+        parameters.append(['cv_fit_kar [-]', f"{self.cv_fit_kar_sutabel:.6f}"])
+    if hasattr(self, 'STDEV_logn_cv_sutabel') and self.STDEV_logn_cv_sutabel is not None:
+        parameters.append(['STDEV lognormaal [-]', f"{self.STDEV_logn_cv_sutabel:.6f}"])
     if hasattr(self, 'steyx_sutabel') and self.steyx_sutabel is not None:
         parameters.append(['STEYX [-]', f"{self.steyx_sutabel:.6f}"])
 
@@ -256,7 +256,7 @@ def _create_sutabel_parameters_table(self: "SHANSEP") -> Table:
     return t
 
 
-def _create_sutabel_grafiek_table(self: "SHANSEP") -> Table:
+def _create_sutabel_grafiek_table(self: "SUTABEL") -> Table:
     """
     Maakt een tabel met de sutabel grafiek data (su_gem en su_kar lijnen).
 
@@ -291,20 +291,20 @@ def _create_sutabel_grafiek_table(self: "SHANSEP") -> Table:
     return t
 
 
-def _create_su_fit_cv_table(self: "SHANSEP") -> Table:
+def _create_su_fit_cv_table(self: "SUTABEL") -> Table:
     """
-    Maakt een tabel met de su fit constante CV data.
+    Maakt een tabel met de su fit constante cv data.
 
     Returns
     -------
     Table
-        ReportLab tabel object met de su fit CV data
+        ReportLab tabel object met de su fit cv data
     """
-    if self.su_fit_constante_CV is None:
-        return Table([['Geen CV fit data beschikbaar (CV_fit_kar niet opgegeven)']], hAlign='LEFT')
+    if self.su_fit_constante_cv is None:
+        return Table([['Geen cv fit data beschikbaar (cv_fit_kar niet opgegeven)']], hAlign='LEFT')
 
     # Maak een kopie en rond af
-    df = self.su_fit_constante_CV.copy()
+    df = self.su_fit_constante_cv.copy()
     for col in df.columns:
         if df[col].dtype in ['float64', 'float32']:
             df[col] = df[col].round(3)
@@ -326,7 +326,7 @@ def _create_su_fit_cv_table(self: "SHANSEP") -> Table:
     return t
 
 
-def save_sutabel_to_pdf(self: "SHANSEP", path: str, CV_fit_kar: float = None) -> str:
+def save_sutabel_to_pdf(self: "SUTABEL", path: str, cv_fit_kar: float = None) -> str:
     """
     Slaat de sutabel-m analyseresultaten op in een PDF-document.
 
@@ -335,14 +335,14 @@ def save_sutabel_to_pdf(self: "SHANSEP", path: str, CV_fit_kar: float = None) ->
     - Beide overzichtsfiguren (ln(s'v)-ln(su) en s'v-su)
     - Tabel met parameters
     - Tabel met sutabel grafiek data (su_gem en su_kar)
-    - Tabel met su fit constante CV data (indien van toepassing)
+    - Tabel met su fit constante cv data (indien van toepassing)
     - Tabel met invoerselectie informatie
 
     Parameters
     ----------
     path : str
         Map locatie waar het PDF-bestand moet worden opgeslagen
-    CV_fit_kar : float, optioneel
+    cv_fit_kar : float, optioneel
         Coefficient of Variation voor de fit
 
     Returns
@@ -355,14 +355,14 @@ def save_sutabel_to_pdf(self: "SHANSEP", path: str, CV_fit_kar: float = None) ->
     file_name = f"sutabel_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf"
     file_path = f"{path}/{file_name}"
 
-    # Ensure analysis is run with CV parameter if provided
-    self._run_shansep()
-    if CV_fit_kar is not None:
-        self.get_shansep_parameters(CV_fit_kar_sutabel=CV_fit_kar)
-    elif hasattr(self, 'CV_fit_kar_sutabel') and self.CV_fit_kar_sutabel is not None:
-        self.get_shansep_parameters(CV_fit_kar_sutabel=self.CV_fit_kar_sutabel)
+    # Ensure analysis is run with cv parameter if provided
+    self._run_sutabel()
+    if cv_fit_kar is not None:
+        self.get_sutabel_parameters(cv_fit_kar_sutabel=cv_fit_kar)
+    elif hasattr(self, 'cv_fit_kar_sutabel') and self.cv_fit_kar_sutabel is not None:
+        self.get_sutabel_parameters(cv_fit_kar_sutabel=self.cv_fit_kar_sutabel)
     else:
-        self.get_shansep_parameters()
+        self.get_sutabel_parameters()
 
     # Bereken sutabel grafiek data
     if self.sutabel_grafiek is None:
@@ -501,9 +501,9 @@ def save_sutabel_to_pdf(self: "SHANSEP", path: str, CV_fit_kar: float = None) ->
     story.append(_create_sutabel_grafiek_table(self))
     story.append(Spacer(width=1, height=12))
 
-    # Voeg su fit CV data toe (indien beschikbaar)
-    if self.su_fit_constante_CV is not None:
-        story.append(Paragraph("Su fit met constante CV data", styles['Heading2']))
+    # Voeg su fit cv data toe (indien beschikbaar)
+    if self.su_fit_constante_cv is not None:
+        story.append(Paragraph("Su fit met constante cv data", styles['Heading2']))
         story.append(Spacer(width=1, height=6))
         story.append(_create_su_fit_cv_table(self))
         story.append(Spacer(width=1, height=12))

@@ -15,6 +15,7 @@ from pv_tool.imports.validation import Validation
 from pv_tool.imports.import_data import Dbase
 from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
+from pv_tool.sutabel_analysis import SUTABEL
 from pv_tool.imports.import_options import *
 from typing import Literal
 
@@ -105,7 +106,7 @@ def database_import_test(source: Literal['Stowa', 'PV-tool', 'Dbase'],
         return None
 
 
-def cphi_analysis_txt_test(dbase: Dbase, file_name: str = 'Template_PVtool5_0.xlsx'):
+def cphi_analysis_txt_test(dbase: Dbase, export_path: Path, export_file: str):
     """
     Test een TXT C-phi analyse.
 
@@ -113,9 +114,11 @@ def cphi_analysis_txt_test(dbase: Dbase, file_name: str = 'Template_PVtool5_0.xl
     ----------
     dbase : Dbase
         Database instance met testdata
+    export_path : Path
+        Directory waar resultaten worden opgeslagen
+    export_file : str
+        Naam van het export database bestand
     """
-    save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
-
     # Initialiseer analyse
     analyse = CPhiAnalyse(
         dbase=dbase,
@@ -131,14 +134,14 @@ def cphi_analysis_txt_test(dbase: Dbase, file_name: str = 'Template_PVtool5_0.xl
     # Print en exporteer resultaten
     print('\nResultaten TXT C-phi analyse:')
     print(analyse.print_short_results())
-    analyse.add_results_to_dbase(path=str(save_test), file_name=file_name)
+    analyse.add_results_to_dbase(path=str(export_path), file_name=export_file)
 
     # Visualisatie
     analyse.show_figure()
-    analyse.save_to_pdf(path=str(save_test))
+    analyse.save_to_pdf(path=str(export_path))
 
 
-def cphi_analysis_dss_test(dbase: Dbase):
+def cphi_analysis_dss_test(dbase: Dbase, export_path: Path, export_file: str):
     """
     Test een DSS C-phi analyse.
 
@@ -146,9 +149,11 @@ def cphi_analysis_dss_test(dbase: Dbase):
     ----------
     dbase : Dbase
         Database instance met testdata
+    export_path : Path
+        Directory waar resultaten worden opgeslagen
+    export_file : str
+        Naam van het export database bestand
     """
-    save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
-
     # Initialiseer analyse
     analyse = CPhiAnalyse(
         dbase=dbase,
@@ -163,14 +168,14 @@ def cphi_analysis_dss_test(dbase: Dbase):
     # Print en exporteer resultaten
     print('\nResultaten DSS C-phi analyse:')
     print(analyse.print_short_results())
-    analyse.add_results_to_dbase(path=str(save_test))
+    analyse.add_results_to_dbase(path=str(export_path), file_name=export_file)
 
     # Visualisatie
     analyse.show_figure()
-    analyse.save_to_pdf(path=str(save_test))
+    analyse.save_to_pdf(path=str(export_path))
 
 
-def cphi_analysis_txt_sh_test(dbase: Dbase):
+def cphi_analysis_txt_sh_test(dbase: Dbase, export_path: Path, export_file: str):
     """
     Test een TXT C-phi analyse volgens schematiseringshandleiding (SH).
 
@@ -178,9 +183,11 @@ def cphi_analysis_txt_sh_test(dbase: Dbase):
     ----------
     dbase : Dbase
         Database instance met testdata
+    export_path : Path
+        Directory waar resultaten worden opgeslagen
+    export_file : str
+        Naam van het export database bestand
     """
-    save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
-
     # Initialiseer analyse
     analyse = CPhiAnalyse(
         dbase=dbase,
@@ -195,14 +202,14 @@ def cphi_analysis_txt_sh_test(dbase: Dbase):
     # Print en exporteer resultaten
     print('\nResultaten TXT C-phi analyse (schematiseringshandleiding):')
     print(analyse.print_short_results())
-    analyse.add_results_to_dbase(path=str(save_test))
+    analyse.add_results_to_dbase(path=str(export_path), file_name=export_file)
 
     # Visualisatie
     analyse.show_figure()
-    analyse.save_to_pdf(path=str(save_test))
+    analyse.save_to_pdf(path=str(export_path))
 
 
-def cphi_analysis_dss_sh_test(dbase: Dbase):
+def cphi_analysis_dss_sh_test(dbase: Dbase, export_path: Path, export_file: str):
     """
     Test een DSS C-phi analyse volgens schematiseringshandleiding (SH).
 
@@ -210,9 +217,11 @@ def cphi_analysis_dss_sh_test(dbase: Dbase):
     ----------
     dbase : Dbase
         Database instance met testdata
+    export_path : Path
+        Directory waar resultaten worden opgeslagen
+    export_file : str
+        Naam van het export database bestand
     """
-    save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
-
     # Initialiseer analyse
     analyse = CPhiAnalyse(
         dbase=dbase,
@@ -227,30 +236,39 @@ def cphi_analysis_dss_sh_test(dbase: Dbase):
     # Print en exporteer resultaten
     print('\nResultaten DSS C-phi analyse (schematiseringshandleiding):')
     print(analyse.print_short_results())
-    analyse.add_results_to_dbase(path=str(save_test))
+    analyse.add_results_to_dbase(path=str(export_path), file_name=export_file)
 
     # Visualisatie
     analyse.show_figure()
-    analyse.save_to_pdf(path=str(save_test))
+    analyse.save_to_pdf(path=str(export_path))
+
 
 # function for testing shansep analysis
-def shansep_analysis_test(dbase: Dbase):
+def shansep_analysis_test(dbase: Dbase, export_path: Path, export_file: str):
+    """
+    Test een SHANSEP analyse.
+
+    Parameters
+    ----------
+    dbase : Dbase
+        Database instance met testdata
+    export_path : Path
+        Directory waar resultaten worden opgeslagen
+    export_file : str
+        Naam van het export database bestand
+    """
     analyse = SHANSEP(
         dbase=dbase,
         investigation_groups=['TXT_SAFE_klei_licht_16_175'],
         effective_stress='15% rek',
-        analysis_type='TXT_su_tabel')
+        analysis_type='TXT_S_POP')
 
     # Pas instellingen toe
     analyse.apply_settings(alpha=0.75)
 
     # Print en exporteer resultaten
     print('\nResultaten SHANSEP analyse:')
-
-    save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
-
-    df_updated = analyse.add_results_to_dbase(path=str(save_test), file_name='Template_PVtool5_0_SAFE_2022_PV.xlsx')
-
+    analyse.add_results_to_dbase(path=str(export_path), file_name=export_file)
 
     analyse.set_parameters_handmatig(snijpunt_gem=11, s_gem=0.31, m_gem=0.9, snijpunt_kar=7, s_kar=0.28, m_kar=0.9)
 
@@ -258,20 +276,53 @@ def shansep_analysis_test(dbase: Dbase):
     # analyse.show_figure_sv_su(plot_extra_dataset=None, plot_spanningspaden=False)
     # analyse.show_figure_ln_ocr_ln_s(plot_extra_dataset=None)
     # analyse.show_figure_sv_su_nc(plot_extra_dataset=None)
-    # pdf_path = analyse.save_to_pdf(path=str(save_test))
-    analyse.save_total_to_excel(path=str(save_test))
+    pdf_path = analyse.save_to_pdf(path=str(export_path))
+    analyse.save_total_to_excel(path=str(export_path))
+
+
+def sutabel_analysis_test(dbase: Dbase, export_path: Path, export_file: str):
+    """
+    Test een SUTABEL analyse.
+
+    Parameters
+    ----------
+    dbase : Dbase
+        Database instance met testdata
+    export_path : Path
+        Directory waar resultaten worden opgeslagen
+    export_file : str
+        Naam van het export database bestand
+    """
+    sutabel = SUTABEL(
+        dbase=dbase,
+        analysis_type='TXT_su_tabel',
+        investigation_groups=['PVNAAM'],
+        effective_stress='15% rek',
+        alpha=0.75
+    )
+
+    # Visualize (analysis runs automatically)
+    sutabel.show_figure_ln_sv_ln_su_sutabel()
+    sutabel.show_figure_sv_su_sutabel()
+
+    # Export (analysis runs automatically if needed)
+    sutabel.add_results_to_dbase(str(export_path), export_file)
+    sutabel.save_to_pdf(str(export_path), cv_fit_kar=0.2)
+
 
 if __name__ == "__main__":
     # Test database import
     source = 'Dbase'  # Opties: 'Stowa', 'PV-tool', 'Dbase'
     import_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
     export_name = 'Nieuwe database testje.xlsx'
+    export_dir = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
+    export_dir.mkdir(parents=True, exist_ok=True)
 
     print("Start van de tests...\n")
     print(f"Using source: {source}")
-
     print(f"Import file: {import_name}")
     print(f"Export file: {export_name}")
+    print(f"Export directory: {export_dir}")
 
     dbase = database_import_test(
         source=source,
@@ -289,10 +340,22 @@ if __name__ == "__main__":
     # Test verschillende analyses
     print("\nUitvoeren van verschillende test cases...")
 
-    print("\n1. TXT C-phi analyse test")
-    # cphi_analysis_txt_test(dbase, file_name=export_name)
+    # print("\nTXT C-phi analyse test")
+    # cphi_analysis_txt_test(dbase, export_dir, export_name)
+    #
+    # print("\nDSS C-phi analyse test")
+    # cphi_analysis_dss_test(dbase, export_dir, export_name)
+    #
+    # print("\nTXT C-phi analyse (schematiseringshandleiding) test")
+    # cphi_analysis_txt_sh_test(dbase, export_dir, export_name)
+    #
+    # print("\nDSS C-phi analyse (schematiseringshandleiding) test")
+    # cphi_analysis_dss_sh_test(dbase, export_dir, export_name)
+    #
+    # print("\nTXT SHANSEP analyse test")
+    # shansep_analysis_test(dbase, export_dir, export_name)
 
-    print("\n2. TXT SHANSEP analyse test")
-    shansep_analysis_test(dbase)
+    print("\nSUTABEL analyse test")
+    sutabel_analysis_test(dbase, export_dir, export_name)
 
     print("\nAlle tests zijn voltooid!")
