@@ -18,6 +18,7 @@ from pv_tool.shansep_analysis.calc_parameters import (
     calc_vgwnat_gem_txt, calc_vgwnat_gem_dss,
     calc_vgwnat_sd_txt, calc_vgwnat_sd_dss
 )
+from pandas import read_excel
 
 
 class SUTABEL:
@@ -189,6 +190,51 @@ class SUTABEL:
             self.calc_watergehalte_sd = calc_watergehalte_sd_dss(self)
             self.calc_vgwnat_gem = calc_vgwnat_gem_dss(self)
             self.calc_vgwnat_sd = calc_vgwnat_sd_dss(self)
+
+    def get_previous_results(self, path: str, file_name: str):
+        """
+        Zoekt naar eerdere analyseresultaten in een Excel-bestand.
+
+        Parameters
+        ----------
+        path: str
+            Pad naar de map waar het Excel-bestand staat
+        file_name: str
+            Naam van het Excel-bestand
+
+        Returns
+        -------
+        DataFrame of None
+            DataFrame met eerdere resultaten als deze gevonden zijn, anders None
+        """
+
+        file_path = f"{path}/{file_name}"
+
+        try:
+            with open(file_path, 'r'):
+                pass
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Er is geen dbase aanwezig op de locatie {file_path}.")
+
+        try:
+            results_df = read_excel(file_path, sheet_name='Resultaten')
+        except ValueError:
+            print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
+            return None
+
+        filtered_df = results_df[
+            (results_df['PV_RESULTAAT_ID'].str.contains(self.investigation_groups[0])) &
+            (results_df['PV_RESULTAAT_ID'].str.contains(self.effective_stress)) &
+            (results_df['PV_RESULTAAT_ID'].str.contains(self.analysis_type))
+        ]
+
+        if filtered_df.empty:
+            print("Er zijn geen eerdere resultaten gevonden voor de opgegeven parameters.")
+            return None
+
+        latest_entry = filtered_df.sort_values(by='Timestamp', ascending=False).iloc[0]
+
+        return latest_entry
 
     def expand_analysis_df_sutabel(self):
         """
