@@ -26,7 +26,12 @@ from pv_tool.shansep_analysis.visualization_shansep import (
     set_layout_sv_su,
     set_layout_ln_ocr_ln_s, add_shansep_lijn_sv_su, add_shansep_lijn_ln_ocr_ln_s,
     add_proefresultaten_sv_su_nc, add_fysische_realiseerbare_ondergrens_sv_su_nc,
-    add_lineair_fit_sv_su_nc, add_shansep_lijn_sv_su_nc
+    add_lineair_fit_sv_su_nc, add_shansep_lijn_sv_su_nc,
+    add_proefresultaten_ln_sv_ln_su_sutabel, add_lineair_fit_ln_sv_ln_su_sutabel,
+    add_5pr_bovengrens_ln_sv_ln_su_sutabel, add_5pr_ondergrens_ln_sv_ln_su_sutabel,
+    add_fysische_realiseerbare_ondergrens_ln_sv_ln_su_sutabel, set_layout_ln_sv_ln_su_sutabel,
+    add_proefresultaten_sv_su_sutabel, add_sutabel_kar_line, add_sutabel_gem_line,
+    add_su_kar_fit_constante_vc, set_layout_sv_su_sutabel
 )
 
 from pv_tool.shansep_analysis.variables import (
@@ -36,7 +41,8 @@ from pv_tool.shansep_analysis.variables import (
     e_a1_oc, e_a2_oc, e_a1_nc_oc, e_a2_nc_oc,
     a1_kar_oc, a2_kar_oc,
     a1_kar_nc_oc, a2_kar_nc_oc, exp_gem_ln_su_svc_nc, gem_pop_oc,
-    exp_kar_ln_su_svc_nc, kar_pop_oc, st_dev_s_handmatig, st_dev_pop_handmatig, st_dev_m_handmatig)
+    exp_kar_ln_su_svc_nc, kar_pop_oc, st_dev_s_handmatig, st_dev_pop_handmatig, st_dev_m_handmatig,
+    e_a1_sutabel, e_a2_sutabel, a1_kar_sutabel, a2_kar_sutabel, steyx_sutabel)
 
 from pv_tool.shansep_analysis.expand_analysis import (calculate_ln_ocr, calculate_pop,
                                                           calculate_chi_2_nc_oc, calculate_sv_tt_oc, calculate_sv_spop,
@@ -46,7 +52,13 @@ from pv_tool.shansep_analysis.expand_analysis import (calculate_ln_ocr, calculat
                                                           calculate_sv_ty_ondergrens_nc_oc, calculate_sv_ty_ondergrens_oc,
                                                           calculate_5pr_ondergrens_nc_oc, calculate_5pr_ondergrens_oc,
                                                           calculate_sv_ty_nc_oc, calculate_sv_tt_ondergrens_oc, calculate_sv_eff_oc,
-                                                          calculate_sv_eff_nc_oc, calculate_5pr_bovengrens_oc, calculate_5pr_bovengrens_nc_oc)
+                                                          calculate_sv_eff_nc_oc, calculate_5pr_bovengrens_oc, calculate_5pr_bovengrens_nc_oc,
+                                                          calculate_ln_sv_sutabel, calculate_ln_su_sutabel,
+                                                          calculate_sv_tt_sutabel, calculate_sv_ty_sutabel,
+                                                          calculate_chi_2_sutabel, calculate_sv_eff_sutabel,
+                                                          calculate_5pr_ondergrens_sutabel, calculate_5pr_bovengrens_sutabel,
+                                                          calculate_sv_tt_ondergrens_sutabel, calculate_sv_ty_ondergrens_sutabel,
+                                                          calculate_chi_2_ondergrens_sutabel)
 
 from pv_tool.shansep_analysis.save_and_export import (
     add_results_to_dbase as _add_results_to_dbase,
@@ -105,6 +117,21 @@ class SHANSEP:
         self.exp_kar_ln_su_svc_nc: Optional[float] = None
         self.pop_kar_oc: Optional[float] = None
 
+        # Sutabel parameters
+        self.e_a2_sutabel: Optional[float] = None
+        self.e_a1_sutabel: Optional[float] = None
+        self.a2_kar_sutabel: Optional[float] = None
+        self.a1_kar_sutabel: Optional[float] = None
+        self.steyx_sutabel: Optional[float] = None
+
+        # Sutabel derived parameters for graphing
+        self.svgm_gem_sutabel: Optional[float] = None  # exp(e_a1)
+        self.m_gem_sutabel: Optional[float] = None     # 1 - e_a2
+        self.svgm_kar_sutabel: Optional[float] = None  # exp(a1_kar)
+        self.m_kar_sutabel: Optional[float] = None     # 1 - a2_kar
+        self.CV_fit_kar_sutabel: Optional[float] = None  # User input
+        self.STDEV_logn_CV_sutabel: Optional[float] = None  # sqrt(LN(1 + CV_fit_kar^2))
+
         # Handmatige parameters
         self.parameters_handmatig: Optional[bool] = False
 
@@ -130,10 +157,13 @@ class SHANSEP:
         self.shansep_data_df_oc: Optional[DataFrame] = None
         self.shansep_data_df_nc_oc: Optional[DataFrame] = None
         self.shansep_data_df_nc_oc_unsorted: Optional[DataFrame] = None
+        self.shansep_data_df_sutabel: Optional[DataFrame] = None
         self.df_results_shansep_gem: Optional[DataFrame] = None
         self.df_results_shansep_kar: Optional[DataFrame] = None
         self.sutabel: Optional[DataFrame] = None
         self.sutabel_nc: Optional[DataFrame] = None
+        self.sutabel_grafiek: Optional[DataFrame] = None  # For sutabel-m graph lines
+        self.su_fit_constante_CV: Optional[DataFrame] = None  # For CV fit line
 
         # Figure
         self.figure = go.Figure()
@@ -217,17 +247,39 @@ class SHANSEP:
         return latest_entry
 
     def expand_analysis_df_sutabel(self):
-        """Deze functie berekent alle benodigde parameters per monster voor de analyse."""
-        # calculate_s_tt(self)
-        # calculate_s_ty(self)
-        # calculate_chi_2(self)
-        # calculate_s_sutabel(self)
-        # calculate_5pr_ondergrens(self)
-        # calculate_5pr_bovengrens(self)
-        # calculate_s_tt_ondergrens(self)
-        # calculate_s_ty_ondergrens(self)
-        # calculate_chi_2_ondergrens(self)
-        return f"Deze functie is nog niet geïmplementeerd voor de su tabel analyse."
+        """
+        Deze functie berekent alle benodigde parameters per monster voor de sutabel-m analyse.
+        Het filtert op OC proeven en maakt kolommen aan voor ln(s'v) en ln(su), en berekent
+        vervolgens alle afgeleide waarden zoals s_tt, s_ty, chi_2, effectieve spanning,
+        en 5% boven- en ondergrenzen.
+        """
+        # Filter op alleen OC proeven voor de sutabel analyse
+        self.shansep_data_df_sutabel = self.shansep_data_df[
+            self.shansep_data_df['consolidatietype'] == 'OC'
+        ].copy()
+
+        # Bereken ln(s'v) en ln(su) kolommen
+        calculate_ln_sv_sutabel(self)
+        calculate_ln_su_sutabel(self)
+
+        # Bereken s_tt en s_ty voor lineaire regressie
+        calculate_sv_tt_sutabel(self)
+        calculate_sv_ty_sutabel(self)
+
+        # Bereken chi_2
+        calculate_chi_2_sutabel(self)
+
+        # Bereken effectieve spanning waarden
+        calculate_sv_eff_sutabel(self)
+
+        # Bereken 5% onder- en bovengrenzen
+        calculate_5pr_ondergrens_sutabel(self)
+        calculate_5pr_bovengrens_sutabel(self)
+
+        # Bereken s_tt, s_ty en chi_2 voor ondergrenzen
+        calculate_sv_tt_ondergrens_sutabel(self)
+        calculate_sv_ty_ondergrens_sutabel(self)
+        calculate_chi_2_ondergrens_sutabel(self)
 
     def expand_analysis_df_s_pop_alleen_oc(self):
         """Deze functie berekent alle benodigde parameters per monster voor de analyse."""
@@ -266,7 +318,7 @@ class SHANSEP:
         calculate_sv_ty_nc_oc(self)
         calculate_chi_2_nc_oc(self)
         calculate_sv_eff_nc_oc(self)
-        calculate_5pr_ondergrens_nc_oc(self) # TODO vanaf hier zijn de resultaten nog steeds fout (boven en ondergrens enzo)
+        calculate_5pr_ondergrens_nc_oc(self)
         calculate_5pr_bovengrens_nc_oc(self)
         calculate_sv_tt_ondergrens_nc_oc(self)
         calculate_sv_ty_ondergrens_nc_oc(self)
@@ -288,26 +340,56 @@ class SHANSEP:
                 self.shansep_data_df_oc.to_excel(writer, sheet_name='Shansep Data OC', index=False)
             if self.shansep_data_df_nc_oc is not None:
                 self.shansep_data_df_nc_oc.to_excel(writer, sheet_name='Shansep Data NC_OC', index=False)
+            if self.shansep_data_df_sutabel is not None:
+                self.shansep_data_df_sutabel.to_excel(writer, sheet_name='Shansep Data Sutabel', index=False)
 
-    def get_shansep_parameters(self):
+    def get_shansep_parameters(self, CV_fit_kar_sutabel: Optional[float] = None):
         """
         Berekent de parameters van de shansep analyse
-        """
-        self.e_a2_oc = e_a2_oc(self)
-        self.e_a1_oc = e_a1_oc(self)
-        self.e_a2_nc_oc = e_a2_nc_oc(self)
-        self.e_a1_nc_oc = e_a1_nc_oc(self)
-        self.exp_e_a1_nc_oc = math.exp(e_a1_nc_oc(self))
-        self.exp_gem_ln_su_svc_nc = exp_gem_ln_su_svc_nc(self)
-        self.pop_gem_oc = gem_pop_oc(self)
 
-        self.a2_kar_oc = a2_kar_oc(self)
-        self.a1_kar_oc = a1_kar_oc(self)
-        self.a2_kar_nc_oc = a2_kar_nc_oc(self)
-        self.a1_kar_nc_oc = a1_kar_nc_oc(self)
-        self.exp_a1_kar_nc_oc = math.exp(a1_kar_nc_oc(self))
-        self.exp_kar_ln_su_svc_nc = exp_kar_ln_su_svc_nc(self)
-        self.pop_kar_oc = kar_pop_oc(self)
+        Parameters
+        ----------
+        CV_fit_kar_sutabel : float, optioneel
+            Coefficient of Variation voor sutabel fit (user input)
+        """
+        # Voor sutabel analyse berekenen we andere parameters
+        if self.analysis_type in ['TXT_su_tabel', 'DSS_su_tabel'] and self.shansep_data_df_sutabel is not None:
+            self.e_a2_sutabel = e_a2_sutabel(self)
+            self.e_a1_sutabel = e_a1_sutabel(self)
+            self.a2_kar_sutabel = a2_kar_sutabel(self)
+            self.a1_kar_sutabel = a1_kar_sutabel(self)
+            self.steyx_sutabel = steyx_sutabel(self)
+
+            # Bereken afgeleide parameters voor grafiek
+            self.svgm_gem_sutabel = math.exp(self.e_a1_sutabel)
+            self.m_gem_sutabel = 1 - self.e_a2_sutabel
+            self.svgm_kar_sutabel = math.exp(self.a1_kar_sutabel)
+            self.m_kar_sutabel = 1 - self.a2_kar_sutabel
+
+            # Sla CV_fit_kar op (kan None zijn als niet opgegeven)
+            if CV_fit_kar_sutabel is not None:
+                self.CV_fit_kar_sutabel = CV_fit_kar_sutabel
+                self.STDEV_logn_CV_sutabel = math.sqrt(math.log(1 + (self.CV_fit_kar_sutabel ** 2)))
+            else:
+                self.CV_fit_kar_sutabel = None
+                self.STDEV_logn_CV_sutabel = None
+        else:
+            # Voor S-POP analyse berekenen we de standaard parameters
+            self.e_a2_oc = e_a2_oc(self)
+            self.e_a1_oc = e_a1_oc(self)
+            self.e_a2_nc_oc = e_a2_nc_oc(self)
+            self.e_a1_nc_oc = e_a1_nc_oc(self)
+            self.exp_e_a1_nc_oc = math.exp(e_a1_nc_oc(self))
+            self.exp_gem_ln_su_svc_nc = exp_gem_ln_su_svc_nc(self)
+            self.pop_gem_oc = gem_pop_oc(self)
+
+            self.a2_kar_oc = a2_kar_oc(self)
+            self.a1_kar_oc = a1_kar_oc(self)
+            self.a2_kar_nc_oc = a2_kar_nc_oc(self)
+            self.a1_kar_nc_oc = a1_kar_nc_oc(self)
+            self.exp_a1_kar_nc_oc = math.exp(a1_kar_nc_oc(self))
+            self.exp_kar_ln_su_svc_nc = exp_kar_ln_su_svc_nc(self)
+            self.pop_kar_oc = kar_pop_oc(self)
 
         # Only calculate standard deviations if manual parameters are set
         if hasattr(self, 'parameters_handmatig') and self.parameters_handmatig:
@@ -615,7 +697,129 @@ class SHANSEP:
 
         self.figure.show()
 
-    def calculate_sutabel_nc(self):
+    def set_figure_ln_sv_ln_su_sutabel(self):
+        """
+        Maakt een visualisatie van de sutabel analyseresultaten voor ln(s'v) vs ln(su).
+
+        Deze plot toont:
+        - Proefresultaten (OC data)
+        - Lineaire fit
+        - 5% boven- en ondergrens
+        - Fysische realiseerbare ondergrens (gebaseerd op a1_kar en a2_kar)
+        """
+        self._run_shansep()
+        add_proefresultaten_ln_sv_ln_su_sutabel(self)
+        add_lineair_fit_ln_sv_ln_su_sutabel(self)
+        add_5pr_bovengrens_ln_sv_ln_su_sutabel(self)
+        add_5pr_ondergrens_ln_sv_ln_su_sutabel(self)
+        add_fysische_realiseerbare_ondergrens_ln_sv_ln_su_sutabel(self)
+        set_layout_ln_sv_ln_su_sutabel(self)
+
+    def show_figure_ln_sv_ln_su_sutabel(self):
+        """
+        Toont de visualisatie van de sutabel analyseresultaten voor ln(s'v) vs ln(su).
+
+        Deze plot toont:
+        - Proefresultaten (OC data)
+        - Lineaire fit
+        - 5% boven- en ondergrens
+        - Fysische realiseerbare ondergrens (gebaseerd op a1_kar en a2_kar)
+        """
+        self._run_shansep()
+        self.figure = go.Figure()
+        self.set_figure_ln_sv_ln_su_sutabel()
+        self.figure.show()
+
+    def calculate_sutabel_grafiek(self):
+        """
+        Berekent de dataframes voor sutabel grafiek lijnen.
+
+        Maakt twee dataframes:
+        - sutabel_grafiek: bevat su_gem en su_kar lijnen
+        - su_fit_constante_CV: bevat su_kar fit met constante CV lijn
+        """
+        import numpy as np
+        from scipy.stats import lognorm
+
+        # Bepaal s'v waarden voor de grafiek
+        max_sv = self.shansep_data_df_sutabel['S\'v'].max()
+        sv_values = [1, 5, 10, 20, 30, 40, max_sv]
+
+        # Bereken su_gem en su_kar
+        su_gem_values = [self.svgm_gem_sutabel * (sv ** (1 - self.m_gem_sutabel)) for sv in sv_values]
+        su_kar_values = [self.svgm_kar_sutabel * (sv ** (1 - self.m_kar_sutabel)) for sv in sv_values]
+
+        # Maak sutabel_grafiek dataframe
+        self.sutabel_grafiek = DataFrame({
+            "s'v [kPa]": sv_values,
+            "su_gem [kPa]": su_gem_values,
+            "su_kar [kPa]": su_kar_values
+        })
+
+        # Als CV_fit_kar is opgegeven, bereken ook de constante CV fit
+        if self.CV_fit_kar_sutabel is not None and self.STDEV_logn_CV_sutabel is not None:
+            # Bereken ln waarden
+            ln_su_gem = [math.log(su) - 0.5 * (self.STDEV_logn_CV_sutabel ** 2) for su in su_gem_values]
+            ln_su_kar = [math.log(su) - 0.5 * (self.STDEV_logn_CV_sutabel ** 2) for su in su_kar_values]
+
+            # Bereken su_kar fit met constante CV
+            # Excel: LOGNORM.INV(0.05; ln(su_gem); STDEV_logn_CV)
+            # Python scipy: lognorm.ppf(0.05, s=STDEV_logn_CV, scale=exp(ln_su_gem))
+            # Maar we hebben ln_su_gem al aangepast, dus:
+            su_kar_fit_cv = [lognorm.ppf(0.05, s=self.STDEV_logn_CV_sutabel, scale=math.exp(ln))
+                             for ln in ln_su_gem]
+
+            self.su_fit_constante_CV = DataFrame({
+                "s'v [kPa]": sv_values,
+                "ln(su_gem) [kPa]": ln_su_gem,
+                "ln(su_kar) [kPa]": ln_su_kar,
+                "su_kar fit met constante CV [kPa]": su_kar_fit_cv
+            })
+        else:
+            self.su_fit_constante_CV = None
+
+    def set_figure_sv_su_sutabel(self):
+        """
+        Maakt een visualisatie van de sutabel analyseresultaten voor s'v vs su.
+
+        Deze plot toont:
+        - Proefresultaten (OC data)
+        - Sutabel_gem lijn
+        - Sutabel_kar lijn
+        - Su_kar fit met constante VC (als CV_fit_kar is opgegeven)
+        """
+        self._run_shansep()
+
+        # Bereken grafiek dataframes
+        self.calculate_sutabel_grafiek()
+
+        # Voeg data en lijnen toe
+        add_proefresultaten_sv_su_sutabel(self)
+        add_sutabel_gem_line(self)
+        add_sutabel_kar_line(self)
+
+        # Voeg CV fit lijn toe als deze beschikbaar is
+        if self.su_fit_constante_CV is not None:
+            add_su_kar_fit_constante_vc(self)
+
+        set_layout_sv_su_sutabel(self)
+
+    def show_figure_sv_su_sutabel(self):
+        """
+        Toont de visualisatie van de sutabel analyseresultaten voor s'v vs su.
+
+        Deze plot toont:
+        - Proefresultaten (OC data)
+        - Sutabel_kar lijn (TODO: nog te implementeren)
+        - Sutabel_gem lijn (TODO: nog te implementeren)
+        - Su_kar fit met constante VC (TODO: nog te implementeren)
+        """
+        self._run_shansep()
+        self.figure = go.Figure()
+        self.set_figure_sv_su_sutabel()
+        self.figure.show()
+
+    def calculate_sutabel(self):
         """
         Berekent de su tabel voor NC analyse waarbij POP=0, m=0 waardoor de formule
         vereenvoudigt tot Su = S * sv voor NC condities.

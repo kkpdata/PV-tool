@@ -239,7 +239,7 @@ def shansep_analysis_test(dbase: Dbase):
         dbase=dbase,
         investigation_groups=['TXT_SAFE_klei_licht_16_175'],
         effective_stress='15% rek',
-        analysis_type='TXT_S_POP')
+        analysis_type='TXT_su_tabel')
 
     # Pas instellingen toe
     analyse.apply_settings(alpha=0.75)
@@ -253,11 +253,12 @@ def shansep_analysis_test(dbase: Dbase):
 
 
     analyse.set_parameters_handmatig(snijpunt_gem=11, s_gem=0.31, m_gem=0.9, snijpunt_kar=7, s_kar=0.28, m_kar=0.9)
+
     # sutabel = analyse.calculate_sutabel()
     # analyse.show_figure_sv_su(plot_extra_dataset=None, plot_spanningspaden=False)
     # analyse.show_figure_ln_ocr_ln_s(plot_extra_dataset=None)
     # analyse.show_figure_sv_su_nc(plot_extra_dataset=None)
-    pdf_path = analyse.save_to_pdf(path=str(save_test))
+    # pdf_path = analyse.save_to_pdf(path=str(save_test))
     analyse.save_total_to_excel(path=str(save_test))
 
 if __name__ == "__main__":
