@@ -327,7 +327,7 @@ def add_stress_paths(self: CPhiAnalyse, sample_stress_paths: dict) -> None:
                     color='gray'
                 ),
                 name='K0' if first_sample else f'Start {sample_name}',
-                text=f"{sample_name} - {stress_df['stress_state'].iloc[0]}<br>S\':{stress_df['S\''].iloc[0]:.1f}, T:{stress_df['T'].iloc[0]:.1f}",
+                text = f"""{sample_name} - {stress_df['stress_state'].iloc[0]}<br>S':{stress_df["S'"].iloc[0]:.1f}, T:{stress_df['T'].iloc[0]:.1f}""",
                 hoverinfo='text',
                 showlegend=first_sample
             )

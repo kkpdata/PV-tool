@@ -1,31 +1,234 @@
-import math
+from pandas import DataFrame
 import numpy as np
-from scipy.stats import linregress, norm
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
 
-def calc_watergehalte_gem(self: SHANSEP):
-    """Geeft gemiddelde watergehalte bij de geselecteerde pvnaam"""
-    column_name = self.shansep_analyses_data_df.filter(like='WATERGEHALTE_VOOR').columns[0]
-    watergehalte = self.shansep_analyses_data_df[column_name]
-    return watergehalte.mean()
+def calc_watergehalte_gem_txt(df: DataFrame) -> float:
+    """
+    Berekent het gemiddelde watergehalte voor TXT analyses.
 
-def calc_watergehalte_sd(self: SHANSEP):
-    """Geeft standaard deviatie watergehalte bij de geselecteerde pvnaam"""
-    column_name = self.shansep_analyses_data_df.filter(like='WATERGEHALTE_VOOR').columns[0]
-    watergehalte = self.shansep_analyses_data_df[column_name]
-    return watergehalte.std()
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame met TXT data
 
-def calc_vgwnat_gem(self: SHANSEP):
-    """Geeft gemiddelde nat volumegewicht bij de geselecteerde pvnaam [[[VOLUMEGEWICHT_NAT]]]"""
-    column_name = self.shansep_analyses_data_df.filter(like='VOLUMEGEWICHT_NAT').columns[0]
-    vgwnat = self.shansep_analyses_data_df[column_name]
-    return vgwnat.mean()
+    Returns
+    -------
+    float
+        Gemiddelde watergehalte of NaN als geen geldige data beschikbaar is
+    """
+    try:
+        if 'TXT_SS_WATERGEHALTE_VOOR' not in df.columns:
+            return np.nan
 
-def calc_vgwnat_sd(self: SHANSEP):
-    """Geeft standaard deviatie nat volumegewicht bij de geselecteerde pvnaam"""
-    column_name = self.shansep_analyses_data_df.filter(like='VOLUMEGEWICHT_NAT').columns[0]
-    vgwnat = self.shansep_analyses_data_df[column_name]
-    return vgwnat.std()
+        watergehalte = df['TXT_SS_WATERGEHALTE_VOOR']
+        # Filter out None, NaN, and non-numeric values
+        numeric_values = watergehalte.dropna()
+        numeric_values = numeric_values[numeric_values != '']
+        numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
+
+        return numeric_values.mean() if len(numeric_values) > 0 else np.nan
+    except Exception:
+        return np.nan
+
+
+def calc_watergehalte_sd_txt(df: DataFrame) -> float:
+    """
+    Berekent de standaarddeviatie van het watergehalte voor TXT analyses.
+
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame met TXT data
+
+    Returns
+    -------
+    float
+        Standaarddeviatie watergehalte of NaN als geen geldige data beschikbaar is
+    """
+    try:
+        if 'TXT_SS_WATERGEHALTE_VOOR' not in df.columns:
+            return np.nan
+
+        watergehalte = df['TXT_SS_WATERGEHALTE_VOOR']
+        # Filter out None, NaN, and non-numeric values
+        numeric_values = watergehalte.dropna()
+        numeric_values = numeric_values[numeric_values != '']
+        numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
+
+        return numeric_values.std() if len(numeric_values) > 1 else np.nan
+    except Exception:
+        return np.nan
+
+
+def calc_vgwnat_gem_txt(df: DataFrame) -> float:
+    """
+    Berekent het gemiddelde volumegewicht nat voor TXT analyses.
+
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame met TXT data
+
+    Returns
+    -------
+    float
+        Gemiddelde volumegewicht nat of NaN als geen geldige data beschikbaar is
+    """
+    try:
+        if 'TXT_SS_VOLUMEGEWICHT_NAT' not in df.columns:
+            return np.nan
+
+        vgwnat = df['TXT_SS_VOLUMEGEWICHT_NAT']
+        # Filter out None, NaN, and non-numeric values
+        numeric_values = vgwnat.dropna()
+        numeric_values = numeric_values[numeric_values != '']
+        numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
+
+        return numeric_values.mean() if len(numeric_values) > 0 else np.nan
+    except Exception:
+        return np.nan
+
+
+def calc_vgwnat_sd_txt(df: DataFrame) -> float:
+    """
+    Berekent de standaarddeviatie van het volumegewicht nat voor TXT analyses.
+
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame met TXT data
+
+    Returns
+    -------
+    float
+        Standaarddeviatie volumegewicht nat of NaN als geen geldige data beschikbaar is
+    """
+    try:
+        if 'TXT_SS_VOLUMEGEWICHT_NAT' not in df.columns:
+            return np.nan
+
+        vgwnat = df['TXT_SS_VOLUMEGEWICHT_NAT']
+        # Filter out None, NaN, and non-numeric values
+        numeric_values = vgwnat.dropna()
+        numeric_values = numeric_values[numeric_values != '']
+        numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
+
+        return numeric_values.std() if len(numeric_values) > 1 else np.nan
+    except Exception:
+        return np.nan
+
+
+def calc_watergehalte_gem_dss(df: DataFrame) -> float:
+    """
+    Berekent het gemiddelde watergehalte voor DSS analyses.
+
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame met DSS data
+
+    Returns
+    -------
+    float
+        Gemiddelde watergehalte of NaN als geen geldige data beschikbaar is
+    """
+    try:
+        if 'DSS_WATERGEHALTE_VOOR' not in df.columns:
+            return np.nan
+
+        watergehalte = df['DSS_WATERGEHALTE_VOOR']
+        # Filter out None, NaN, and non-numeric values
+        numeric_values = watergehalte.dropna()
+        numeric_values = numeric_values[numeric_values != '']
+        numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
+
+        return numeric_values.mean() if len(numeric_values) > 0 else np.nan
+    except Exception:
+        return np.nan
+
+
+def calc_watergehalte_sd_dss(df: DataFrame) -> float:
+    """
+    Berekent de standaarddeviatie van het watergehalte voor DSS analyses.
+
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame met DSS data
+
+    Returns
+    -------
+    float
+        Standaarddeviatie watergehalte of NaN als geen geldige data beschikbaar is
+    """
+    try:
+        if 'DSS_WATERGEHALTE_VOOR' not in df.columns:
+            return np.nan
+
+        watergehalte = df['DSS_WATERGEHALTE_VOOR']
+        # Filter out None, NaN, and non-numeric values
+        numeric_values = watergehalte.dropna()
+        numeric_values = numeric_values[numeric_values != '']
+        numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
+
+        return numeric_values.std() if len(numeric_values) > 1 else np.nan
+    except Exception:
+        return np.nan
+
+
+def calc_vgwnat_gem_dss(df: DataFrame) -> float:
+    """
+    Berekent het gemiddelde volumegewicht nat voor DSS analyses.
+
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame met DSS data
+
+    Returns
+    -------
+    float
+        Gemiddelde volumegewicht nat of NaN als geen geldige data beschikbaar is
+    """
+    try:
+        if 'DSS_VOLUMEGEWICHT_NAT' not in df.columns:
+            return np.nan
+
+        vgwnat = df['DSS_VOLUMEGEWICHT_NAT']
+        # Filter out None, NaN, and non-numeric values
+        numeric_values = vgwnat.dropna()
+        numeric_values = numeric_values[numeric_values != '']
+        numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
+
+        return numeric_values.mean() if len(numeric_values) > 0 else np.nan
+    except Exception:
+        return np.nan
+
+
+def calc_vgwnat_sd_dss(df: DataFrame) -> float:
+    """
+    Berekent de standaarddeviatie van het volumegewicht nat voor DSS analyses.
+
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame met DSS data
+
+    Returns
+    -------
+    float
+        Standaarddeviatie volumegewicht nat of NaN als geen geldige data beschikbaar is
+    """
+    try:
+        if 'DSS_VOLUMEGEWICHT_NAT' not in df.columns:
+            return np.nan
+
+        vgwnat = df['DSS_VOLUMEGEWICHT_NAT']
+        # Filter out None, NaN, and non-numeric values
+        numeric_values = vgwnat.dropna()
+        numeric_values = numeric_values[numeric_values != '']
+        numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
+
+        return numeric_values.std() if len(numeric_values) > 1 else np.nan
+    except Exception:
+        return np.nan

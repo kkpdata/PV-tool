@@ -1,6 +1,8 @@
 from __future__ import annotations
 import pandas as pd
 import numpy as np
+
+from pv_tool.imports.add_ana_columns import add_txt_consol_type_reken, add_dss_consol_type_reken
 from pv_tool.imports.globals import (PV_TOOL_DBASE_COLUMNS, CLAS_COLUMNS, CRS_COLUMNS, SD_COLUMNS, DSS_COLUMNS,
                                      TXT_COLUMNS)
 from pv_tool.imports.add_ana_columns import (add_columns, add_terreinspanning, add_txt_max_vert_consol_sp,
@@ -57,8 +59,12 @@ def add_ana_columns(self):
     add_txt_consol_type(self)
     add_dss_consol_type(self)
 
+    # Add rekenwaarde consolidation types
+    add_txt_consol_type_reken(self)
+    add_dss_consol_type_reken(self)
+
     # Now that preserved values are in place from add_columns, calculate dependent values
-    add_grensspanning_proef(self)  # Uses preserved ANA_GRENSSPANNING_HANDMATIG
+    add_grensspanning_proef(self)
     calc_pop_veld(self)  # Depends on grensspanning_proef
     calc_pop_average(self)
     add_grensspanning_voorstel(self)
