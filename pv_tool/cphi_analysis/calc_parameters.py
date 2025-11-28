@@ -8,11 +8,10 @@ import warnings
 
 if TYPE_CHECKING:
     from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
-from pv_tool.cphi_analysis.variables import (count_s, sum_s, sum_t, e_a2, a2_kar, a1_kar, t_n_2, t_n_2_sh,
+from pv_tool.cphi_analysis.variables import (count_s, sum_s, sum_t, e_a2, a2_kar, a1_kar, t_n_2_sh,
                                              gem_ln_tan_a_sh, std_ln_tan_a_sh,
                                              a2_kar_gecorrigeerd, a1_kar_gecorrigeerd, helling_gecor, var_tan_phi_gem,
-                                             var_tan_phi_kar, var_tan_phi_kar_sh, var_a2_gem_sh, var_a2_boven_sh,
-                                             var_a2_onder_sh)
+                                             var_tan_phi_kar, var_tan_phi_kar_sh)
 
 def calc_watergehalte_gem(self: CPhiAnalyse):
     """Berekent het gemiddelde watergehalte van de geselecteerde monsters [%]."""
@@ -191,8 +190,6 @@ def calc_st_dev_c(self: CPhiAnalyse):
     c_gem = calc_c_gem(self)
     c_d = calc_c_d(self)
 
-    # TODO er komt een melding van een waarde die negatief is maar die waarde is er helemaal niet
-    # invoer: c kar is , phi kar is , phi gem is , uitkomst is -0.641
     if c_gem <= 0:
         warnings.warn(f"Om berekening standaarddeviatie voor D-stability te kunnen doen moet gemiddelde cohesie waarde positief zijn, gevonden waarde: {round(c_gem,3)}."
                       f"Gemiddelde cohesie wordt aangepast naar 0.01 om standaarddeviatie uit te rekenen")

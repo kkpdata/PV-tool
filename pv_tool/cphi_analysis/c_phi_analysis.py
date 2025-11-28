@@ -122,6 +122,8 @@ class CPhiAnalyse:
         self.figure = go.Figure()
         self.show_title: Optional[bool] = True
 
+    # ========= Instelling en Data Ophalen Methodes ==========
+
     def get_cphi_data(self):
         """
         Filtert de database op basis van analysetype en proefgroepen.
@@ -133,7 +135,7 @@ class CPhiAnalyse:
         if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[self.cphi_analyses_data_df['PV_NAAM'].isin(
-                    self.investigation_groups)]  # TODO should have selectie veranderen in de dbase en daarmee verder
+                    self.investigation_groups)]
             self.calc_watergehalte_gem = calc_watergehalte_gem(self)
             self.calc_watergehalte_sd = calc_watergehalte_sd(self)
             self.calc_vgwnat_gem = calc_vgwnat_gem(self)
@@ -141,16 +143,30 @@ class CPhiAnalyse:
             self.total_cphi_analyses_data_df = self.cphi_analyses_data_df
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
 
+            # Valideer of er data overblijft na filtering
+            if self.cphi_analyses_data_df.empty:
+                raise ValueError(f"Geen data gevonden na filtering op investigation_groups {self.investigation_groups} "
+                               f"en effective_stress '{self.effective_stress}' voor analyse type '{self.analysis_type}'")
+
+            print(f"Data na filtering: {len(self.cphi_analyses_data_df)} rijen gevonden")
+
         elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__DSS']]
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[self.cphi_analyses_data_df['PV_NAAM'].isin(
-                    self.investigation_groups)]  # TODO should have selectie veranderen in de dbase en daarmee verder
+                    self.investigation_groups)]
             self.calc_watergehalte_gem = calc_watergehalte_gem(self)
             self.calc_watergehalte_sd = calc_watergehalte_sd(self)
             self.calc_vgwnat_gem = calc_vgwnat_gem(self)
             self.calc_vgwnat_sd = calc_vgwnat_sd(self)
             self.total_cphi_analyses_data_df = self.cphi_analyses_data_df
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])]
+
+            # Valideer of er data overblijft na filtering
+            if self.cphi_analyses_data_df.empty:
+                raise ValueError(f"Geen data gevonden na filtering op investigation_groups {self.investigation_groups} "
+                               f"en effective_stress '{self.effective_stress}' voor analyse type '{self.analysis_type}'")
+
+            print(f"Data na filtering: {len(self.cphi_analyses_data_df)} rijen gevonden")
 
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
 
@@ -354,6 +370,8 @@ class CPhiAnalyse:
 
         return latest_entry
 
+    # ========= Analyse Methodes ==========
+
     def expand_analysis_df(self):
         """
         Berekent afgeleide parameters voor de c-phi analyse.
@@ -407,6 +425,8 @@ class CPhiAnalyse:
         calculate_5pr_bovengrens_correctie_c(self)
         calculate_s_ty_ondergrens_correctie_c(self)
         calculate_kappa_2_ondergrens_correctie_c(self)
+
+    # ========= Resultaten Methodes ==========
 
     def result_values(self):
         """
@@ -478,6 +498,8 @@ class CPhiAnalyse:
         self.get_cphi_data()
         self.expand_analysis_df_sh()
         self.result_values_sh()
+
+    # ========== Visualisatie Methodes ==========
 
     def set_figure(self, plot_extra_dataset: Optional[List] = None, plot_spanningspaden: bool = False):
         """
@@ -556,6 +578,8 @@ class CPhiAnalyse:
             analyse_output_df['phi [graden]'] = [self.phi_gem, self.phi_kar, self.phi_d, self.st_dev_phi]
             analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
         return analyse_output_df
+
+    # ========== Export Methodes ==========
 
     def add_results_to_dbase(self, path, file_name: str = 'Template_PVtool5_0.xlsx'):
         """

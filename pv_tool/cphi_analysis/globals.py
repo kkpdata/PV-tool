@@ -35,7 +35,6 @@ NEW_COLUMN_NAMES = ['PV_NAAM', 'S\'', 'T']
 # -------------------------------------- DSS ---------------------------------------
 
 CONSOLIDATIE_COLUMNS_DSS = ['PV_NAAM', 'DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE', 'DSS_T_CONSOLIDATIE']
-# TODO die laatste kolomnaam klopt niet - check bij Leo welke kolom erbij hoort
 
 TWO_PERC_COLUMNS_DSS = ['PV_NAAM', 'DSS_S_2%', 'DSS_T_2%']
 
