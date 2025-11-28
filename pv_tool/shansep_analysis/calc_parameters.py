@@ -21,7 +21,7 @@ def calc_watergehalte_gem_txt(df: DataFrame) -> float:
             return np.nan
 
         watergehalte = df['TXT_SS_WATERGEHALTE_VOOR']
-        # Filter out None, NaN, and non-numeric values
+
         numeric_values = watergehalte.dropna()
         numeric_values = numeric_values[numeric_values != '']
         numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
@@ -50,7 +50,7 @@ def calc_watergehalte_sd_txt(df: DataFrame) -> float:
             return np.nan
 
         watergehalte = df['TXT_SS_WATERGEHALTE_VOOR']
-        # Filter out None, NaN, and non-numeric values
+
         numeric_values = watergehalte.dropna()
         numeric_values = numeric_values[numeric_values != '']
         numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
@@ -79,7 +79,7 @@ def calc_vgwnat_gem_txt(df: DataFrame) -> float:
             return np.nan
 
         vgwnat = df['TXT_SS_VOLUMEGEWICHT_NAT']
-        # Filter out None, NaN, and non-numeric values
+
         numeric_values = vgwnat.dropna()
         numeric_values = numeric_values[numeric_values != '']
         numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
@@ -108,7 +108,7 @@ def calc_vgwnat_sd_txt(df: DataFrame) -> float:
             return np.nan
 
         vgwnat = df['TXT_SS_VOLUMEGEWICHT_NAT']
-        # Filter out None, NaN, and non-numeric values
+
         numeric_values = vgwnat.dropna()
         numeric_values = numeric_values[numeric_values != '']
         numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
@@ -137,7 +137,7 @@ def calc_watergehalte_gem_dss(df: DataFrame) -> float:
             return np.nan
 
         watergehalte = df['DSS_WATERGEHALTE_VOOR']
-        # Filter out None, NaN, and non-numeric values
+
         numeric_values = watergehalte.dropna()
         numeric_values = numeric_values[numeric_values != '']
         numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
@@ -166,7 +166,7 @@ def calc_watergehalte_sd_dss(df: DataFrame) -> float:
             return np.nan
 
         watergehalte = df['DSS_WATERGEHALTE_VOOR']
-        # Filter out None, NaN, and non-numeric values
+
         numeric_values = watergehalte.dropna()
         numeric_values = numeric_values[numeric_values != '']
         numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
@@ -195,7 +195,7 @@ def calc_vgwnat_gem_dss(df: DataFrame) -> float:
             return np.nan
 
         vgwnat = df['DSS_VOLUMEGEWICHT_NAT']
-        # Filter out None, NaN, and non-numeric values
+
         numeric_values = vgwnat.dropna()
         numeric_values = numeric_values[numeric_values != '']
         numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()
@@ -224,7 +224,7 @@ def calc_vgwnat_sd_dss(df: DataFrame) -> float:
             return np.nan
 
         vgwnat = df['DSS_VOLUMEGEWICHT_NAT']
-        # Filter out None, NaN, and non-numeric values
+
         numeric_values = vgwnat.dropna()
         numeric_values = numeric_values[numeric_values != '']
         numeric_values = numeric_values.apply(lambda x: float(x) if isinstance(x, (int, float, str)) and str(x).replace('.', '').replace('-', '').isdigit() else np.nan).dropna()

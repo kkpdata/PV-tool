@@ -168,8 +168,30 @@ def helling_gecor(self: CPhiAnalyse):
     if self.cohesie_gem_handmatig is not None:
         x_values = self.cphi_analyses_data_df['S\'']
         y_values = self.cphi_analyses_data_df['correctie_t']
-        x = np.array(x_values)[:, np.newaxis]
-        helling, _, _, _ = np.linalg.lstsq(x, np.array(y_values))
+
+        # Valideer of er voldoende data is
+        if len(x_values) == 0 or len(y_values) == 0:
+            raise ValueError(f"Onvoldoende data voor helling berekening. Aantal datapunten: {len(x_values)}")
+
+        if len(x_values) != len(y_values):
+            raise ValueError(f"Dimensie mismatch: x_values heeft {len(x_values)} elementen, y_values heeft {len(y_values)} elementen")
+
+        # Controleer op NaN waarden
+        x_clean = x_values.dropna()
+        y_clean = y_values.dropna()
+
+        if len(x_clean) < 2 or len(y_clean) < 2:
+            raise ValueError(f"Onvoldoende geldige datapunten voor regressie. Geldige x: {len(x_clean)}, geldige y: {len(y_clean)}")
+
+        # Zorg ervoor dat we de juiste indices gebruiken
+        valid_indices = x_values.notna() & y_values.notna()
+        if valid_indices.sum() < 2:
+            raise ValueError(f"Onvoldoende geldige datapunt paren voor regressie: {valid_indices.sum()}")
+
+        x_array = np.array(x_values[valid_indices])[:, np.newaxis]
+        y_array = np.array(y_values[valid_indices])
+
+        helling, residuals, rank, singular_values = np.linalg.lstsq(x_array, y_array, rcond=None)
         return float(helling[0])
     else:
         helling = sum_s_ty(self) / sum_s_tt(self)

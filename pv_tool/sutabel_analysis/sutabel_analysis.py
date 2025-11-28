@@ -59,10 +59,10 @@ class SUTABEL:
         exp(a1_kar) - sutabel parameter karakteristiek [kPa]
     m_kar_sutabel : float
         1 - a2_kar - exponent parameter karakteristiek
-    cv_fit_kar_sutabel : float
+    vc_fit_kar_sutabel : float
         Coefficient of Variation voor fit (user input)
-    STDEV_logn_cv_sutabel : float
-        sqrt(LN(1 + cv^2)) - standaarddeviatie lognormaal
+    STDEV_logn_vc_sutabel : float
+        sqrt(LN(1 + vc^2)) - standaarddeviatie lognormaal
     steyx_sutabel : float
         Standaardfout van de schatting
     """
@@ -71,8 +71,7 @@ class SUTABEL:
                  dbase: Dbase,
                  analysis_type: Literal['TXT_su_tabel', 'DSS_su_tabel'],
                  investigation_groups: List[str],
-                 effective_stress: str,
-                 alpha: float = 0.75):
+                 effective_stress: str):
         """
         Initialiseert een SUTABEL analyse instantie.
 
@@ -94,7 +93,7 @@ class SUTABEL:
         self.analysis_type = analysis_type
         self.investigation_groups = investigation_groups
         self.effective_stress = effective_stress
-        self.alpha = alpha
+        self.alpha = 0.75
         self.show_title = True
 
         # Berekende watergehalte en volumegewicht
@@ -115,26 +114,32 @@ class SUTABEL:
         self.m_gem_sutabel: Optional[float] = None     # 1 - e_a2
         self.svgm_kar_sutabel: Optional[float] = None  # exp(a1_kar)
         self.m_kar_sutabel: Optional[float] = None     # 1 - a2_kar
-        self.cv_fit_kar_sutabel: Optional[float] = None  # User input
-        self.STDEV_logn_cv_sutabel: Optional[float] = None  # sqrt(LN(1 + cv^2))
+        self.vc_fit_kar_sutabel: Optional[float] = None  # User input
+        self.STDEV_logn_vc_sutabel: Optional[float] = None  # sqrt(LN(1 + vc^2))
 
         # Handmatige parameters
         self.parameters_handmatig: bool = False
         self.a1_kar_handmatig: Optional[float] = None
         self.a2_kar_handmatig: Optional[float] = None
-        self.cv_fit_kar_handmatig: Optional[float] = None
+        self.vc_fit_kar_handmatig: Optional[float] = None
 
         # Dataframes
-        self.shansep_data_df: Optional[DataFrame] = None
-        self.total_shansep_data_df: Optional[DataFrame] = None
-        self.shansep_data_df_sutabel: Optional[DataFrame] = None
+        self.sutabel_data_df: Optional[DataFrame] = None
+        self.total_sutabel_data_df: Optional[DataFrame] = None
+        self.sutabel_filtered_data_df: Optional[DataFrame] = None
         self.sutabel_grafiek: Optional[DataFrame] = None
-        self.su_fit_constante_cv: Optional[DataFrame] = None
+        self.su_fit_constante_vc: Optional[DataFrame] = None
 
         # Figure voor plotly
         self.figure: Optional[go.Figure] = None
 
-    def get_shansep_data(self):
+    # ========= Instelling en Data Ophalen Methodes ==========
+
+    def apply_settings(self, alpha: Optional[float] = None):
+        """Met deze functie kan je de alpha en materiaalfactoren opgeven."""
+        self.alpha = alpha if alpha is not None else self.alpha
+
+    def get_sutabel_data(self):
         """
         Haalt de relevante proefgegevens op uit de database.
 
@@ -143,53 +148,31 @@ class SUTABEL:
         - Investigation groups (PV_NAAM)
         - Effective stress niveau
 
-        Maakt self.shansep_data_df en self.total_shansep_data_df aan.
+        Maakt self.sutabel_data_df en self.total_sutabel_data_df aan.
         """
-        # Filter op analysis type
-        if self.analysis_type == 'TXT_su_tabel':
-            dataset_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
-        elif self.analysis_type == 'DSS_su_tabel':
-            dataset_df = self.dbase_df[self.dbase_df['ALG__DSS']]
-        else:
-            raise ValueError(f"Onbekend analysis type: {self.analysis_type}")
+        if self.analysis_type in ['TXT_su_tabel']:
+            self.sutabel_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']].copy()
+            self.sutabel_data_df = self.sutabel_data_df[self.sutabel_data_df['PV_NAAM'].isin(
+                    self.investigation_groups)].copy()
+            self.calc_watergehalte_gem = calc_watergehalte_gem_txt(self.sutabel_data_df)
+            self.calc_watergehalte_sd = calc_watergehalte_sd_txt(self.sutabel_data_df)
+            self.calc_vgwnat_gem = calc_vgwnat_gem_txt(self.sutabel_data_df)
+            self.calc_vgwnat_sd = calc_vgwnat_sd_txt(self.sutabel_data_df)
+            self.total_sutabel_data_df = self.sutabel_data_df.copy()
+            self.sutabel_data_df = self.sutabel_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])].copy()
 
-        # Filter op investigation groups
-        dataset_df = dataset_df[dataset_df['PV_NAAM'].isin(self.investigation_groups)]
+        elif self.analysis_type in ['DSS_su_tabel']:
+            self.sutabel_data_df = self.dbase_df[self.dbase_df['ALG__DSS']].copy()
+            self.sutabel_data_df = self.sutabel_data_df[self.sutabel_data_df['PV_NAAM'].isin(
+                    self.investigation_groups)].copy()
+            self.calc_watergehalte_gem = calc_watergehalte_gem_dss(self.sutabel_data_df)
+            self.calc_watergehalte_sd = calc_watergehalte_sd_dss(self.sutabel_data_df)
+            self.calc_vgwnat_gem = calc_vgwnat_gem_dss(self.sutabel_data_df)
+            self.calc_vgwnat_sd = calc_vgwnat_sd_dss(self.sutabel_data_df)
+            self.total_sutabel_data_df = self.sutabel_data_df.copy()
+            self.sutabel_data_df = self.sutabel_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])].copy()
 
-        # Store complete dataset
-        self.total_shansep_data_df = dataset_df.copy()
-
-        # Filter op effective stress
-        if self.analysis_type.startswith('DSS'):
-            dataset_df = dataset_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])]
-        else:
-            dataset_df = dataset_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
-
-        # Hernoem kolommen
-        dataset_df.columns = NEW_COLUMN_NAMES
-
-        # Bereken algemene parameters
-        from pv_tool.shansep_analysis.expand_analysis import (
-            calculate_ln_ocr, calculate_sv_spop, calculate_ln_sv_spop, calculate_pop
-        )
-
-        self.shansep_data_df = dataset_df.copy()
-        calculate_ln_ocr(self)
-        calculate_sv_spop(self)
-        calculate_ln_sv_spop(self)
-        calculate_pop(self)
-
-        # Bereken watergehalte en volumegewicht
-        if self.analysis_type.startswith('TXT'):
-            self.calc_watergehalte_gem = calc_watergehalte_gem_txt(self)
-            self.calc_watergehalte_sd = calc_watergehalte_sd_txt(self)
-            self.calc_vgwnat_gem = calc_vgwnat_gem_txt(self)
-            self.calc_vgwnat_sd = calc_vgwnat_sd_txt(self)
-        else:
-            self.calc_watergehalte_gem = calc_watergehalte_gem_dss(self)
-            self.calc_watergehalte_sd = calc_watergehalte_sd_dss(self)
-            self.calc_vgwnat_gem = calc_vgwnat_gem_dss(self)
-            self.calc_vgwnat_sd = calc_vgwnat_sd_dss(self)
+        self.sutabel_data_df.columns = NEW_COLUMN_NAMES
 
     def get_previous_results(self, path: str, file_name: str):
         """
@@ -257,9 +240,12 @@ class SUTABEL:
         )
 
         # Filter op alleen OC proeven
-        self.shansep_data_df_sutabel = self.shansep_data_df[
-            self.shansep_data_df['consolidatietype'] == 'OC'
+        self.sutabel_filtered_data_df = self.sutabel_data_df[
+            self.sutabel_data_df['consolidatietype'] == 'OC'
         ].copy()
+
+        # Update sutabel_data_df to work with the OC-filtered data
+        self.sutabel_data_df = self.sutabel_filtered_data_df.copy()
 
         # Bereken ln(s'v) en ln(su) kolommen
         calculate_ln_sv_sutabel(self)
@@ -284,13 +270,13 @@ class SUTABEL:
         calculate_sv_ty_ondergrens_sutabel(self)
         calculate_chi_2_ondergrens_sutabel(self)
 
-    def get_sutabel_parameters(self, cv_fit_kar_sutabel: Optional[float] = None):
+    def get_sutabel_parameters(self, vc_fit_kar_sutabel: Optional[float] = None):
         """
         Berekent de sutabel-m parameters.
 
         Parameters
         ----------
-        cv_fit_kar_sutabel : float, optioneel
+        vc_fit_kar_sutabel : float, optioneel
             Coefficient of Variation voor sutabel fit (user input)
         """
         from pv_tool.sutabel_analysis.variables import (
@@ -311,13 +297,13 @@ class SUTABEL:
         self.svgm_kar_sutabel = math.exp(self.a1_kar_sutabel)
         self.m_kar_sutabel = 1 - self.a2_kar_sutabel
 
-        # Sla cv_fit_kar op (kan None zijn als niet opgegeven)
-        if cv_fit_kar_sutabel is not None:
-            self.cv_fit_kar_sutabel = cv_fit_kar_sutabel
-            self.STDEV_logn_cv_sutabel = math.sqrt(math.log(1 + (self.cv_fit_kar_sutabel ** 2)))
+        # Sla vc_fit_kar op (kan None zijn als niet opgegeven)
+        if vc_fit_kar_sutabel is not None:
+            self.vc_fit_kar_sutabel = vc_fit_kar_sutabel
+            self.STDEV_logn_vc_sutabel = math.sqrt(math.log(1 + (self.vc_fit_kar_sutabel ** 2)))
         else:
-            self.cv_fit_kar_sutabel = None
-            self.STDEV_logn_cv_sutabel = None
+            self.vc_fit_kar_sutabel = None
+            self.STDEV_logn_vc_sutabel = None
 
     def calculate_sutabel_grafiek(self):
         """
@@ -325,13 +311,13 @@ class SUTABEL:
 
         Maakt twee dataframes:
         - sutabel_grafiek: bevat su_gem en su_kar lijnen
-        - su_fit_constante_cv: bevat su_kar fit met constante cv lijn
+        - su_fit_constante_vc: bevat su_kar fit met constante vc lijn
         """
         import numpy as np
         from scipy.stats import lognorm
 
         # Bepaal s'v waarden voor de grafiek
-        max_sv = self.shansep_data_df_sutabel['S\'v'].max()
+        max_sv = self.sutabel_data_df['S\'v'].max()
         sv_values = [1, 5, 10, 20, 30, 40, max_sv]
 
         # Bereken su_gem en su_kar
@@ -345,37 +331,39 @@ class SUTABEL:
             "su_kar [kPa]": su_kar_values
         })
 
-        # Als cv_fit_kar is opgegeven, bereken ook de constante cv fit
-        if self.cv_fit_kar_sutabel is not None and self.STDEV_logn_cv_sutabel is not None:
+        # Als vc_fit_kar is opgegeven, bereken ook de constante vc fit
+        if self.vc_fit_kar_sutabel is not None and self.STDEV_logn_vc_sutabel is not None:
             # Bereken ln waarden
-            ln_su_gem = [math.log(su) - 0.5 * (self.STDEV_logn_cv_sutabel ** 2) for su in su_gem_values]
-            ln_su_kar = [math.log(su) - 0.5 * (self.STDEV_logn_cv_sutabel ** 2) for su in su_kar_values]
+            ln_su_gem = [math.log(su) - 0.5 * (self.STDEV_logn_vc_sutabel ** 2) for su in su_gem_values]
+            ln_su_kar = [math.log(su) - 0.5 * (self.STDEV_logn_vc_sutabel ** 2) for su in su_kar_values]
 
-            # Bereken su_kar fit met constante cv
-            su_kar_fit_cv = [lognorm.ppf(0.05, s=self.STDEV_logn_cv_sutabel, scale=math.exp(ln))
+            # Bereken su_kar fit met constante vc
+            su_kar_fit_vc = [lognorm.ppf(0.05, s=self.STDEV_logn_vc_sutabel, scale=math.exp(ln))
                              for ln in ln_su_gem]
 
-            self.su_fit_constante_cv = DataFrame({
+            self.su_fit_constante_vc = DataFrame({
                 "s'v [kPa]": sv_values,
                 "ln(su_gem) [kPa]": ln_su_gem,
                 "ln(su_kar) [kPa]": ln_su_kar,
-                "su_kar fit met constante cv [kPa]": su_kar_fit_cv
+                "su_kar fit met constante vc [kPa]": su_kar_fit_vc
             })
         else:
-            self.su_fit_constante_cv = None
+            self.su_fit_constante_vc = None
 
     def _run_sutabel(self):
         """
         Voert de volledige sutabel analyse uit in de juiste volgorde.
         """
-        self.get_shansep_data()
+        self.get_sutabel_data()
         self.expand_analysis_df_sutabel()
         self.get_sutabel_parameters()
+
+    # ========== Handmatige Parameters en wegschrijven ==========
 
     def set_manual_parameters(self,
                              a1_kar: Optional[float] = None,
                              a2_kar: Optional[float] = None,
-                             cv_fit_kar: Optional[float] = None):
+                             vc_fit_kar: Optional[float] = None):
         """
         Stelt handmatige parameters in voor de sutabel analyse.
 
@@ -391,7 +379,7 @@ class SUTABEL:
             Handmatig ingesteld karakteristiek snijpunt in ln-ruimte
         a2_kar : float, optioneel
             Handmatig ingestelde karakteristieke helling in ln-ruimte
-        cv_fit_kar : float, optioneel
+        vc_fit_kar : float, optioneel
             Handmatig ingestelde Coefficient of Variation voor fit
 
         Examples
@@ -400,11 +388,11 @@ class SUTABEL:
         >>> sutabel.show_figure_sv_su_sutabel()  # Automatisch analyse
         >>>
         >>> # Pas parameters aan en analyseer opnieuw
-        >>> sutabel.set_manual_parameters(a1_kar=0.85, a2_kar=0.70, cv_fit_kar=0.25)
+        >>> sutabel.set_manual_parameters(a1_kar=0.85, a2_kar=0.70, vc_fit_kar=0.25)
         >>> sutabel.show_figure_sv_su_sutabel()  # Gebruikt nu handmatige parameters
         """
         # Zorg dat analyse is uitgevoerd voordat handmatige parameters worden ingesteld
-        if self.shansep_data_df_sutabel is None:
+        if self.sutabel_data_df is None:
             self._run_sutabel()
 
         self.parameters_handmatig = True
@@ -414,8 +402,8 @@ class SUTABEL:
             self.a1_kar_handmatig = a1_kar
         if a2_kar is not None:
             self.a2_kar_handmatig = a2_kar
-        if cv_fit_kar is not None:
-            self.cv_fit_kar_handmatig = cv_fit_kar
+        if vc_fit_kar is not None:
+            self.vc_fit_kar_handmatig = vc_fit_kar
 
         # Herbereken de afgeleide parameters met de nieuwe waarden
         self._update_parameters_from_manual()
@@ -442,20 +430,20 @@ class SUTABEL:
         else:
             a2_kar_te_gebruiken = self.a2_kar_sutabel
 
-        # Gebruik handmatige cv_fit_kar of behoud berekende waarde
-        if self.cv_fit_kar_handmatig is not None:
-            cv_te_gebruiken = self.cv_fit_kar_handmatig
+        # Gebruik handmatige vc_fit_kar of behoud berekende waarde
+        if self.vc_fit_kar_handmatig is not None:
+            vc_te_gebruiken = self.vc_fit_kar_handmatig
         else:
-            cv_te_gebruiken = self.cv_fit_kar_sutabel
+            vc_te_gebruiken = self.vc_fit_kar_sutabel
 
         # Bereken afgeleide parameters met de te gebruiken waarden
         self.svgm_kar_sutabel = math.exp(a1_kar_te_gebruiken)
         self.m_kar_sutabel = 1 - a2_kar_te_gebruiken
 
-        # Update cv parameters
-        if cv_te_gebruiken is not None:
-            self.cv_fit_kar_sutabel = cv_te_gebruiken
-            self.STDEV_logn_cv_sutabel = math.sqrt(math.log(1 + (cv_te_gebruiken ** 2)))
+        # Update vc parameters
+        if vc_te_gebruiken is not None:
+            self.vc_fit_kar_sutabel = vc_te_gebruiken
+            self.STDEV_logn_vc_sutabel = math.sqrt(math.log(1 + (vc_te_gebruiken ** 2)))
 
         # Herbereken de grafiek dataframes met de nieuwe parameters
         self.calculate_sutabel_grafiek()
@@ -470,18 +458,18 @@ class SUTABEL:
             Pad naar de map waar het Excel-bestand moet worden opgeslagen plus de bestandsnaam
         """
         with ExcelWriter(file_path) as writer:
-            if self.shansep_data_df is not None:
-                self.shansep_data_df.to_excel(writer, sheet_name='Data', index=False)
-            if self.shansep_data_df_sutabel is not None:
-                self.shansep_data_df_sutabel.to_excel(writer, sheet_name='Sutabel Data', index=False)
+            if self.sutabel_data_df is not None:
+                self.sutabel_data_df.to_excel(writer, sheet_name='Data', index=False)
+            if self.sutabel_filtered_data_df is not None:
+                self.sutabel_filtered_data_df.to_excel(writer, sheet_name='Sutabel Filtered Data', index=False)
             if self.sutabel_grafiek is not None:
                 self.sutabel_grafiek.to_excel(writer, sheet_name='Sutabel Grafiek', index=False)
-            if self.su_fit_constante_cv is not None:
-                self.su_fit_constante_cv.to_excel(writer, sheet_name='cv Fit', index=False)
+            if self.su_fit_constante_vc is not None:
+                self.su_fit_constante_vc.to_excel(writer, sheet_name='vc Fit', index=False)
 
-    # ========== Visualization Methods ==========
+    # ========== Visualisatie Methodes ==========
 
-    def set_figure_ln_sv_ln_su_sutabel(self):
+    def set_figure_ln_sv_ln_su_sutabel(self, plot_extra_dataset: Optional[List] = None):
         """
         Maakt een visualisatie van de sutabel analyseresultaten voor ln(s'v) vs ln(su).
 
@@ -493,8 +481,9 @@ class SUTABEL:
 
         De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
         """
-        from pv_tool.sutabel_analysis.visualization import (
+        from pv_tool.sutabel_analysis.visualization_sutabel import (
             add_proefresultaten_ln_sv_ln_su_sutabel,
+            add_extra_proefresultaten_ln_sv_ln_su_sutabel,
             add_lineair_fit_ln_sv_ln_su_sutabel,
             add_5pr_bovengrens_ln_sv_ln_su_sutabel,
             add_5pr_ondergrens_ln_sv_ln_su_sutabel,
@@ -503,9 +492,11 @@ class SUTABEL:
         )
 
         # Voer analyse uit als nog niet gedaan
-        if self.shansep_data_df_sutabel is None:
+        if self.sutabel_data_df is None:
             self._run_sutabel()
 
+        if plot_extra_dataset is not None:
+            add_extra_proefresultaten_ln_sv_ln_su_sutabel(self, plot_extra_dataset)
         add_proefresultaten_ln_sv_ln_su_sutabel(self)
         add_lineair_fit_ln_sv_ln_su_sutabel(self)
         add_5pr_bovengrens_ln_sv_ln_su_sutabel(self)
@@ -513,17 +504,17 @@ class SUTABEL:
         add_fysische_realiseerbare_ondergrens_ln_sv_ln_su_sutabel(self)
         set_layout_ln_sv_ln_su_sutabel(self)
 
-    def show_figure_ln_sv_ln_su_sutabel(self):
+    def show_figure_ln_sv_ln_su_sutabel(self, plot_extra_dataset: Optional[List] = None):
         """
         Toont de visualisatie van de sutabel analyseresultaten voor ln(s'v) vs ln(su).
 
         De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
         """
         self.figure = go.Figure()
-        self.set_figure_ln_sv_ln_su_sutabel()
+        self.set_figure_ln_sv_ln_su_sutabel(plot_extra_dataset)
         self.figure.show()
 
-    def set_figure_sv_su_sutabel(self):
+    def set_figure_sv_su_sutabel(self, plot_extra_dataset: Optional[List] = None):
         """
         Maakt een visualisatie van de sutabel analyseresultaten voor s'v vs su.
 
@@ -531,13 +522,14 @@ class SUTABEL:
         - Proefresultaten (OC data)
         - Sutabel_gem lijn
         - Sutabel_kar lijn
-        - Su_kar fit met constante VC (als cv_fit_kar is opgegeven)
+        - Su_kar fit met constante VC (als vc_fit_kar is opgegeven)
 
         Als handmatige parameters zijn ingesteld, worden deze gebruikt voor de visualisatie.
         De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
         """
-        from pv_tool.sutabel_analysis.visualization import (
+        from pv_tool.sutabel_analysis.visualization_sutabel import (
             add_proefresultaten_sv_su_sutabel,
+            add_extra_proefresultaten_sv_su_sutabel,
             add_sutabel_gem_line,
             add_sutabel_kar_line,
             add_su_kar_fit_constante_vc,
@@ -545,7 +537,7 @@ class SUTABEL:
         )
 
         # Voer analyse uit als nog niet gedaan
-        if self.shansep_data_df_sutabel is None:
+        if self.sutabel_data_df is None:
             self._run_sutabel()
 
         # Update parameters als handmatige waarden zijn ingesteld
@@ -556,27 +548,29 @@ class SUTABEL:
         self.calculate_sutabel_grafiek()
 
         # Voeg data en lijnen toe
+        if plot_extra_dataset is not None:
+            add_extra_proefresultaten_sv_su_sutabel(self, plot_extra_dataset)
         add_proefresultaten_sv_su_sutabel(self)
         add_sutabel_gem_line(self)
         add_sutabel_kar_line(self)
 
-        # Voeg cv fit lijn toe als deze beschikbaar is
-        if self.su_fit_constante_cv is not None:
+        # Voeg vc fit lijn toe als deze beschikbaar is
+        if self.su_fit_constante_vc is not None:
             add_su_kar_fit_constante_vc(self)
 
         set_layout_sv_su_sutabel(self)
 
-    def show_figure_sv_su_sutabel(self):
+    def show_figure_sv_su_sutabel(self, plot_extra_dataset: Optional[List] = None):
         """
         Toont de visualisatie van de sutabel analyseresultaten voor s'v vs su.
 
         De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
         """
         self.figure = go.Figure()
-        self.set_figure_sv_su_sutabel()
+        self.set_figure_sv_su_sutabel(plot_extra_dataset)
         self.figure.show()
 
-    # ========== Export Methods ==========
+    # ========== Export Methodes ==========
 
     def add_results_to_dbase(self, path: str, file_name: str = 'Template_PVtool5_0.xlsx'):
         """
@@ -597,7 +591,7 @@ class SUTABEL:
             Bijgewerkte DataFrame met alle resultaten
         """
         # Voer analyse uit als nog niet gedaan
-        if self.shansep_data_df_sutabel is None or self.e_a1_sutabel is None:
+        if self.sutabel_data_df is None or self.e_a1_sutabel is None:
             self._run_sutabel()
             # Zorg dat parameters zijn berekend
             if self.e_a1_sutabel is None:
@@ -606,7 +600,7 @@ class SUTABEL:
         from pv_tool.sutabel_analysis.save_and_export import add_sutabel_results_to_dbase
         return add_sutabel_results_to_dbase(self, path, file_name)
 
-    def save_to_pdf(self, path: str, cv_fit_kar: float = None) -> str:
+    def save_to_pdf(self, path: str, vc_fit_kar: float = None) -> str:
         """
         Slaat de sutabel-m analyseresultaten op in een PDF-document.
 
@@ -616,7 +610,7 @@ class SUTABEL:
         ----------
         path : str
             Map locatie waar het PDF-bestand moet worden opgeslagen
-        cv_fit_kar : float, optioneel
+        vc_fit_kar : float, optioneel
             Coefficient of Variation voor de fit
 
         Returns
@@ -625,12 +619,12 @@ class SUTABEL:
             Het absolute bestandspad van het aangemaakte PDF-bestand
         """
         # Voer analyse uit als nog niet gedaan
-        if self.shansep_data_df_sutabel is None or self.e_a1_sutabel is None:
+        if self.sutabel_data_df is None or self.e_a1_sutabel is None:
             self._run_sutabel()
             # Zorg dat parameters zijn berekend
             if self.e_a1_sutabel is None:
-                self.get_sutabel_parameters(cv_fit_kar_sutabel=cv_fit_kar)
+                self.get_sutabel_parameters(vc_fit_kar_sutabel=vc_fit_kar)
 
         from pv_tool.sutabel_analysis.save_and_export import save_sutabel_to_pdf
-        return save_sutabel_to_pdf(self, path, cv_fit_kar)
+        return save_sutabel_to_pdf(self, path, vc_fit_kar)
 

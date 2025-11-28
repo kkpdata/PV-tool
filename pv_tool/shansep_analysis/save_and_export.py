@@ -8,6 +8,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_LEFT
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, LongTable
 from pv_tool.imports.excel_utils import format_excel_sheet
+import plotly.graph_objects as go
 import numpy as np
 
 try:
@@ -656,13 +657,9 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
         fig_path1 = f"{path}/temp_plot1.png"
         self.show_title = False
 
-        # Genereer figuur met juiste parameters (handmatig of berekend)
-        if has_manual_params:
-            # Als handmatige parameters zijn ingesteld, zorg dat die worden gebruikt
-            self.show_figure_sv_su()
-        else:
-            # Anders gebruik de standaard berekende parameters
-            self.show_figure_sv_su()
+        # Genereer figuur
+        self.figure = go.Figure()
+        self.set_figure_sv_su()
 
         if hasattr(self, 'figure') and self.figure is not None:
             fig_width = 1280
@@ -719,13 +716,9 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
         fig_path2 = f"{path}/temp_plot2.png"
         self.show_title = False
 
-        # Genereer figuur met juiste parameters (handmatig of berekend)
-        if has_manual_params:
-            # Als handmatige parameters zijn ingesteld, zorg dat die worden gebruikt
-            self.show_figure_ln_ocr_ln_s()
-        else:
-            # Anders gebruik de standaard berekende parameters
-            self.show_figure_ln_ocr_ln_s()
+        # Genereer figuur
+        self.figure = go.Figure()
+        self.set_figure_ln_ocr_ln_s()
 
         if hasattr(self, 'figure') and self.figure is not None:
             fig_width = 1280
@@ -782,13 +775,8 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
         fig_path3 = f"{path}/temp_plot3.png"
         self.show_title = False
 
-        # Genereer figuur met juiste parameters (handmatig of berekend)
-        if has_manual_params:
-            # Als handmatige parameters zijn ingesteld, zorg dat die worden gebruikt
-            self.show_figure_sv_su_nc()
-        else:
-            # Anders gebruik de standaard berekende parameters
-            self.show_figure_sv_su_nc()
+        self.figure = go.Figure()
+        self.set_figure_sv_su_nc()
 
         if hasattr(self, 'figure') and self.figure is not None:
             fig_width = 1280

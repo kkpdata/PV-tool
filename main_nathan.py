@@ -106,7 +106,7 @@ def database_import_test(source: Literal['Stowa', 'PV-tool', 'Dbase'],
         return None
 
 
-def cphi_analysis_txt_test(dbase: Dbase, export_path: Path, export_file: str):
+def cphi_analysis_txt_test(dbase: Dbase, export_path: Path, export_file: str, plot_extra_dataset = None, plot_spanningspaden=False):
     """
     Test een TXT C-phi analyse.
 
@@ -127,9 +127,17 @@ def cphi_analysis_txt_test(dbase: Dbase, export_path: Path, export_file: str):
         analysis_type='TXT_CPhi'
     )
 
+    # analyse = CPhiAnalyse(
+    #     dbase=dbase,
+    #     investigation_groups=['TXT_SAFE_klei_licht_16_175'],
+    #     effective_stress='eindsterkte',
+    #     analysis_type='TXT_CPhi'
+    # )
+
     # Pas instellingen toe
     analyse.apply_settings(alpha=0.75)
-    analyse.apply_parameters(cohesie_kar=6.72, phi_kar=0.53, cohesie_gem=8.0)
+    # analyse.apply_parameters(cohesie_gem=6.5, phi_kar=0.45, cohesie_kar=0.1)
+    analyse.apply_parameters(cohesie_gem=8.0, phi_kar=0.53, cohesie_kar=6.72)
 
     # Print en exporteer resultaten
     print('\nResultaten TXT C-phi analyse:')
@@ -137,11 +145,11 @@ def cphi_analysis_txt_test(dbase: Dbase, export_path: Path, export_file: str):
     analyse.add_results_to_dbase(path=str(export_path), file_name=export_file)
 
     # Visualisatie
-    analyse.show_figure()
+    analyse.show_figure(plot_extra_dataset = plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
     analyse.save_to_pdf(path=str(export_path))
 
 
-def cphi_analysis_dss_test(dbase: Dbase, export_path: Path, export_file: str):
+def cphi_analysis_dss_test(dbase: Dbase, export_path: Path, export_file: str, plot_extra_dataset = None, plot_spanningspaden=False):
     """
     Test een DSS C-phi analyse.
 
@@ -171,11 +179,11 @@ def cphi_analysis_dss_test(dbase: Dbase, export_path: Path, export_file: str):
     analyse.add_results_to_dbase(path=str(export_path), file_name=export_file)
 
     # Visualisatie
-    analyse.show_figure()
+    analyse.show_figure(plot_extra_dataset = plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
     analyse.save_to_pdf(path=str(export_path))
 
 
-def cphi_analysis_txt_sh_test(dbase: Dbase, export_path: Path, export_file: str):
+def cphi_analysis_txt_sh_test(dbase: Dbase, export_path: Path, export_file: str, plot_extra_dataset = None, plot_spanningspaden=False):
     """
     Test een TXT C-phi analyse volgens schematiseringshandleiding (SH).
 
@@ -205,11 +213,11 @@ def cphi_analysis_txt_sh_test(dbase: Dbase, export_path: Path, export_file: str)
     analyse.add_results_to_dbase(path=str(export_path), file_name=export_file)
 
     # Visualisatie
-    analyse.show_figure()
+    analyse.show_figure(plot_extra_dataset = plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
     analyse.save_to_pdf(path=str(export_path))
 
 
-def cphi_analysis_dss_sh_test(dbase: Dbase, export_path: Path, export_file: str):
+def cphi_analysis_dss_sh_test(dbase: Dbase, export_path: Path, export_file: str, plot_extra_dataset = None, plot_spanningspaden=False):
     """
     Test een DSS C-phi analyse volgens schematiseringshandleiding (SH).
 
@@ -239,12 +247,12 @@ def cphi_analysis_dss_sh_test(dbase: Dbase, export_path: Path, export_file: str)
     analyse.add_results_to_dbase(path=str(export_path), file_name=export_file)
 
     # Visualisatie
-    analyse.show_figure()
+    analyse.show_figure(plot_extra_dataset = plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
     analyse.save_to_pdf(path=str(export_path))
 
 
 # function for testing shansep analysis
-def shansep_analysis_test(dbase: Dbase, export_path: Path, export_file: str):
+def shansep_analysis_test(dbase: Dbase, export_path: Path, export_file: str, plot_extra_dataset = None):
     """
     Test een SHANSEP analyse.
 
@@ -259,9 +267,15 @@ def shansep_analysis_test(dbase: Dbase, export_path: Path, export_file: str):
     """
     analyse = SHANSEP(
         dbase=dbase,
-        investigation_groups=['TXT_SAFE_klei_licht_16_175'],
-        effective_stress='15% rek',
-        analysis_type='TXT_S_POP')
+        investigation_groups=['DSS_SAFE_veen'],
+        effective_stress='20% rek',
+        analysis_type='DSS_S_POP')
+
+    # analyse = SHANSEP(
+    #     dbase=dbase,
+    #     investigation_groups=['TXT_SAFE_klei_licht_16_175'],
+    #     effective_stress='15% rek',
+    #     analysis_type='TXT_S_POP')
 
     # Pas instellingen toe
     analyse.apply_settings(alpha=0.75)
@@ -273,14 +287,14 @@ def shansep_analysis_test(dbase: Dbase, export_path: Path, export_file: str):
     analyse.set_parameters_handmatig(snijpunt_gem=11, s_gem=0.31, m_gem=0.9, snijpunt_kar=7, s_kar=0.28, m_kar=0.9)
 
     # sutabel = analyse.calculate_sutabel()
-    # analyse.show_figure_sv_su(plot_extra_dataset=None, plot_spanningspaden=False)
-    # analyse.show_figure_ln_ocr_ln_s(plot_extra_dataset=None)
-    # analyse.show_figure_sv_su_nc(plot_extra_dataset=None)
+    analyse.show_figure_sv_su(plot_extra_dataset=plot_extra_dataset)
+    analyse.show_figure_ln_ocr_ln_s(plot_extra_dataset=plot_extra_dataset)
+    analyse.show_figure_sv_su_nc(plot_extra_dataset=plot_extra_dataset)
     pdf_path = analyse.save_to_pdf(path=str(export_path))
     analyse.save_total_to_excel(path=str(export_path))
 
 
-def sutabel_analysis_test(dbase: Dbase, export_path: Path, export_file: str):
+def sutabel_analysis_test(dbase: Dbase, export_path: Path, export_file: str, plot_extra_dataset = None):
     """
     Test een SUTABEL analyse.
 
@@ -295,26 +309,37 @@ def sutabel_analysis_test(dbase: Dbase, export_path: Path, export_file: str):
     """
     sutabel = SUTABEL(
         dbase=dbase,
-        analysis_type='TXT_su_tabel',
-        investigation_groups=['PVNAAM'],
-        effective_stress='15% rek',
-        alpha=0.75
+        analysis_type='DSS_su_tabel',
+        investigation_groups=['DSS_SAFE_veen'],
+        effective_stress='20% rek'
     )
 
+    # sutabel = SUTABEL(
+    #     dbase=dbase,
+    #     analysis_type='TXT_su_tabel',
+    #     investigation_groups=['TXT_SAFE_klei_licht_16_175'],
+    #     effective_stress='15% rek'
+    # )
+
+    sutabel.apply_settings(alpha=0.75)
+
+    sutabel.set_manual_parameters(a2_kar=0.683, a1_kar=0.489, vc_fit_kar=0.1)
+
     # Visualize (analysis runs automatically)
-    sutabel.show_figure_ln_sv_ln_su_sutabel()
-    sutabel.show_figure_sv_su_sutabel()
+    sutabel.show_figure_ln_sv_ln_su_sutabel(plot_extra_dataset=plot_extra_dataset)
+    sutabel.show_figure_sv_su_sutabel(plot_extra_dataset=plot_extra_dataset)
 
     # Export (analysis runs automatically if needed)
     sutabel.add_results_to_dbase(str(export_path), export_file)
-    sutabel.save_to_pdf(str(export_path), cv_fit_kar=0.2)
+    sutabel.save_to_pdf(str(export_path))
 
 
 if __name__ == "__main__":
     # Test database import
     source = 'Dbase'  # Opties: 'Stowa', 'PV-tool', 'Dbase'
     import_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
-    export_name = 'Nieuwe database testje.xlsx'
+    # import_name = 'WSRL 2025 PVtool5_0_gevalideerd.xlsx'
+    export_name = 'Template_PVtool5_0_SAFE_2022_PV_aangepast.xlsx'
     export_dir = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
     export_dir.mkdir(parents=True, exist_ok=True)
 
@@ -330,32 +355,37 @@ if __name__ == "__main__":
         file_name_export=export_name,
         short=True,
         validate=False,
-        export=False
+        export=True
     )
 
     if dbase is None or dbase.dbase_df is None:
         print("ERROR: Database import gefaald!")
         exit(1)
 
+    plot_extra_dataset = None
+    plot_spanningspaden = False
+
     # Test verschillende analyses
     print("\nUitvoeren van verschillende test cases...")
 
     print("\nTXT C-phi analyse test")
-    cphi_analysis_txt_test(dbase, export_dir, export_name)
-    #
-    # print("\nDSS C-phi analyse test")
-    # cphi_analysis_dss_test(dbase, export_dir, export_name)
-    #
-    # print("\nTXT C-phi analyse (schematiseringshandleiding) test")
-    # cphi_analysis_txt_sh_test(dbase, export_dir, export_name)
-    #
-    # print("\nDSS C-phi analyse (schematiseringshandleiding) test")
-    # cphi_analysis_dss_sh_test(dbase, export_dir, export_name)
-    #
-    # print("\nTXT SHANSEP analyse test")
-    # shansep_analysis_test(dbase, export_dir, export_name)
+    cphi_analysis_txt_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
 
-    # print("\nSUTABEL analyse test")
-    # sutabel_analysis_test(dbase, export_dir, export_name)
+    print("\nDSS C-phi analyse test")
+    cphi_analysis_dss_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
+
+    print("\nTXT C-phi analyse (schematiseringshandleiding) test")
+    cphi_analysis_txt_sh_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
+
+    print("\nDSS C-phi analyse (schematiseringshandleiding) test")
+    cphi_analysis_dss_sh_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
+
+    plot_extra_dataset = ['TXT_SAFE_klei_zwaar']
+
+    print("\nTXT SHANSEP analyse test")
+    shansep_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
+
+    print("\nSUTABEL analyse test")
+    sutabel_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
 
     print("\nAlle tests zijn voltooid!")

@@ -1,6 +1,5 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-import numpy as np
 
 if TYPE_CHECKING:
     from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
@@ -8,14 +7,12 @@ from pv_tool.cphi_analysis.variables import *
 
 def calculate_tan_a(self: CPhiAnalyse):
     """Berekent de tangens van hoek a voor alle rijen in de DataFrame."""
-    # Create a copy to avoid chained assignment
     df = self.cphi_analyses_data_df.copy()
     df.loc[:, 'tan(a)'] = df['T'] / df['S\'']
     self.cphi_analyses_data_df = df
 
 def calculate_ln_tan_a(self: CPhiAnalyse):
     """Berekent de natuurlijke logaritme van tan(a) voor alle rijen in de DataFrame."""
-    # Create a copy to avoid chained assignment
     df = self.cphi_analyses_data_df.copy()
     df.loc[:, 'LN(tan(a))'] = df['tan(a)'].apply(lambda x: np.log(x) if x is not None and x > 0 else "")
     self.cphi_analyses_data_df = df
