@@ -213,6 +213,59 @@ def calc_ocr_txt(self: Dbase):
     else:
         self.dbase_df['OCR_TXT'] = None
 
+# def calc_ocr_txt(self: Dbase):
+#     """
+#     Deze functie berekent de OCR van de triaxiaalproeven volgens de formule:
+#     MAX(TXT_SS_OCR, (MAX(ANA_GRENSSPANNING_INCL_CORRECTIE, ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING) /
+#     (TXT_SS_S''_EIND_CONSOLIDATIE + TXT_SS_T_EIND_CONSOLIDATIE)))
+#     """
+#     def calculate_row(row):
+#         try:
+#             # Get the first part: TXT_SS_OCR
+#             ocr_txt = row.get('TXT_SS_OCR', None)
+#             rownr = row.get('ALG__REGEL', None)
+#             if rownr == 1201:
+#                 print('ocr_txt:', ocr_txt)
+#             # Only proceed with calculation if any of these tests are True
+#             if any([row.get('ALG__CRS', False),
+#                    row.get('ALG__SAMENDRUKKING', False),
+#                    row.get('ALG__DSS', False),
+#                    row.get('ALG__TRIAXIAAL', False)]):
+#                 if rownr == 1201:
+#                     print('proceeding with calculation for row 1201')
+#
+#                 # Get maximum of grensspanning and max verticale consolidatie spanning
+#                 grensspanning = row.get('ANA_GRENSSPANNING_INCL_CORRECTIE', None)
+#                 max_vert_consol = row.get('ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING', None)
+#                 numerator = max(filter(None, [grensspanning, max_vert_consol])) if any(x is not None for x in [grensspanning, max_vert_consol]) else None
+#
+#                 # Get denominator components
+#                 s_eind = row.get("TXT_SS_S'_EIND_CONSOLIDATIE", 0)
+#                 t_eind = row.get('TXT_SS_T_EIND_CONSOLIDATIE', 0)
+#                 denominator = s_eind + t_eind if (s_eind is not None and t_eind is not None) else None
+#
+#                 if rownr == 1201:
+#                     print('proceeding with calculation for row 1201')
+#                     print('numerator:', numerator)
+#                     print('denominator:', denominator)
+#
+#                 # Calculate the ratio if possible
+#                 if numerator is not None and denominator is not None and denominator != 0:
+#                     calculated_ocr = numerator / denominator
+#
+#                     # Return maximum of TXT_SS_OCR and calculated OCR
+#                     if ocr_txt is not None:
+#                         return max(ocr_txt, calculated_ocr)
+#                     return calculated_ocr
+#
+#             # If no calculation possible but TXT_SS_OCR exists, return that
+#             return ocr_txt if ocr_txt is not None else None
+#
+#         except Exception:
+#             return None
+#
+#     self.dbase_df['OCR_TXT'] = self.dbase_df.apply(calculate_row, axis=1)
+
 
 def calc_ocr_dss(self: Dbase):
     """Deze functie berekent de OCR van de DSS-proeven."""

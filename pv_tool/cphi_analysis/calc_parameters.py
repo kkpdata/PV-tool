@@ -8,11 +8,10 @@ import warnings
 
 if TYPE_CHECKING:
     from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
-from pv_tool.cphi_analysis.variables import (count_s, sum_s, sum_t, e_a2, a2_kar, a1_kar, t_n_2, t_n_2_sh,
+from pv_tool.cphi_analysis.variables import (count_s, sum_s, sum_t, e_a2, a2_kar, a1_kar, t_n_2_sh,
                                              gem_ln_tan_a_sh, std_ln_tan_a_sh,
                                              a2_kar_gecorrigeerd, a1_kar_gecorrigeerd, helling_gecor, var_tan_phi_gem,
-                                             var_tan_phi_kar, var_tan_phi_kar_sh, var_a2_gem_sh, var_a2_boven_sh,
-                                             var_a2_onder_sh)
+                                             var_tan_phi_kar, var_tan_phi_kar_sh)
 
 def calc_watergehalte_gem(self: CPhiAnalyse):
     """Berekent het gemiddelde watergehalte van de geselecteerde monsters [%]."""
@@ -126,7 +125,7 @@ def calc_c_gem(self: CPhiAnalyse):
     elif self.analysis_type == 'DSS_CPhi':
         return float(coh_gem)
     else:
-        print('WARNING: analysis type SH does not include cohesion')
+        print('WAARSCHUWING: analysetype SH bevat geen cohesie')
 
 
 def calc_phi_kar(self: CPhiAnalyse):
@@ -152,7 +151,7 @@ def calc_c_kar(self: CPhiAnalyse):
     elif self.analysis_type == 'DSS_CPhi':
         return float(coh_kar)
     else:
-        print('WARNING: analysis type SH does not include cohesion')
+        print('WAARSCHUWING: analysetype SH bevat geen cohesie')
 
 
 def calc_phi_d(self: CPhiAnalyse):
@@ -222,7 +221,7 @@ def calc_tan_phi_kar(self: CPhiAnalyse):
     elif self.analysis_type == 'DSS_CPhi':
         return float(phi_kar)
     else:
-        print('WARNING: tan phi kar for analysis type in SH is calculated with the function calc_tan_phi_kar_sh')
+        print('WAARSCHUWING: tan phi kar voor analysetype SH wordt berekend met de functie calc_tan_phi_kar_sh')
 
 def calc_tan_phi_kar_sh(self: CPhiAnalyse):
     """Berekent de karakteristieke tan(phi) voor shansep analyses."""
@@ -231,4 +230,4 @@ def calc_tan_phi_kar_sh(self: CPhiAnalyse):
     elif self.analysis_type == 'DSS_SH':
         return float(calc_a2_phi_kar_onder_sh(self))
     else:
-        print('WARNING: tan phi kar for analysis type in CPhi is calculated with the function calc_tan_phi_kar')
+        print('WAARSCHUWING: tan phi kar voor analysetype CPhi wordt berekend met de functie calc_tan_phi_kar')

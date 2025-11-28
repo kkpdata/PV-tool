@@ -35,7 +35,7 @@ class CPhiAnalyse:
     Klasse voor het uitvoeren van c-phi analyses op grondmonsters.
 
     Ondersteunt zowel triaxiaal (TXT) als direct simple shear (DSS) testen,
-    en kan zowel reguliere c-phi als shansep (SH) analyses uitvoeren.
+    en kan zowel reguliere c-phi als schematiseringshandleiding (SH) analyses uitvoeren.
     """
 
     def __init__(self, dbase: Dbase,
@@ -122,6 +122,8 @@ class CPhiAnalyse:
         self.figure = go.Figure()
         self.show_title: Optional[bool] = True
 
+    # ========= Instelling en Data Ophalen Methodes ==========
+
     def get_cphi_data(self):
         """
         Filtert de database op basis van analysetype en proefgroepen.
@@ -133,7 +135,7 @@ class CPhiAnalyse:
         if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[self.cphi_analyses_data_df['PV_NAAM'].isin(
-                    self.investigation_groups)]  # TODO should have selectie veranderen in de dbase en daarmee verder
+                    self.investigation_groups)]
             self.calc_watergehalte_gem = calc_watergehalte_gem(self)
             self.calc_watergehalte_sd = calc_watergehalte_sd(self)
             self.calc_vgwnat_gem = calc_vgwnat_gem(self)
@@ -141,16 +143,30 @@ class CPhiAnalyse:
             self.total_cphi_analyses_data_df = self.cphi_analyses_data_df
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
 
+            # Valideer of er data overblijft na filtering
+            if self.cphi_analyses_data_df.empty:
+                raise ValueError(f"Geen data gevonden na filtering op investigation_groups {self.investigation_groups} "
+                               f"en effective_stress '{self.effective_stress}' voor analyse type '{self.analysis_type}'")
+
+            print(f"Data na filtering: {len(self.cphi_analyses_data_df)} rijen gevonden")
+
         elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__DSS']]
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[self.cphi_analyses_data_df['PV_NAAM'].isin(
-                    self.investigation_groups)]  # TODO should have selectie veranderen in de dbase en daarmee verder
+                    self.investigation_groups)]
             self.calc_watergehalte_gem = calc_watergehalte_gem(self)
             self.calc_watergehalte_sd = calc_watergehalte_sd(self)
             self.calc_vgwnat_gem = calc_vgwnat_gem(self)
             self.calc_vgwnat_sd = calc_vgwnat_sd(self)
             self.total_cphi_analyses_data_df = self.cphi_analyses_data_df
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])]
+
+            # Valideer of er data overblijft na filtering
+            if self.cphi_analyses_data_df.empty:
+                raise ValueError(f"Geen data gevonden na filtering op investigation_groups {self.investigation_groups} "
+                               f"en effective_stress '{self.effective_stress}' voor analyse type '{self.analysis_type}'")
+
+            print(f"Data na filtering: {len(self.cphi_analyses_data_df)} rijen gevonden")
 
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
 
@@ -309,21 +325,23 @@ class CPhiAnalyse:
         else:
             raise ValueError("Geen geldige data gevonden voor de spanningspaden.")
 
-    def get_previous_results(self, path: str):
+    def get_previous_results(self, path: str, file_name: str):
         """
         Zoekt naar eerdere analyseresultaten in een Excel-bestand.
 
         Parameters
         ----------
-        path : str
+        path: str
             Pad naar de map waar het Excel-bestand staat
+        file_name: str
+            Naam van het Excel-bestand
 
         Returns
         -------
         DataFrame of None
             DataFrame met eerdere resultaten als deze gevonden zijn, anders None
         """
-        file_name = 'Template_PVtool5_0.xlsx'
+
         file_path = f"{path}/{file_name}"
 
         try:
@@ -333,9 +351,9 @@ class CPhiAnalyse:
             raise FileNotFoundError("Er is geen dbase aanwezig onder de naam Template_PVtool5_0.xlsx")
 
         try:
-            results_df = read_excel(file_path, sheet_name='Resultaten')
+            results_df = read_excel(file_path, sheet_name='Resultaten c-phi')
         except ValueError:
-            print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
+            print("Er is geen tabblad 'Resultaten c-phi' aanwezig in het Excel-bestand.")
             return None
 
         filtered_df = results_df[
@@ -351,6 +369,8 @@ class CPhiAnalyse:
         latest_entry = filtered_df.sort_values(by='Timestamp', ascending=False).iloc[0]
 
         return latest_entry
+
+    # ========= Analyse Methodes ==========
 
     def expand_analysis_df(self):
         """
@@ -371,7 +391,7 @@ class CPhiAnalyse:
 
     def expand_analysis_df_sh(self):
         """
-        Berekent afgeleide parameters voor de shansep analyse.
+        Berekent afgeleide parameters voor de schematiseringshandleiding analyse.
 
         Voegt kolommen toe aan het dataframe met berekende waarden voor
         tan(alpha) en ln(tan(alpha)).
@@ -406,6 +426,8 @@ class CPhiAnalyse:
         calculate_s_ty_ondergrens_correctie_c(self)
         calculate_kappa_2_ondergrens_correctie_c(self)
 
+    # ========= Resultaten Methodes ==========
+
     def result_values(self):
         """
         Berekent de definitieve resultaten van de c-phi analyse: gemiddelde, karakteristieke en rekenwaarden voor
@@ -436,7 +458,7 @@ class CPhiAnalyse:
 
     def result_values_sh(self):
         """
-        Berekent de definitieve resultaten van de shansep analyse:
+        Berekent de definitieve resultaten van de c-phi schematiseringshandleiding analyse:
         gemiddelde, karakteristieke en rekenwaarden voor phi,
         inclusief standaarddeviatie.
 
@@ -470,12 +492,14 @@ class CPhiAnalyse:
 
     def _run_sh(self):
         """
-        Voert de volledige shansep analyse uit in de juiste volgorde:
+        Voert de volledige c-phi schematiseringshandleiding analyse uit in de juiste volgorde:
         data ophalen, parameters berekenen en resultaten bepalen.
         """
         self.get_cphi_data()
         self.expand_analysis_df_sh()
         self.result_values_sh()
+
+    # ========== Visualisatie Methodes ==========
 
     def set_figure(self, plot_extra_dataset: Optional[List] = None, plot_spanningspaden: bool = False):
         """
@@ -555,11 +579,13 @@ class CPhiAnalyse:
             analyse_output_df['cohesie [kPa]'] = [self.c_gem, self.c_kar, self.c_d, self.st_dev_c]
         return analyse_output_df
 
+    # ========== Export Methodes ==========
+
     def add_results_to_dbase(self, path, file_name: str = 'Template_PVtool5_0.xlsx'):
         """
         Voegt analyseresultaten toe aan de database export.
 
-        Voegt de resultaten toe aan een tabblad 'Resultaten' in de Template_PVtool5_0.xlsx.
+        Voegt de resultaten toe aan een tabblad 'Resultaten c-phi' in de Template_PVtool5_0.xlsx.
         Als het tabblad al bestaat wordt het aangevuld, anders wordt het aangemaakt.
 
         Parameters
@@ -632,30 +658,30 @@ class CPhiAnalyse:
 
         workbook = load_workbook(file_path)
 
-        if 'Resultaten' in workbook.sheetnames:
-            print('Tabblad resultaten in dbase excel bestaat al en wordt aangevuld')
-            df_existing = read_excel(file_path, sheet_name='Resultaten')
+        if 'Resultaten c-phi' in workbook.sheetnames:
+            print('Tabblad Resultaten c-phi in dbase excel bestaat al en wordt aangevuld')
+            df_existing = read_excel(file_path, sheet_name='Resultaten c-phi')
             # Filter out empty rows and ensure consistent types before concatenation
             df_existing = df_existing.dropna(how='all')
             new_row_df = DataFrame([new_row], columns=df_existing.columns)
             df_updated = concat([df_existing, new_row_df], ignore_index=True)
         else:
-            print('Tabblad resultaten in dbase excel bestaat nog niet en wordt aangemaakt')
+            print('Tabblad Resultaten c-phi in dbase excel bestaat nog niet en wordt aangemaakt')
             df_updated = DataFrame([new_row], columns=expected_columns)
 
         # Write data to Excel
         with ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
-            df_updated.to_excel(writer, sheet_name='Resultaten', index=False)
+            df_updated.to_excel(writer, sheet_name='Resultaten c-phi', index=False)
 
         # Formatting
         num_columns = df_updated.shape[1]
         num_rows = df_updated.shape[0]
         format_excel_sheet(
             file_path=file_path,
-            sheet_name='Resultaten',
+            sheet_name='Resultaten c-phi',
             num_columns=num_columns,
             num_rows=num_rows,
-            table_name='ResultatenTable',
+            table_name='Resultaten_CPHI_Table',
             index=False  # Changed from True to False to match the to_excel call
         )
 

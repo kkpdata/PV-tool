@@ -107,7 +107,7 @@ class Validation:
         missing_columns = [col for col in schema_columns if col not in df.columns]
 
         if missing_columns:
-            print(f"Missing columns in category '{category}': {', '.join(missing_columns)}")
+            print(f"Ontbrekende kolommen in categorie '{category}': {', '.join(missing_columns)}")
 
         available_columns = [col for col in schema_columns if col in df.columns]
         data_to_validate = df[available_columns]
@@ -248,7 +248,7 @@ class Validation:
                         index=True
                     )
                 except Exception as format_error:
-                    print(f"Warning: Could not format sheet {sheet_name}: {str(format_error)}")
+                    print(f"Waarschuwing: Kon sheet {sheet_name} niet formatteren: {str(format_error)}")
                     # Continue with other sheets even if one fails to format
 
         except Exception as e:
