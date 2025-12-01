@@ -13,3 +13,6 @@ pandas_schema
 xlsxwriter
 reportlab
 kaleido
+ipywidgets
+ipyfilechooser
+ipython

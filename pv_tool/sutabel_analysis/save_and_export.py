@@ -184,13 +184,26 @@ def _create_sutabel_input_table(self: "SUTABEL") -> Table:
             table_df[col] = table_df[col].round(3)
 
     from reportlab.platypus import Paragraph
+    header_style = getSampleStyleSheet()['Normal']
+    header_style.fontSize = 7
+    header_style.fontName = 'Helvetica-Bold'
+    header_style.alignment = 0  # Left align
+
+    # Create header row with index column
     header_paragraphs = []
+    header_paragraphs.append(Paragraph('Monster ID', header_style))
+
     for col in table_df.columns:
         col_display = col.replace('_', '_<br/>')
-        header_paragraphs.append(Paragraph(f'<font size=7>{col_display}</font>', getSampleStyleSheet()['Normal']))
+        header_paragraphs.append(Paragraph(col_display, header_style))
 
-    data = table_df.values.tolist()
-    t_data = [header_paragraphs] + data
+    # Create data rows with index
+    data_rows = []
+    for idx, row in table_df.iterrows():
+        data_row = [str(idx)] + [str(val) if val != "" else "" for val in row]
+        data_rows.append(data_row)
+
+    t_data = [header_paragraphs] + data_rows
 
     t1 = LongTable(t_data, repeatRows=1, hAlign='LEFT')
     t1.setStyle(TableStyle([
