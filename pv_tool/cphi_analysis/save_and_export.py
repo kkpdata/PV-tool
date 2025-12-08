@@ -5,7 +5,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_LEFT
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, LongTable
-
+import plotly.graph_objects as go
 if TYPE_CHECKING:
     from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 
@@ -244,7 +244,8 @@ def save_to_pdf(self: "CPhiAnalyse", path: str) -> str:
     fig_path = f"{path}/temp_plot.png"
     if not hasattr(self, 'figure') or len(self.figure.data) == 0:
         self.show_title = False
-        self.show_figure()
+        self.figure = go.Figure()
+        self.set_figure()
 
     self.show_title = True
     fig_width = 1280

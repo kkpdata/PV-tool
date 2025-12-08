@@ -15,7 +15,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_LEFT
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, LongTable, PageBreak
 from pv_tool.imports.excel_utils import format_excel_sheet
-import numpy as np
+import plotly.graph_objects as go
 
 try:
     from reportlab.platypus import Image as RLImage
@@ -49,20 +49,18 @@ def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = 'T
     """
     file_path = f"{path}/{file_name}"
 
-    # Ensure analysis is run
     if self.sutabel_grafiek is None or self.e_a1_sutabel is None:
         self._run_sutabel()
-        if hasattr(self, 'cv_fit_kar_sutabel') and self.cv_fit_kar_sutabel is not None:
-            self.get_sutabel_parameters(cv_fit_kar_sutabel=self.cv_fit_kar_sutabel)
+        if hasattr(self, 'vc_fit_kar_sutabel') and self.vc_fit_kar_sutabel is not None:
+            self.get_sutabel_parameters(vc_fit_kar_sutabel=self.vc_fit_kar_sutabel)
         else:
             self.get_sutabel_parameters()
 
-    # Expected columns structure voor sutabel resultaten
     expected_columns = [
         'PVNAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE', 'PV_RESULTAAT_ID', 'PV_TYPEVERZAMELING',
         'PV_e_a1_GEM [-]', 'PV_e_a2_GEM [-]', 'PV_svgm_GEM [kPa]', 'PV_m_GEM [-]',
         'PV_a1_KAR [-]', 'PV_a2_KAR [-]', 'PV_svgm_KAR [kPa]', 'PV_m_KAR [-]',
-        'PV_cv_FIT_KAR [-]', 'PV_STDEV_LOGN_cv [-]', 'PV_STEYX [-]',
+        'PV_vc_FIT_KAR [-]', 'PV_STDEV_LOGN_vc [-]', 'PV_STEYX [-]',
         'PV_VGWNAT_GEM [kN/m3]', 'PV_VGWNAT_SD [kN/m3]', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD',
         'Timestamp'
     ]
@@ -82,8 +80,8 @@ def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = 'T
         'PV_a2_KAR [-]': round(self.a2_kar_sutabel, 6) if self.a2_kar_sutabel is not None else None,
         'PV_svgm_KAR [kPa]': round(self.svgm_kar_sutabel, 6) if self.svgm_kar_sutabel is not None else None,
         'PV_m_KAR [-]': round(self.m_kar_sutabel, 6) if self.m_kar_sutabel is not None else None,
-        'PV_CV_FIT_KAR [-]': round(self.cv_fit_kar_sutabel, 6) if self.cv_fit_kar_sutabel is not None else None,
-        'PV_STDEV_LOGN_cv [-]': round(self.STDEV_logn_cv_sutabel, 6) if self.STDEV_logn_cv_sutabel is not None else None,
+        'PV_vc_FIT_KAR [-]': round(self.vc_fit_kar_sutabel, 6) if self.vc_fit_kar_sutabel is not None else None,
+        'PV_STDEV_LOGN_vc [-]': round(self.STDEV_logn_vc_sutabel, 6) if self.STDEV_logn_vc_sutabel is not None else None,
         'PV_STEYX [-]': round(self.steyx_sutabel, 6) if self.steyx_sutabel is not None else None,
         'PV_VGWNAT_GEM [kN/m3]': round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
         'PV_VGWNAT_SD [kN/m3]': round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
@@ -97,9 +95,7 @@ def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = 'T
     if 'Resultaten SU-tabel - m' in workbook.sheetnames:
         print('Tabblad Resultaten SU-tabel - m in dbase excel bestaat al en wordt aangevuld')
         df_existing = read_excel(file_path, sheet_name='Resultaten SU-tabel - m')
-        # Filter out empty rows and ensure consistent types before concatenation
         df_existing = df_existing.dropna(how='all')
-        # Ensure column headers are strings
         df_existing.columns = df_existing.columns.astype(str)
         new_row_df = DataFrame([new_row], columns=df_existing.columns)
         df_updated = concat([df_existing, new_row_df], ignore_index=True)
@@ -137,57 +133,66 @@ def _create_sutabel_input_table(self: "SUTABEL") -> Table:
     Table
         ReportLab tabel object met de invoerselectie informatie
     """
-    if self.shansep_data_df_sutabel is None:
+    if self.sutabel_data_df is None:
         return Table([['Geen invoerdata beschikbaar']], hAlign='LEFT')
 
-    # Selecteer relevante kolommen
     columns_base = ['PV_NAAM', 'BORING_POSITIE', 'MONSTER_NIVEAU_NAP_VANAF', 'MONSTER_NIVEAU_NAP_TOT',
                     'ANA_TERREINSPANNING', 'ANA_GRENSSPANNING_REKEN', 'ANA_POP_VELD']
 
     if self.analysis_type.startswith('TXT'):
-        columns_extra = ['TXT_SS_VOLUMEGEWICHT_NAT', 'TXT_SS_VOLUMEGEWICHT_DRG', 'TXT_SS_WATERGEHALTE_VOOR']
+        columns_extra = ['TXT_SS_VOLUMEGEWICHT_NAT', 'TXT_SS_WATERGEHALTE_VOOR']
     else:
-        columns_extra = ['DSS_VOLUMEGEWICHT_NAT', 'DSS_VOLUMEGEWICHT_DRG', 'DSS_WATERGEHALTE_VOOR']
+        columns_extra = ['DSS_VOLUMEGEWICHT_NAT', 'DSS_WATERGEHALTE_VOOR']
 
-    # Check welke kolommen bestaan in de dataframe
-    available_columns = [col for col in columns_base + columns_extra if col in self.total_shansep_data_df.columns]
+    available_columns = [col for col in columns_base + columns_extra if col in self.total_sutabel_data_df.columns]
 
     if not available_columns:
         return Table([['Geen invoerdata kolommen beschikbaar']], hAlign='LEFT')
 
-    table_df = self.total_shansep_data_df[available_columns].copy()
+    table_df = self.total_sutabel_data_df[available_columns].copy()
 
-    # Add additional columns from shansep_data_df_sutabel
     additional_columns = ['S\'v', 'Su', 'consolidatietype']
     for col in additional_columns:
-        if col in self.shansep_data_df_sutabel.columns and col not in table_df.columns:
+        if col in self.sutabel_data_df.columns and col not in table_df.columns:
             # Zorg ervoor dat de indices overeenkomen
-            if len(table_df) == len(self.shansep_data_df_sutabel):
-                table_df[col] = self.shansep_data_df_sutabel[col].values
+            if len(table_df) == len(self.sutabel_data_df):
+                table_df[col] = self.sutabel_data_df[col].values
 
-    # Round numeric columns
+    column_mapping = {
+        'PV_NAAM': 'Groep',
+        'BORING_POSITIE': 'Pos.',
+        'MONSTER_NIVEAU_NAP_VANAF': 'NAP Van\n[m]',
+        'MONSTER_NIVEAU_NAP_TOT': 'NAP Tot\n[m]',
+        'TXT_SS_VOLUMEGEWICHT_NAT': 'VGW nat\n[kN/m3]',
+        'TXT_SS_VOLUMEGEWICHT_DRG': 'VGW drg\n[kN/m3]',
+        'TXT_SS_WATERGEHALTE_VOOR': 'Water\n[%]',
+        'DSS_VOLUMEGEWICHT_NAT': 'VGW nat\n[kN/m3]',
+        'DSS_VOLUMEGEWICHT_DRG': 'VGW drg\n[kN/m3]',
+        'DSS_WATERGEHALTE_VOOR': 'Water\n[%]',
+        'S\'v': "σ'v\n[kPa]",
+        'Su': "su\n[kPa]",
+        'OCR': 'OCR\n[-]',
+        'ANA_TERREINSPANNING': 'Terreinspanning\n[kPa]',
+        'ANA_GRENSSPANNING_REKEN': 'Grensspanning\n[kPa]',
+        'ANA_POP_VELD': 'POP\n[-]'
+    }
+
+    table_df = table_df.rename(columns={k: v for k, v in column_mapping.items() if k in table_df.columns})
+
     for col in table_df.columns:
         if table_df[col].dtype in ['float64', 'float32']:
             table_df[col] = table_df[col].round(3)
 
-    # Maak header met line breaks voor lange kolomnamen
     from reportlab.platypus import Paragraph
     header_paragraphs = []
     for col in table_df.columns:
-        # Splits lange kolomnamen op underscores voor betere leesbaarheid
         col_display = col.replace('_', '_<br/>')
         header_paragraphs.append(Paragraph(f'<font size=7>{col_display}</font>', getSampleStyleSheet()['Normal']))
 
-    # Converteer DataFrame naar lijst
     data = table_df.values.tolist()
-    # Voeg header toe
     t_data = [header_paragraphs] + data
 
-    # Bereken kolom breedtes - geef meer ruimte aan belangrijke kolommen
-    num_cols = len(table_df.columns)
-    col_widths = [60 if i < 2 else 50 for i in range(num_cols)]  # Eerste 2 kolommen iets breder
-
-    t1 = LongTable(t_data, repeatRows=1, hAlign='LEFT', colWidths=col_widths)
+    t1 = LongTable(t_data, repeatRows=1, hAlign='LEFT')
     t1.setStyle(TableStyle([
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
@@ -211,7 +216,6 @@ def _create_sutabel_parameters_table(self: "SUTABEL") -> Table:
     """
     parameters: List[list] = []
 
-    # Voeg sutabel parameters toe
     if hasattr(self, 'e_a1_sutabel') and self.e_a1_sutabel is not None:
         parameters.append(['e_a1 (snijpunt gemiddeld) [-]', f"{self.e_a1_sutabel:.6f}"])
     if hasattr(self, 'e_a2_sutabel') and self.e_a2_sutabel is not None:
@@ -230,10 +234,10 @@ def _create_sutabel_parameters_table(self: "SUTABEL") -> Table:
     if hasattr(self, 'm_kar_sutabel') and self.m_kar_sutabel is not None:
         parameters.append(['m_kar [-]', f"{self.m_kar_sutabel:.6f}"])
 
-    if hasattr(self, 'cv_fit_kar_sutabel') and self.cv_fit_kar_sutabel is not None:
-        parameters.append(['cv_fit_kar [-]', f"{self.cv_fit_kar_sutabel:.6f}"])
-    if hasattr(self, 'STDEV_logn_cv_sutabel') and self.STDEV_logn_cv_sutabel is not None:
-        parameters.append(['STDEV lognormaal [-]', f"{self.STDEV_logn_cv_sutabel:.6f}"])
+    if hasattr(self, 'vc_fit_kar_sutabel') and self.vc_fit_kar_sutabel is not None:
+        parameters.append(['vc_fit_kar [-]', f"{self.vc_fit_kar_sutabel:.6f}"])
+    if hasattr(self, 'STDEV_logn_vc_sutabel') and self.STDEV_logn_vc_sutabel is not None:
+        parameters.append(['STDEV lognormaal [-]', f"{self.STDEV_logn_vc_sutabel:.6f}"])
     if hasattr(self, 'steyx_sutabel') and self.steyx_sutabel is not None:
         parameters.append(['STEYX [-]', f"{self.steyx_sutabel:.6f}"])
 
@@ -268,13 +272,11 @@ def _create_sutabel_grafiek_table(self: "SUTABEL") -> Table:
     if self.sutabel_grafiek is None:
         return Table([['Geen sutabel grafiek data beschikbaar']], hAlign='LEFT')
 
-    # Maak een kopie en rond af
     df = self.sutabel_grafiek.copy()
     for col in df.columns:
         if df[col].dtype in ['float64', 'float32']:
             df[col] = df[col].round(3)
 
-    # Converteer naar tabel formaat
     header = df.columns.tolist()
     data = df.values.tolist()
     t_data = [header] + data
@@ -291,25 +293,23 @@ def _create_sutabel_grafiek_table(self: "SUTABEL") -> Table:
     return t
 
 
-def _create_su_fit_cv_table(self: "SUTABEL") -> Table:
+def _create_su_fit_vc_table(self: "SUTABEL") -> Table:
     """
-    Maakt een tabel met de su fit constante cv data.
+    Maakt een tabel met de su fit constante vc data.
 
     Returns
     -------
     Table
-        ReportLab tabel object met de su fit cv data
+        ReportLab tabel object met de su fit vc data
     """
-    if self.su_fit_constante_cv is None:
-        return Table([['Geen cv fit data beschikbaar (cv_fit_kar niet opgegeven)']], hAlign='LEFT')
+    if self.su_fit_constante_vc is None:
+        return Table([['Geen vc fit data beschikbaar (vc_fit_kar niet opgegeven)']], hAlign='LEFT')
 
-    # Maak een kopie en rond af
-    df = self.su_fit_constante_cv.copy()
+    df = self.su_fit_constante_vc.copy()
     for col in df.columns:
         if df[col].dtype in ['float64', 'float32']:
             df[col] = df[col].round(3)
 
-    # Converteer naar tabel formaat
     header = df.columns.tolist()
     data = df.values.tolist()
     t_data = [header] + data
@@ -326,7 +326,7 @@ def _create_su_fit_cv_table(self: "SUTABEL") -> Table:
     return t
 
 
-def save_sutabel_to_pdf(self: "SUTABEL", path: str, cv_fit_kar: float = None) -> str:
+def save_sutabel_to_pdf(self: "SUTABEL", path: str, vc_fit_kar: float = None) -> str:
     """
     Slaat de sutabel-m analyseresultaten op in een PDF-document.
 
@@ -335,14 +335,14 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, cv_fit_kar: float = None) ->
     - Beide overzichtsfiguren (ln(s'v)-ln(su) en s'v-su)
     - Tabel met parameters
     - Tabel met sutabel grafiek data (su_gem en su_kar)
-    - Tabel met su fit constante cv data (indien van toepassing)
+    - Tabel met su fit constante vc data (indien van toepassing)
     - Tabel met invoerselectie informatie
 
     Parameters
     ----------
     path : str
         Map locatie waar het PDF-bestand moet worden opgeslagen
-    cv_fit_kar : float, optioneel
+    vc_fit_kar : float, optioneel
         Coefficient of Variation voor de fit
 
     Returns
@@ -350,29 +350,24 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, cv_fit_kar: float = None) ->
     str
         Het absolute bestandspad van het aangemaakte PDF-bestand
     """
-    # Maak titel en bestandsnaam
     title = f"Sutabel-m analyse met {self.effective_stress} op {self.investigation_groups[0]}"
     file_name = f"sutabel_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf"
     file_path = f"{path}/{file_name}"
 
-    # Ensure analysis is run with cv parameter if provided
     self._run_sutabel()
-    if cv_fit_kar is not None:
-        self.get_sutabel_parameters(cv_fit_kar_sutabel=cv_fit_kar)
-    elif hasattr(self, 'cv_fit_kar_sutabel') and self.cv_fit_kar_sutabel is not None:
-        self.get_sutabel_parameters(cv_fit_kar_sutabel=self.cv_fit_kar_sutabel)
+    if vc_fit_kar is not None:
+        self.get_sutabel_parameters(vc_fit_kar_sutabel=vc_fit_kar)
+    elif hasattr(self, 'vc_fit_kar_sutabel') and self.vc_fit_kar_sutabel is not None:
+        self.get_sutabel_parameters(vc_fit_kar_sutabel=self.vc_fit_kar_sutabel)
     else:
         self.get_sutabel_parameters()
 
-    # Bereken sutabel grafiek data
     if self.sutabel_grafiek is None:
         self.calculate_sutabel_grafiek()
 
-    # Maak het PDF document
     doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
     styles = getSampleStyleSheet()
 
-    # Voeg alleen styles toe die nog niet bestaan
     if 'Left' not in styles:
         styles.add(ParagraphStyle(name='Left', parent=styles['Normal'], alignment=TA_LEFT))
     if 'TitleLeft' not in styles:
@@ -382,7 +377,6 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, cv_fit_kar: float = None) ->
 
     story = []
 
-    # Voeg titel toe
     story.append(Paragraph(title, styles['TitleLeft']))
     story.append(Spacer(width=1, height=12))
 
@@ -390,37 +384,30 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, cv_fit_kar: float = None) ->
         story.append(Paragraph("Figuren kunnen niet worden toegevoegd: PIL (Pillow) niet beschikbaar", styles['Normal']))
         story.append(Spacer(width=1, height=12))
     else:
-        # Eerste figuur: ln(s'v) vs ln(su) plot
         try:
             fig_path1 = f"{path}/temp_sutabel_plot1.png"
             self.show_title = False
 
-            # Genereer figuur
-            self.figure = None
-            self.set_figure_ln_sv_ln_su_sutabel()
+            self.figure = go.Figure()
+            self.set_figure_sv_su_sutabel()
 
             if hasattr(self, 'figure') and self.figure is not None:
                 fig_width = 1280
                 fig_height = 720
                 self.figure.write_image(fig_path1, width=fig_width, height=fig_height, scale=4, format="png")
 
-                # Bereken figuurgrootte voor pagina
                 title_and_heading_height = 100
                 available_height = doc.height - title_and_heading_height
 
-                # Laad PNG en bepaal pixelafmetingen
                 with PILImage.open(fig_path1) as im:
                     img_width_px, img_height_px = im.size
 
-                # Bereken optimale grootte die op de pagina past
                 max_width_pt = doc.width * 0.95
                 aspect = img_height_px / img_width_px
 
-                # Probeer eerst op basis van breedte
                 img_width_pt = min(max_width_pt, doc.width)
                 img_height_pt = img_width_pt * aspect
 
-                # Controleer of het past in de beschikbare hoogte
                 if img_height_pt > available_height:
                     img_height_pt = available_height * 0.95
                     img_width_pt = img_height_pt / aspect
@@ -442,21 +429,18 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, cv_fit_kar: float = None) ->
             story.append(Paragraph(f"Fout bij genereren Figuur 1: {str(e)}", styles['Normal']))
             story.append(Spacer(width=1, height=12))
 
-        # Tweede figuur: s'v vs su plot
         try:
             fig_path2 = f"{path}/temp_sutabel_plot2.png"
             self.show_title = False
 
-            # Genereer figuur
-            self.figure = None
-            self.set_figure_sv_su_sutabel()
+            self.figure = go.Figure()
+            self.set_figure_ln_sv_ln_su_sutabel()
 
             if hasattr(self, 'figure') and self.figure is not None:
                 fig_width = 1280
                 fig_height = 720
                 self.figure.write_image(fig_path2, width=fig_width, height=fig_height, scale=4, format="png")
 
-                # Bereken figuurgrootte
                 with PILImage.open(fig_path2) as im:
                     img_width_px, img_height_px = im.size
 
@@ -466,13 +450,12 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, cv_fit_kar: float = None) ->
                 img_width_pt = min(max_width_pt, doc.width)
                 img_height_pt = img_width_pt * aspect
 
-                available_height = doc.height - 50  # Ruimte voor heading
+                available_height = doc.height - 50
 
                 if img_height_pt > available_height:
                     img_height_pt = available_height * 0.95
                     img_width_pt = img_height_pt / aspect
 
-                # Maak ReportLab Image aan
                 img2 = RLImage(fig_path2)
                 img2.drawWidth = img_width_pt
                 img2.drawHeight = img_height_pt
@@ -501,20 +484,18 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, cv_fit_kar: float = None) ->
     story.append(_create_sutabel_grafiek_table(self))
     story.append(Spacer(width=1, height=12))
 
-    # Voeg su fit cv data toe (indien beschikbaar)
-    if self.su_fit_constante_cv is not None:
-        story.append(Paragraph("Su fit met constante cv data", styles['Heading2']))
+    # Voeg su fit vc data toe (indien beschikbaar)
+    if self.su_fit_constante_vc is not None:
+        story.append(Paragraph("Su fit met constante vc data", styles['Heading2']))
         story.append(Spacer(width=1, height=6))
-        story.append(_create_su_fit_cv_table(self))
+        story.append(_create_su_fit_vc_table(self))
         story.append(Spacer(width=1, height=12))
 
-    # Voeg input tabel toe op nieuwe pagina
     story.append(PageBreak())
     story.append(Paragraph("Invoerselectie", styles['Heading2']))
     story.append(Spacer(width=1, height=6))
     story.append(_create_sutabel_input_table(self))
 
-    # Bouw PDF
     try:
         doc.build(story)
         print(f"Sutabel PDF export voltooid: {file_path}")
