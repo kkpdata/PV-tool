@@ -10,25 +10,29 @@ import plotly.graph_objects as go
 from pv_tool.cphi_analysis.expand_analysis_df import (calculate_tan_a, calculate_ln_tan_a, calculate_s_tt,
                                                       calculate_s_ty, calculate_kappa_2, calculate_s,
                                                       calculate_5pr_ondergrens, calculate_5pr_bovengrens,
-                                                 calculate_s_tt_ondergrens, calculate_s_ty_ondergrens,
-                                                 calculate_kappa_2_ondergrens, calculate_correctie_t, kappa_2_2pr_cor,
-                                                 calculate_5pr_ondergrens_correctie_c,
-                                                 calculate_5pr_bovengrens_correctie_c,
-                                                 calculate_s_ty_ondergrens_correctie_c,
-                                                 calculate_kappa_2_ondergrens_correctie_c)
+                                                      calculate_s_tt_ondergrens, calculate_s_ty_ondergrens,
+                                                      calculate_kappa_2_ondergrens, calculate_correctie_t,
+                                                      kappa_2_2pr_cor,
+                                                      calculate_5pr_ondergrens_correctie_c,
+                                                      calculate_5pr_bovengrens_correctie_c,
+                                                      calculate_s_ty_ondergrens_correctie_c,
+                                                      calculate_kappa_2_ondergrens_correctie_c)
 from pv_tool.cphi_analysis.visualization import (add_proefresultaten, add_extra_proefresultaten, add_5pr_bovengrens,
-                                            add_5pr_ondergrens, add_fysische_realiseerbare_ondergrens, add_gemiddelde,
-                                            set_layout, add_gemiddelde_sh, add_raaklijn_kar_boven,
+                                                 add_5pr_ondergrens, add_fysische_realiseerbare_ondergrens,
+                                                 add_gemiddelde,
+                                                 set_layout, add_gemiddelde_sh, add_raaklijn_kar_boven,
                                                  add_raaklijn_kar_onder)
 from pv_tool.cphi_analysis.calc_parameters import (calc_watergehalte_gem, calc_watergehalte_sd, calc_vgwnat_gem,
-                                                   calc_vgwnat_sd, calc_a2_phi_gem,  calc_a2_kar, calc_phi_d,
+                                                   calc_vgwnat_sd, calc_a2_phi_gem, calc_a2_kar, calc_phi_d,
                                                    helling_gecorrigeerd, calc_a1_c_gem, calc_tan_phi_gem, calc_phi_kar,
                                                    calc_a1_kar, calc_phi_gem, calc_c_gem, calc_tan_phi_kar,
-                                              calc_c_kar, calc_tan_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c,
-                                                calc_a2_phi_gem_sh, calc_a2_phi_kar_boven_sh, calc_a2_phi_kar_onder_sh,
+                                                   calc_c_kar, calc_tan_phi_d, calc_c_d, calc_st_dev_phi, calc_st_dev_c,
+                                                   calc_a2_phi_gem_sh, calc_a2_phi_kar_boven_sh,
+                                                   calc_a2_phi_kar_onder_sh,
                                                    calc_tan_phi_kar_sh)
 from openpyxl import load_workbook
 from pv_tool.imports.excel_utils import format_excel_sheet
+
 
 class CPhiAnalyse:
     """
@@ -38,11 +42,12 @@ class CPhiAnalyse:
     en kan zowel reguliere c-phi als schematiseringshandleiding (SH) analyses uitvoeren.
     """
 
-    def __init__(self, dbase: Dbase,
-                 analysis_type: Literal['TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH'],
-                 investigation_groups: List,
-                 effective_stress: Literal['2% rek', '5% rek', '10% rek', '15% rek', '20% rek',
-                                            'pieksterkte', 'eindsterkte']):
+    def __init__(
+            self, dbase: Dbase,
+            analysis_type: Literal['TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH'],
+            investigation_groups: List,
+            effective_stress: Literal[
+                '2% rek', '5% rek', '10% rek', '15% rek', '20% rek', 'pieksterkte', 'eindsterkte']):
         """
         Initialiseert een nieuwe c-phi analyse.
 
@@ -135,7 +140,7 @@ class CPhiAnalyse:
         if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[self.cphi_analyses_data_df['PV_NAAM'].isin(
-                    self.investigation_groups)]
+                self.investigation_groups)]
             self.calc_watergehalte_gem = calc_watergehalte_gem(self)
             self.calc_watergehalte_sd = calc_watergehalte_sd(self)
             self.calc_vgwnat_gem = calc_vgwnat_gem(self)
@@ -145,15 +150,16 @@ class CPhiAnalyse:
 
             # Valideer of er data overblijft na filtering
             if self.cphi_analyses_data_df.empty:
-                raise ValueError(f"Geen data gevonden na filtering op investigation_groups {self.investigation_groups} "
-                               f"en effective_stress '{self.effective_stress}' voor analyse type '{self.analysis_type}'")
+                raise ValueError(f"Geen data gevonden na filtering op investigation_groups {self.investigation_groups}"
+                                 f"en effective_stress '{self.effective_stress}' "
+                                 f"voor analyse type '{self.analysis_type}'")
 
             print(f"Data na filtering: {len(self.cphi_analyses_data_df)} rijen gevonden")
 
         elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
             self.cphi_analyses_data_df = self.dbase_df[self.dbase_df['ALG__DSS']]
             self.cphi_analyses_data_df = self.cphi_analyses_data_df[self.cphi_analyses_data_df['PV_NAAM'].isin(
-                    self.investigation_groups)]
+                self.investigation_groups)]
             self.calc_watergehalte_gem = calc_watergehalte_gem(self)
             self.calc_watergehalte_sd = calc_watergehalte_sd(self)
             self.calc_vgwnat_gem = calc_vgwnat_gem(self)
@@ -164,7 +170,8 @@ class CPhiAnalyse:
             # Valideer of er data overblijft na filtering
             if self.cphi_analyses_data_df.empty:
                 raise ValueError(f"Geen data gevonden na filtering op investigation_groups {self.investigation_groups} "
-                               f"en effective_stress '{self.effective_stress}' voor analyse type '{self.analysis_type}'")
+                                 f"en effective_stress '{self.effective_stress}' "
+                                 f"voor analyse type '{self.analysis_type}'")
 
             print(f"Data na filtering: {len(self.cphi_analyses_data_df)} rijen gevonden")
 
@@ -227,7 +234,8 @@ class CPhiAnalyse:
         tijdens de proeven. Voor elk monster (uit de index van de dataframes)
         wordt een apart spanningspad gemaakt met alle beschikbare spanningsstappen.
 
-        Wordt aangeroepen binnen set_figure(). Het is aan de gebruiker om de spanningspaden wel of niet toe te voegen aan de figuur
+        Wordt aangeroepen binnen set_figure(). Het is aan de gebruiker om de spanningspaden wel of niet toe te voegen
+        aan de figuur
         """
         if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
             relevant_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
@@ -236,15 +244,18 @@ class CPhiAnalyse:
         elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
             relevant_df = self.dbase_df[self.dbase_df['ALG__DSS']]
             relevant_df = relevant_df[relevant_df['PV_NAAM'].isin(self.investigation_groups)]
-            effective_stress_options = ['consolidatie', '2% rek', '5% rek', '10% rek', '15% rek', '20% rek', 'pieksterkte', 'eindsterkte']
-            relevant_df['DSS_T_CONSOLIDATIE'] = [0]*len(relevant_df)
+            effective_stress_options = ['consolidatie', '2% rek', '5% rek', '10% rek', '15% rek', '20% rek',
+                                        'pieksterkte', 'eindsterkte']
+            relevant_df['DSS_T_CONSOLIDATIE'] = [0] * len(relevant_df)
         else:
             raise ValueError("Ongeldig analysetype. Gebruik 'TXT_CPhi', 'TXT_SH', 'DSS_CPhi' of 'DSS_SH'.")
 
         # Eerst verzamelen we alle data per spanningsstap
         all_data = {}
         for stress in effective_stress_options:
-            columns = ALL_TEXTUAL_NAMES.get(stress, []) if self.analysis_type in ['TXT_CPhi', 'TXT_SH'] else ALL_TEXTUAL_NAMES_DSS.get(stress, [])
+            columns = ALL_TEXTUAL_NAMES.get(stress, []) if self.analysis_type in ['TXT_CPhi',
+                                                                                  'TXT_SH'] \
+                else ALL_TEXTUAL_NAMES_DSS.get(stress, [])
             if len(columns) > 0:
                 data = relevant_df[columns].copy()
                 if not data.empty and not data.isna().all().all():
@@ -282,15 +293,17 @@ class CPhiAnalyse:
                         stress_df = stress_df[stress_df['stress_state'] != 'pieksterkte']
                         if rek_bij_t_piek < 2:
                             insert_index = 1
-                        elif rek_bij_t_piek <5:
+                        elif rek_bij_t_piek < 5:
                             insert_index = 2
-                        elif rek_bij_t_piek <15:
+                        elif rek_bij_t_piek < 15:
                             insert_index = 3
                         elif not isna(rek_bij_t_eind) and rek_bij_t_eind > rek_bij_t_piek:
                             insert_index = 4
                         else:
                             insert_index = len(stress_df)
-                        stress_df = concat([stress_df.iloc[:insert_index], piek_row, stress_df.iloc[insert_index:]]).reset_index(drop=True)
+                        stress_df = concat(
+                            [stress_df.iloc[:insert_index], piek_row, stress_df.iloc[insert_index:]]).reset_index(
+                            drop=True)
                 elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
                     rek_bij_t_max = self.total_cphi_analyses_data_df.loc[sample_name, 'DSS_REK_BIJ_T_MAX']
                     rek_bij_t_eind = self.total_cphi_analyses_data_df.loc[sample_name, 'DSS_REK_BIJ_T_EIND']
@@ -300,24 +313,24 @@ class CPhiAnalyse:
                         stress_df = stress_df[stress_df['stress_state'] != 'pieksterkte']
                         if rek_bij_t_max < 2:
                             insert_index = 1
-                        elif rek_bij_t_max <5:
+                        elif rek_bij_t_max < 5:
                             insert_index = 2
-                        elif rek_bij_t_max <10:
+                        elif rek_bij_t_max < 10:
                             insert_index = 3
-                        elif rek_bij_t_max <15:
+                        elif rek_bij_t_max < 15:
                             insert_index = 4
-                        elif rek_bij_t_max <20:
+                        elif rek_bij_t_max < 20:
                             insert_index = 5
                         elif not isna(rek_bij_t_eind) and rek_bij_t_eind > rek_bij_t_max:
                             insert_index = 6
                         else:
                             insert_index = len(stress_df)
-                        stress_df = concat([stress_df.iloc[:insert_index], piek_row, stress_df.iloc[insert_index:]]).reset_index(drop=True)
+                        stress_df = concat(
+                            [stress_df.iloc[:insert_index], piek_row, stress_df.iloc[insert_index:]]).reset_index(
+                            drop=True)
 
                 sample_stress_paths[sample_name] = stress_df
 
-
-        
         # Plot de spanningspaden
         if sample_stress_paths:
             from pv_tool.cphi_analysis.visualization import add_stress_paths
@@ -360,7 +373,7 @@ class CPhiAnalyse:
             (results_df['PV_RESULTAAT_ID'].str.contains(self.investigation_groups[0])) &
             (results_df['PV_RESULTAAT_ID'].str.contains(self.effective_stress)) &
             (results_df['PV_RESULTAAT_ID'].str.contains(self.analysis_type))
-        ]
+            ]
 
         if filtered_df.empty:
             print("Er zijn geen eerdere resultaten gevonden voor de opgegeven parameters.")
@@ -567,7 +580,7 @@ class CPhiAnalyse:
             index = ['Verwachtingswaarde', 'Karakteristieke waarde', 'Rekenwaarde', 'Standaarddeviatie D-stability']
             columns = ['tan phi [-]', 'phi [graden]']
             analyse_output_df = DataFrame(index=index, columns=columns)
-            analyse_output_df['tan phi [-]'] = [self.tan_phi_gem, self.tan_phi_kar , self.tan_phi_d, '[-]']
+            analyse_output_df['tan phi [-]'] = [self.tan_phi_gem, self.tan_phi_kar, self.tan_phi_d, '[-]']
             analyse_output_df['phi [graden]'] = [self.phi_gem, self.phi_kar, self.phi_d, self.st_dev_phi]
         else:
             self._run()
@@ -586,7 +599,7 @@ class CPhiAnalyse:
         Voegt analyseresultaten toe aan de database export.
 
         Voegt de resultaten toe aan een tabblad 'Resultaten c-phi' in de Template_PVtool5_0.xlsx.
-        Als het tabblad al bestaat wordt het aangevuld, anders wordt het aangemaakt.
+        Als het tabblad al bestaat, wordt het aangevuld, anders wordt het aangemaakt.
 
         Parameters
         ----------
@@ -626,33 +639,44 @@ class CPhiAnalyse:
             'PV_REK': self.effective_stress,
             'PV_TYPE_PROEF': self.analysis_type.split('_')[0],
             'PV_ANALYSE': self.analysis_type.split('_')[1],
-            'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
+            'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_"
+                               f"{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
             'PV_TYPEVERZAMELING': self.alpha,
             'PV_A1_COH_GEM [kPa]': round(self.gem_a1, 3) if self.gem_a1 is not None else None,
             'PV_A2_TAN_PHI_GEM [-]': round(self.gem_a2, 3) if self.gem_a2 is not None else None,
             'PV_A1_COH_KAR [kPa]': round(self.kar_a1, 3) if self.kar_a1 is not None else None,
             'PV_A2_TAN_PHI_KAR [-]': round(self.kar_a2, 3) if self.kar_a2 is not None else None,
-            'PV_COH_GEM [kPa]': (round(self.c_gem, 3) if self.c_gem is not None and self.c_gem >= 0
-                                else "[-]" if self.c_gem is None
-                                else f"{round(self.c_gem, 3)} (kan niet - aanpassen!)"
-                                ),
+
+            'PV_COH_GEM [kPa]': (
+                round(self.c_gem, 3) if self.c_gem is not None and self.c_gem >= 0
+                else "[-]" if self.c_gem is None
+                else f"{round(self.c_gem, 3)} (kan niet - aanpassen!)"
+            ),
             'PV_PHI_GEM [graden]': round(self.phi_gem, 3) if self.phi_gem is not None else None,
-            'PV_COH_KAR [kPa]': (round(self.c_kar, 3) if self.c_kar is not None and self.c_kar >= 0
-                                else "[-]" if self.c_kar is None
-                                else f"{round(self.c_kar, 3)} (kan niet - aanpassen!)"
-                                ),
+
+            'PV_COH_KAR [kPa]': (
+                round(self.c_kar, 3) if self.c_kar is not None and self.c_kar >= 0
+                else "[-]" if self.c_kar is None
+                else f"{round(self.c_kar, 3)} (kan niet - aanpassen!)"
+            ),
             'PV_PHI_KAR [graden]': round(self.phi_kar, 3) if self.phi_kar is not None else None,
-            'PV_COH_SD_DSTAB [-]': (round(self.st_dev_c, 3) if self.c_gem is not None and self.c_kar is not None
-                                    and self.c_gem >= 0 and self.c_kar >= 0
-                                    else "[-]" if self.c_gem is None or self.c_kar is None
-                                    else "[-] (c < 0)"),
+
+            'PV_COH_SD_DSTAB [-]': (
+                round(self.st_dev_c, 3) if (
+                        self.c_gem is not None and self.c_kar is not None and self.c_gem >= 0 and self.c_kar >= 0
+                ) else "[-]" if self.c_gem is None or self.c_kar is None
+                else "[-] (c < 0)"
+            ),
             'PV_PHI_SD_DSTAB [-]': round(self.st_dev_phi, 3) if self.st_dev_phi is not None else None,
+
             'PV_PARTPHI [-]': self.material_tan_phi,
             'PV_PARTCOH [-]': self.material_cohesie,
             'PV_VGWNAT_GEM [kN/m3]': round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
             'PV_VGWNAT_SD [kN/m3]': round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
-            'PV_WATERGEHALTE_GEM': round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None,
-            'PV_WATERGEHALTE_SD': round(self.calc_watergehalte_sd, 3) if self.calc_watergehalte_sd is not None else None,
+            'PV_WATERGEHALTE_GEM': round(self.calc_watergehalte_gem,
+                                         3) if self.calc_watergehalte_gem is not None else None,
+            'PV_WATERGEHALTE_SD': round(self.calc_watergehalte_sd,
+                                        3) if self.calc_watergehalte_sd is not None else None,
             'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
@@ -682,7 +706,7 @@ class CPhiAnalyse:
             num_columns=num_columns,
             num_rows=num_rows,
             table_name='Resultaten_CPHI_Table',
-            index=False  # Changed from True to False to match the to_excel call
+            index=False
         )
 
         return df_updated

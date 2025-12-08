@@ -1,5 +1,5 @@
-#------------------------------------Cphi----------------------------------------
-#------------------------------------TXT-----------------------------------------
+# ------------------------------------Cphi----------------------------------------
+# ------------------------------------TXT-----------------------------------------
 
 CONSOLIDATIE_COLUMNS = ['PV_NAAM', 'TXT_SS_S\'_EIND_CONSOLIDATIE', 'TXT_SS_T_EIND_CONSOLIDATIE']
 
@@ -22,7 +22,7 @@ TEXTUAL_NAMES = {
 }
 
 ALL_TEXTUAL_NAMES = {
-   'consolidatie': CONSOLIDATIE_COLUMNS,
+    'consolidatie': CONSOLIDATIE_COLUMNS,
     '2% rek': TWO_PERC_COLUMNS,
     '5% rek': FIVE_PERC_COLUMNS,
     '15% rek': FIFTEEN_PERC_COLUMNS,

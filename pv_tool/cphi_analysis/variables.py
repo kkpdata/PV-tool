@@ -47,7 +47,7 @@ def var_a2(self: CPhiAnalyse):
 
 def var_a1(self: CPhiAnalyse):
     return 1 / count_s(self) * (1 + sum_s(self) ** 2 / (count_s(self) * sum_s_tt(self))) * sum_kappa_2(self) / (
-                count_s(self) - 2)
+            count_s(self) - 2)
 
 
 def cov_a1_a2(self: CPhiAnalyse):
@@ -71,24 +71,30 @@ def t_n_2(self: CPhiAnalyse):
     degrees_of_freedom = count_s(self) - 2
     return t.ppf(1 - significantieniveau / 2, degrees_of_freedom)
 
+
 def t_n_2_sh(self: CPhiAnalyse):
     significantieniveau = 0.05
     degrees_of_freedom = count_s(self) - 1
     return t.ppf(significantieniveau, degrees_of_freedom)
 
+
 def gem_ln_tan_a_sh(self: CPhiAnalyse):
     return self.cphi_analyses_data_df['LN(tan(a))'].mean()
+
 
 def std_ln_tan_a_sh(self: CPhiAnalyse):
     return self.cphi_analyses_data_df['LN(tan(a))'].std()
 
+
 def var_a2_gem_sh(self: CPhiAnalyse):
     return math.exp(gem_ln_tan_a_sh(self))
+
 
 def var_a2_onder_sh(self: CPhiAnalyse):
     a2_phi_kar_onder = math.exp(gem_ln_tan_a_sh(self) + t_n_2_sh(self) * std_ln_tan_a_sh(self) *
                                 math.sqrt((1 - self.alpha) + 1 / count_s(self)))
     return a2_phi_kar_onder
+
 
 def var_a2_boven_sh(self: CPhiAnalyse):
     a2_phi_kar_boven = math.exp(gem_ln_tan_a_sh(self) - t_n_2_sh(self) * std_ln_tan_a_sh(self) *
@@ -174,14 +180,17 @@ def helling_gecor(self: CPhiAnalyse):
             raise ValueError(f"Onvoldoende data voor helling berekening. Aantal datapunten: {len(x_values)}")
 
         if len(x_values) != len(y_values):
-            raise ValueError(f"Dimensie mismatch: x_values heeft {len(x_values)} elementen, y_values heeft {len(y_values)} elementen")
+            raise ValueError(
+                f"Dimensie mismatch: x_values heeft {len(x_values)} elementen, "
+                f"y_values heeft {len(y_values)} elementen")
 
         # Controleer op NaN waarden
         x_clean = x_values.dropna()
         y_clean = y_values.dropna()
 
         if len(x_clean) < 2 or len(y_clean) < 2:
-            raise ValueError(f"Onvoldoende geldige datapunten voor regressie. Geldige x: {len(x_clean)}, geldige y: {len(y_clean)}")
+            raise ValueError(
+                f"Onvoldoende geldige datapunten voor regressie. Geldige x: {len(x_clean)}, geldige y: {len(y_clean)}")
 
         # Zorg ervoor dat we de juiste indices gebruiken
         valid_indices = x_values.notna() & y_values.notna()
@@ -200,7 +209,7 @@ def helling_gecor(self: CPhiAnalyse):
 
 def var_tan_phi_gem(self: CPhiAnalyse):
     if self.analysis_type == 'TXT_CPhi':
-        return helling_gecor(self) / np.sqrt(1 - helling_gecor(self)**2)
+        return helling_gecor(self) / np.sqrt(1 - helling_gecor(self) ** 2)
     elif self.analysis_type == 'DSS_CPhi':
         return helling_gecor(self)
     elif self.analysis_type == 'TXT_SH':
@@ -215,9 +224,10 @@ def var_tan_phi_kar(self: CPhiAnalyse):
     else:
         phi_kar = self.eerste_benadering_a2_kar
     if self.analysis_type == 'TXT_CPhi':
-        return phi_kar / np.sqrt(1 - phi_kar**2)
+        return phi_kar / np.sqrt(1 - phi_kar ** 2)
     elif self.analysis_type == 'DSS_CPhi':
         return phi_kar
+
 
 def var_tan_phi_kar_sh(self: CPhiAnalyse):
     if self.analysis_type == 'TXT_SH':

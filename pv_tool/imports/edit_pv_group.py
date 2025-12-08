@@ -9,6 +9,7 @@ Output:
 - De aangepaste dbase met de nieuwe proevenverzameling naam voor de opgegeven boringen
 """
 
+# TODO: Verder uitwerken
 def edit_pv_group(boring_nummers, dbase, nieuwe_pv_naam):
     """
     Wijzigt de proevenverzameling naam voor de opgegeven boringen in de dbase.

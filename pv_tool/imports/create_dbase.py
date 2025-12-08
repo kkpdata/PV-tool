@@ -78,7 +78,6 @@ def add_ana_columns(self):
 def add_pv_naam(self):
     """Als er geen PV-naam aanwezig is, wordt 'TXT-proef' en/of 'DSS-proef' gebruikt als PV-naam"""
     if self.dbase_df['PV_NAAM'].isnull().all() or (self.dbase_df['PV_NAAM'] == '').all():
-        # Voeg waarden toe op basis van de condities
         self.dbase_df['PV_NAAM'] = self.dbase_df.apply(
             lambda row: 'TXT-proef' if row['ALG__TRIAXIAAL'] else (
                 'DSS-proef' if row['ALG__DSS'] else None

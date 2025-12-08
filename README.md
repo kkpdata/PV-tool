@@ -2,13 +2,46 @@
 
 De PV-tool (Proevenverzameling tool) is een Python-gebaseerde tooling voor het opstellen van lokale of regionale proevenverzamelingen voor het bepalen van geotechnische parameters. De methode is ontwikkeld voor het uitvoeren van analyses in relatie tot de geotechnische stabiliteit van dijken, maar kan ook breder worden toegepast.
 
-## Overzicht
+Met de PV-tool kunnen zowel **gedraineerde** als **ongedraineerde** sterkteparameters worden berekend alsmede enkele 
+**samendrukkingsparameters**. Van deze parameters worden verwachtingswaarde, karakteristieke waarde en rekenwaarde 
+bepaald.
 
-Met de PV-tool kunnen zowel **gedraineerde** als **ongedraineerde** sterkteparameters worden berekend alsmede enkele **samendrukkingsparameters**. Van deze parameters worden verwachtingswaarde, karakteristieke waarde en rekenwaarde bepaald.
+De functies zijn opgesteld conform de werkwijze beschreven in *Statistische methoden t.b.v. proevenverzamelingen, 
+DIV, v1.0*. 
 
-De functies zijn opgesteld conform de werkwijze beschreven in *Statistische methoden t.b.v. proevenverzamelingen, DIV, v1.0*. Zie tevens: https://publicwiki.deltares.nl/spaces/HWBPMacro/pages/217120830/Sterkte+van+grond#Sterktevangrond-150
+Zie tevens: https://publicwiki.deltares.nl/spaces/HWBPMacro/pages/217120830/Sterkte+van+grond#Sterktevangrond-150
 
-De tool bevat tevens hulpmiddelen voor het onderscheiden of samenvoegen van groepen in een verzameling op basis van verschillende kenmerken.
+De tool bevat tevens hulpmiddelen voor het onderscheiden of samenvoegen van groepen in een verzameling op basis van 
+verschillende kenmerken.
+
+De onderliggende data om een proevenverzameling samen te stellen is beschreven in een vaste structuur. Deze structuur 
+is vastgelegd in een uitwisselformat. Het **uitwisselformat-database-proevenverzameling_versie_4_2x.xlsx**. 
+
+De geotechnische laboratoria zijn bekend met deze database en kunnen deze database vullen met resultaten van 
+grond- en laboratoriumonderzoek. Op deze wijze ontstaat er uniformering op het gebied van data-uitwisseling en –opslag 
+van proefresultaten.
+
+## Inhoudsopgave
+[Installatie](#installatie)<br>
+[Functionaliteiten](#functionaliteiten)<br>
+[Gebruik](#gebruik)<br>
+[Referenties](#referenties)<br>
+
+## Installatie
+Indien je de tool niet via Jupiter Notebook wil gebruiken, dien je volgende stappen te volgen voor de installatie 
+van de tool.
+
+1. Clone the repository
+
+```bash
+git clone https://github.com/PVorganization/PV-tool.git
+```
+
+2. Install requirements for package management
+
+```bash
+pip install -r requirements.txt
+```
 
 ## Functionaliteiten
 
@@ -37,75 +70,55 @@ De tool bevat tevens hulpmiddelen voor het onderscheiden of samenvoegen van groe
 - **SHANSEP Analyse:** Voor het bepalen van ongedraineerde schuifsterkte parameters
 - **Su-tabel Analyse:** Voor het opstellen van su-tabellen
 
-### 4. Analysekolommen
-De tool voegt automatisch analysekolommen (ANA) toe die benodigd zijn voor de analyses:
-- `ANA_TERREINSPANNING`
-- `ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING`
-- `ANA_DSS_MAX_CONSOLIDATIE_SPANNING`
-- `ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL / HANDMATIG / REKEN`
-- `ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL / HANDMATIG / REKEN`
-- `ANA_GRENSSPANNING_VOORSTEL / HANDMATIG / REKEN`
-- `ANA_POP_VELD / POP_VELD_GEMIDDELD`
-- `OCR_TXT / OCR_DSS`
-
-Deze kolommen helpen bij het classificeren van proeven als normaal geconsolideerd (NC) of overgeconsolideerd (OC).
-
-## Installatie
-
-### Vereisten
-```bash
-pip install -r requirements.txt
-```
-
-### Benodigde packages
-- pandas
-- openpyxl
-- ipyfilechooser
-- pandas_schema
-- xlsxwriter
-- ipywidgets
-- reportlab
-- kaleido
-- plotly
-- numpy
-- scipy
-- ipywidgets
-- ipyfilechooser
-- ipython
-
-### Installatie van de PV-tool package
-```bash
-pip install -e .
-```
-
 ## Gebruik
+In Jupyter Notebook is een werkomgeving ontwikkeld, waardoor het mogelijk is om de PV-tool te gebruiken zonder kennis 
+van Python. 
 
-### Via Jupyter Notebook (aanbevolen)
-De tool is primair ontworpen voor gebruik via Jupyter Notebook voor een interactieve workflow:
+De Notebook is te vinden onder:
 
 ```bash
 jupyter notebook PV_tool0.4.ipynb
 ```
 
-### Via Python script
+Daarnaast is het ook mogelijk om de tool direct te gebruiken met de ontwikkelde python code. Hieronder worden in 
+verschillende stappen het gebruik van de code beschreven.
+
+### Stap 1: Importeren en valideren van benodigde data
+
+Voor de import kunnen verschillende bronbestanden gebruikt worden: 
+1. proevenverzamelingstool (versie 4.2n of hoger)
+2. uitwisselformat-database-proevenverzameling_versie_4_2x.xlsx
+3. proevenverzamelingstool 5.0 (product van de huidige PV-tool)
+
+De proevenverzamelingstool of het uitwisselformat worden omgezet naar het template proevenverzamelingstool 5.0, deze 
+bestaat uit de data conform het uitwisselformat 4.2 aangevuld met de benodigde in en uitvoerdata van voorliggende 
+tooling.
+
+De validatie bestaat uit:
+- Controle op volledigheid en correctheid van ingevulde velden
+- Onderscheid tussen 'critical errors' en 'warnings'
+- Export van validatieresultaten naar Excel-bestanden
+- Automatische conversie naar Template_PVtool5_0.xlsx (is dit niet hetzelfde als vorig punt?)
+
 ```python
 from pv_tool.imports.import_data import Dbase
-from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 
-# Importeren van data
 dbase = Dbase()
 dbase.import_data(source="Dbase", source_dir="pad/naar/bestand.xlsx")
-
-# C-phi analyse uitvoeren
-analyse = CPhiAnalyse(
-    dbase=dbase,
-    investigation_groups=['verzameling_naam'],
-    effective_stress='eindsterkte',
-    analysis_type='TXT_CPhi'
-)
-analyse._run()
-analyse.show_figure()
+dbase.validate_data(export_path="pad/naar/export-bestand.xlsx")
 ```
+
+## import_dbase_short?
+
+### Stap 2: Analyse van gedraineerde parameters
+- C-phi Analyse (cohesie en hoek van inwendige wrijving):
+  - Analyse van triaxiaalproeven (TXT)
+  - Analyse van Direct Simple Shear proeven (DSS)
+  - Keuze van rekpercentages: 2%, 5%, 10%, 15%, 20%, eindsterkte of pieksterkte
+  - Bepaling van verwachtingswaarde, karakteristieke waarde, en rekenwaarde
+  - Visualisatie van spanningspaden en Mohr-cirkels
+  - Export naar PDF en Excel
+
 
 ## Workflow
 
@@ -141,14 +154,7 @@ analyse.show_figure()
 #### Voor ongedraineerde parameters (SHANSEP/Su-tabel):
 Zie specifieke modules in de notebook
 
-## Uitwisselformat
 
-De onderliggende data voor het samenstellen van een proevenverzameling is beschreven in een vaste structuur vastgelegd in het **Uitwisselformat-database-proevenverzameling versie 4.2x**. Geotechnische laboratoria kennen deze database en kunnen deze vullen met resultaten van grond- en laboratoriumonderzoek.
-
-Dit zorgt voor uniformering op het gebied van:
-- Data-uitwisseling
-- Opslag van proefresultaten
-- Reproduceerbaarheid van analyses
 
 ## Project Structuur
 
@@ -187,11 +193,3 @@ De tool genereert verschillende output-bestanden:
 - STOWA Proevenverzameling methodiek
 - Deltares wiki: https://publicwiki.deltares.nl/spaces/HWBPMacro/pages/217120830/Sterkte+van+grond
 - GitHub repository: https://github.com/kkpdata/Proevenverzamelingentool/
-
-## Licentie
-
-Zie LICENSE bestand voor details.
-
-## Contact en Ondersteuning
-
-Voor vragen, suggesties of problemen kunt u een issue aanmaken in de GitHub repository.

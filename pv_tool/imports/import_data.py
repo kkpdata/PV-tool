@@ -1,4 +1,4 @@
-from pandas import DataFrame, read_excel, ExcelWriter
+from pandas import DataFrame, ExcelWriter
 from datetime import datetime
 from typing import Optional, Literal
 from pathlib import Path
@@ -33,8 +33,7 @@ class Dbase:
             add_ana_columns(self)
             add_pv_naam(self)
 
-    def import_dbase_short(self, source: Literal['Stowa', 'PV-tool', 'Dbase'],
-                                 source_dir: Path):
+    def import_dbase_short(self, source: Literal['Stowa', 'PV-tool', 'Dbase'], source_dir: Path):
         """Importeert data uit de Stowa-database, de oude pv-tool of de Dbase (template) en voegt kolommen toe"""
         if source == 'Dbase':
             import_dbase(self, dbase_dir=source_dir)
@@ -42,8 +41,7 @@ class Dbase:
         else:
             return f"Short import only available for 'Dbase' source, not for '{source}'"
 
-    def import_data(self, source: Literal['Stowa', 'PV-tool', 'Dbase'],
-                                 source_dir: Path):
+    def import_data(self, source: Literal['Stowa', 'PV-tool', 'Dbase'], source_dir: Path):
         """Importeert data uit de Stowa-database, de oude pv-tool of de Dbase (template) en voegt kolommen toe"""
         if source == 'Stowa':
             import_stowa(self, stowa_dir=source_dir)
@@ -102,16 +100,6 @@ class Dbase:
 
         # Create a copy of the DataFrame with reordered columns, ensuring no duplicates
         export_df = self.dbase_df[final_columns].copy()
-
-        # rond waarden af voor consistentie
-        # cols_to_round = ['ANA_TERREINSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
-        #                  'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_GRENSSPANNING_PROEF',
-        #                  'ANA_POP_VELD', 'ANA_POP_VELD_GEMIDDELD', 'ANA_GRENSSPANNING_VOORSTEL',
-        #                  'ANA_GRENSSPANNING_REKEN', 'OCR_TXT', 'OCR_DSS']
-        # numeric_columns = export_df.select_dtypes(include=['float64', 'int64']).columns
-        # for col in cols_to_round:
-        #     if col in numeric_columns:
-        #         export_df[col] = export_df[col].round(2)
 
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(f"Excel sheet Dbase5_0 wordt weggeschreven op {timestamp}")

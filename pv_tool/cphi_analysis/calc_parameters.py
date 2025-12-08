@@ -13,11 +13,13 @@ from pv_tool.cphi_analysis.variables import (count_s, sum_s, sum_t, e_a2, a2_kar
                                              a2_kar_gecorrigeerd, a1_kar_gecorrigeerd, helling_gecor, var_tan_phi_gem,
                                              var_tan_phi_kar, var_tan_phi_kar_sh)
 
+
 def calc_watergehalte_gem(self: CPhiAnalyse):
     """Berekent het gemiddelde watergehalte van de geselecteerde monsters [%]."""
     column_name = self.cphi_analyses_data_df.filter(like='WATERGEHALTE_VOOR').columns[0]
     watergehalte = self.cphi_analyses_data_df[column_name]
     return float(watergehalte.mean())
+
 
 def calc_watergehalte_sd(self: CPhiAnalyse):
     """Berekent de standaarddeviatie van het watergehalte [%]."""
@@ -25,17 +27,20 @@ def calc_watergehalte_sd(self: CPhiAnalyse):
     watergehalte = self.cphi_analyses_data_df[column_name]
     return float(watergehalte.std())
 
+
 def calc_vgwnat_gem(self: CPhiAnalyse):
     """Berekent het gemiddelde nat volumegewicht [kN/m³]."""
     column_name = self.cphi_analyses_data_df.filter(like='VOLUMEGEWICHT_NAT').columns[0]
     vgwnat = self.cphi_analyses_data_df[column_name]
     return float(vgwnat.mean())
 
+
 def calc_vgwnat_sd(self: CPhiAnalyse):
     """Berekent de standaarddeviatie van het nat volumegewicht [kN/m³]."""
     column_name = self.cphi_analyses_data_df.filter(like='VOLUMEGEWICHT_NAT').columns[0]
     vgwnat = self.cphi_analyses_data_df[column_name]
     return float(vgwnat.std())
+
 
 def calc_a2_phi_gem(self: CPhiAnalyse):
     """Berekent een eerste schatting van de gemiddelde phi middels lineaire regressie."""
@@ -44,16 +49,19 @@ def calc_a2_phi_gem(self: CPhiAnalyse):
     a2_phi_gem = linregress(x=x_values, y=y_values).slope
     return a2_phi_gem
 
+
 def calc_a2_phi_gem_sh(self: CPhiAnalyse):
-    """Berekent een eerste schatting van de gemiddelde phi voor shansep analyse."""
+    """Berekent een eerste schatting van de gemiddelde phi voor SHANSEP analyse."""
     a2_phi_gem = math.exp(gem_ln_tan_a_sh(self))
     return a2_phi_gem
 
+
 def calc_a2_phi_kar_onder_sh(self: CPhiAnalyse):
     """Geeft de benadering van de a2 karakteristieke phi ondergrens bij schematiseringshandleiding berekening c phi."""
-    a2_phi_kar_onder = math.exp(gem_ln_tan_a_sh(self)+t_n_2_sh(self)*std_ln_tan_a_sh(self)*
-                                math.sqrt((1-self.alpha)+1/count_s(self)))
+    a2_phi_kar_onder = math.exp(gem_ln_tan_a_sh(self) + t_n_2_sh(self) * std_ln_tan_a_sh(self) *
+                                math.sqrt((1 - self.alpha) + 1 / count_s(self)))
     return a2_phi_kar_onder
+
 
 def calc_a2_phi_kar_boven_sh(self: CPhiAnalyse):
     """Geeft de benadering van de a2 karakteristieke phi bovengrens bij schematiseringshandleiding berekening c phi."""
@@ -61,16 +69,18 @@ def calc_a2_phi_kar_boven_sh(self: CPhiAnalyse):
                                 math.sqrt((1 - self.alpha) + 1 / count_s(self)))
     return a2_phi_kar_boven
 
+
 def calc_tan_phi_gem(self: CPhiAnalyse):
     """Berekent de gemiddelde tan(phi) op basis van het analysetype."""
     if self.analysis_type == 'TXT_CPhi':
-        return float(helling_gecor(self) / np.sqrt(1 - helling_gecor(self)**2))
+        return float(helling_gecor(self) / np.sqrt(1 - helling_gecor(self) ** 2))
     elif self.analysis_type == 'DSS_CPhi':
         return float(helling_gecor(self))
     elif self.analysis_type == 'TXT_SH':
         return float(calc_a2_phi_gem_sh(self) / np.sqrt(1 - calc_a2_phi_gem_sh(self) ** 2))
     elif self.analysis_type == 'DSS_SH':
         return float(calc_a2_phi_gem_sh(self))
+
 
 def helling_gecorrigeerd(self: CPhiAnalyse):
     """Geeft de gecorrigeerde helling van de regressielijn."""
@@ -96,7 +106,7 @@ def calc_tan_phi_d(self: CPhiAnalyse):
     if self.analysis_type in ['TXT_SH', 'DSS_SH']:
         tan_phi_d = calc_tan_phi_kar_sh(self) / self.material_tan_phi
     else:
-        tan_phi_d = calc_tan_phi_kar(self)/self.material_tan_phi
+        tan_phi_d = calc_tan_phi_kar(self) / self.material_tan_phi
     return tan_phi_d
 
 
@@ -158,9 +168,11 @@ def calc_phi_d(self: CPhiAnalyse):
     """Berekent de rekenwaarde van phi in graden."""
     return float(math.atan(calc_tan_phi_d(self)) * 180 / np.pi)
 
+
 def calc_c_d(self: CPhiAnalyse):
     """Berekent de rekenwaarde van de cohesie [kPa]."""
     return float(calc_c_kar(self) / self.material_cohesie)
+
 
 def calc_st_dev_phi(self: CPhiAnalyse):
     """Berekent de standaarddeviatie van phi op basis van gemiddelde en rekenwaarde.
@@ -178,9 +190,10 @@ def calc_st_dev_phi(self: CPhiAnalyse):
         raise ValueError(f"Rekenwaarde phi moet positief zijn, gevonden waarde: {phi_d}")
 
     st_dev = phi_gem * math.sqrt(math.exp((((norm.ppf(0.05) * 2) + math.sqrt((norm.ppf(0.05) * 2) ** 2 +
-                                                                           8 * (math.log(phi_gem) - math.log(phi_d))))
-                                         / 2) ** 2) - 1)
+                                                                             8 * (math.log(phi_gem) - math.log(phi_d))))
+                                           / 2) ** 2) - 1)
     return float(st_dev)
+
 
 def calc_st_dev_c(self: CPhiAnalyse):
     """Berekent de standaarddeviatie van de cohesie op basis van gemiddelde en rekenwaarde.
@@ -191,23 +204,28 @@ def calc_st_dev_c(self: CPhiAnalyse):
     c_d = calc_c_d(self)
 
     if c_gem <= 0:
-        warnings.warn(f"Om berekening standaarddeviatie voor D-stability te kunnen doen moet gemiddelde cohesie waarde positief zijn, gevonden waarde: {round(c_gem,3)}."
-                      f"Gemiddelde cohesie wordt aangepast naar 0.01 om standaarddeviatie uit te rekenen")
+        warnings.warn(
+            f"Om berekening standaarddeviatie voor D-stability te kunnen doen moet gemiddelde cohesie waarde positief "
+            f"zijn, gevonden waarde: {round(c_gem, 3)}. Gemiddelde cohesie wordt aangepast naar 0.01 om "
+            f"standaarddeviatie uit te rekenen")
         c_gem = 0.01
 
     if c_d <= 0:
-        warnings.warn(f"Om berekening standaarddeviatie voor D-stability te kunnen doen moet rekenwaarde van de cohesie waarde positief zijn, gevonden waarde: {round(c_d,3)}."
-                      f"Rekenwaarde cohesie wordt aangepast naar 0.01 om berekening standaarddeviatie voor D-stability te kunnen doen")
+        warnings.warn(
+            f"Om berekening standaarddeviatie voor D-stability te kunnen doen moet rekenwaarde van de cohesie waarde "
+            f"positief zijn, gevonden waarde: {round(c_d, 3)}. Rekenwaarde cohesie wordt aangepast naar 0.01 om "
+            f"berekening standaarddeviatie voor D-stability te kunnen doen")
         c_d = 0.01
 
     try:
         st_dev = c_gem * math.sqrt(math.exp((((norm.ppf(0.05) * 2) + math.sqrt((norm.ppf(0.05) * 2) ** 2 +
-                                                                             8 * (math.log(c_gem) - math.log(c_d)))) / 2)
-                                          ** 2) - 1)
+                                                                               8 * (math.log(c_gem) - math.log(
+                                                                                c_d)))) / 2) ** 2) - 1)
         return st_dev
     except (ValueError, OverflowError):
         warnings.warn("Standaarddeviatie berekening resulteerde in een ongeldige waarde.")
         return None
+
 
 def calc_tan_phi_kar(self: CPhiAnalyse):
     """Berekent de karakteristieke tan(phi) voor CPhi analyses."""
@@ -217,14 +235,15 @@ def calc_tan_phi_kar(self: CPhiAnalyse):
         phi_kar = self.eerste_benadering_a2_kar
 
     if self.analysis_type == 'TXT_CPhi':
-        return float(phi_kar / np.sqrt(1 - phi_kar**2))
+        return float(phi_kar / np.sqrt(1 - phi_kar ** 2))
     elif self.analysis_type == 'DSS_CPhi':
         return float(phi_kar)
     else:
         print('WAARSCHUWING: tan phi kar voor analysetype SH wordt berekend met de functie calc_tan_phi_kar_sh')
 
+
 def calc_tan_phi_kar_sh(self: CPhiAnalyse):
-    """Berekent de karakteristieke tan(phi) voor shansep analyses."""
+    """Berekent de karakteristieke tan(phi) voor SHANSEP analyses."""
     if self.analysis_type == 'TXT_SH':
         return float(calc_a2_phi_kar_onder_sh(self) / np.sqrt(1 - calc_a2_phi_kar_onder_sh(self) ** 2))
     elif self.analysis_type == 'DSS_SH':

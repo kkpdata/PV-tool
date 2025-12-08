@@ -56,9 +56,8 @@ def add_extra_proefresultaten(self: CPhiAnalyse, extra_groepen: Optional[List]):
     df = get_extra_data(self, investigationgroups_extra=extra_groepen)
     boring_monsternummer = df.index
 
-    n=0
+    n = 0
     for naam in df['PV_NAAM'].unique():
-
         sub_df = df[df['PV_NAAM'] == naam]
         x_extra_proefresultaten = sub_df['S\'']
         y_extra_proefresultaten = sub_df['T']
@@ -95,6 +94,7 @@ def add_5pr_bovengrens(self: CPhiAnalyse):
         )
     )
 
+
 def add_raaklijn_kar_boven(self: CPhiAnalyse):
     """Deze functie voegt de bovenste raaklijn van de schematiseringshandleiding methode toe aan de figuur."""
     x1 = 0
@@ -119,6 +119,7 @@ def add_raaklijn_kar_boven(self: CPhiAnalyse):
         )
     )
 
+
 def add_5pr_ondergrens(self: CPhiAnalyse):
     """Deze functie voegt de 5% bovengrens toe aan de figuur."""
     x_5pr = self.cphi_analyses_data_df['s\'']
@@ -138,6 +139,7 @@ def add_5pr_ondergrens(self: CPhiAnalyse):
         )
     )
 
+
 def add_raaklijn_kar_onder(self: CPhiAnalyse):
     """Deze functie voegt de onderste raaklijn van de schematiseringshandleiding methode toe aan de figuur."""
     x1 = 0
@@ -154,7 +156,7 @@ def add_raaklijn_kar_onder(self: CPhiAnalyse):
             y=y,
             mode='lines',
             name='Raaklijn onder',
-            line = dict(
+            line=dict(
                 color='black',
                 width=1,
                 dash='dash'
@@ -208,6 +210,7 @@ def _get_helling_value(helling):
         return float(helling[0])
     return float(helling)
 
+
 def add_gemiddelde(self: CPhiAnalyse):
     """Deze functie voegt de gemiddelde waarden toe aan de figuur."""
     x1 = self.cphi_analyses_data_df['S\''].min() + 5
@@ -237,6 +240,7 @@ def add_gemiddelde(self: CPhiAnalyse):
         )
     )
 
+
 def add_gemiddelde_sh(self: CPhiAnalyse):
     """Deze functie voegt de gemiddelde waarden toe aan de figuur."""
     x1 = self.cphi_analyses_data_df['S\''].min() + 5
@@ -257,8 +261,9 @@ def add_gemiddelde_sh(self: CPhiAnalyse):
         )
     )
 
-def _get_marker_direction(self, stress_df):
-        """
+
+def _get_marker_direction(stress_df):
+    """
         Bepaalt de richting van de marker op basis van het eerste segment van het spanningspad.
 
         Parameters
@@ -271,17 +276,18 @@ def _get_marker_direction(self, stress_df):
         str
             Symbol naam voor de marker ('triangle-up', 'triangle-down', 'triangle-left', of 'triangle-right')
         """
-        if len(stress_df) < 2:
-            return 'triangle-up'
+    if len(stress_df) < 2:
+        return 'triangle-up'
 
-        dx = stress_df['S\''].iloc[1] - stress_df['S\''].iloc[0]
-        dy = stress_df['T'].iloc[1] - stress_df['T'].iloc[0]
+    dx = stress_df['S\''].iloc[1] - stress_df['S\''].iloc[0]
+    dy = stress_df['T'].iloc[1] - stress_df['T'].iloc[0]
 
-        # Bepaal dominante richting
-        if abs(dx) > abs(dy):
-            return 'triangle-right' if dx > 0 else 'triangle-left'
-        else:
-            return 'triangle-up' if dy > 0 else 'triangle-down'
+    # Bepaal dominante richting
+    if abs(dx) > abs(dy):
+        return 'triangle-right' if dx > 0 else 'triangle-left'
+    else:
+        return 'triangle-up' if dy > 0 else 'triangle-down'
+
 
 def add_stress_paths(self: CPhiAnalyse, sample_stress_paths: dict) -> None:
     """
@@ -290,14 +296,16 @@ def add_stress_paths(self: CPhiAnalyse, sample_stress_paths: dict) -> None:
 
     Parameters
     ----------
+    self : CPhiAnalyse
+        De CPhi-class wordt gebruikt als imput voor deze functie.
     sample_stress_paths : dict
-        Dictionary met als key de monster naam en als value een DataFrame met kolommen
+        Dictionary met als key de monsternaam en als value een DataFrame met kolommen
         'S\'', 'T' en 'stress_state' voor de spanningswaarden
     """
     first_sample = True
     for sample_name, stress_df in sample_stress_paths.items():
         # Bepaal de richting van de marker
-        marker_symbol = _get_marker_direction(self, stress_df=stress_df)
+        marker_symbol = _get_marker_direction(stress_df=stress_df)
 
         # Voeg de spanningspad lijn toe voor dit monster
         self.figure.add_trace(
@@ -327,7 +335,8 @@ def add_stress_paths(self: CPhiAnalyse, sample_stress_paths: dict) -> None:
                     color='gray'
                 ),
                 name='K0' if first_sample else f'Start {sample_name}',
-                text = f"""{sample_name} - {stress_df['stress_state'].iloc[0]}<br>S':{stress_df["S'"].iloc[0]:.1f}, T:{stress_df['T'].iloc[0]:.1f}""",
+                text=f"""{sample_name} - {stress_df['stress_state'].iloc[0]}<br>S':{stress_df["S'"].iloc[0]:.1f}, 
+                T:{stress_df['T'].iloc[0]:.1f}""",
                 hoverinfo='text',
                 showlegend=first_sample
             )

@@ -6,6 +6,9 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_LEFT
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, LongTable
 import plotly.graph_objects as go
+from PIL import Image as PILImage
+from reportlab.platypus import Image as RLImage
+
 if TYPE_CHECKING:
     from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 
@@ -41,9 +44,10 @@ def save_total_to_excel(self: "CPhiAnalyse", path: str):
     with ExcelWriter(file_path, engine='openpyxl') as writer:
         df_totaal.to_excel(writer)
 
+
 def _df_to_table_with_index(df, index_name='Index'):
     """
-    Zet een DataFrame om naar een lijst voor gebruik in een PDF tabel. Gebruikt in save_to_pdf.
+    Zet een DataFrame om naar een lijst voor gebruik in een PDF-tabel. Gebruikt in save_to_pdf.
 
     Parameters
     ----------
@@ -55,11 +59,12 @@ def _df_to_table_with_index(df, index_name='Index'):
     Returns
     -------
     list
-        Lijst met header en data rijen voor een PDF tabel
+        Lijst met header en data rijen voor een PDF-tabel
     """
     header = [df.index.name or index_name] + df.columns.tolist()
     data = [[idx] + row.tolist() for idx, row in df.iterrows()]
     return [header] + data
+
 
 def _create_input_table(self: "CPhiAnalyse") -> Table:
     """
@@ -81,7 +86,8 @@ def _create_input_table(self: "CPhiAnalyse") -> Table:
     columns_data = self.cphi_analyses_data_df.iloc[:, 1:3].copy()
     table1_cols = columns_base + columns_extra
     table1_df = self.total_cphi_analyses_data_df[table1_cols].copy()
-    table1_df.columns = ['Groep', 'Positie', 'NAP Vanaf [m]', 'NAP Tot [m]', 'VGW nat', 'VGW droog', 'Watergehalte voor']
+    table1_df.columns = ['Groep', 'Positie', 'NAP Vanaf [m]', 'NAP Tot [m]', 'VGW nat', 'VGW droog',
+                         'Watergehalte voor']
     table1_df = concat([table1_df, columns_data], axis=1)
     table1_df = table1_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
 
@@ -89,7 +95,7 @@ def _create_input_table(self: "CPhiAnalyse") -> Table:
     t1 = LongTable(t1_data, repeatRows=1, hAlign='LEFT')
     t1.setStyle(TableStyle([
 
-        ('ALIGN', (0 ,0), (-1, -1), 'LEFT'),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
@@ -108,10 +114,6 @@ def _create_initial_values_table(self: "CPhiAnalyse") -> Table:
     Table
         ReportLab tabel object met de initiële waarden
     """
-    # name_gem_a1 = 'a1 gem = snijpunt y-as (cohesie gemiddeld)' if self.cohesie_gem_handmatig is None else 'a1 gem = cohesie gemiddeld (handmatig)'
-    # name_gem_a2 = 'a2 gem = tan(phi) gemiddeld'
-    # name_kar_a1 = 'a1 kar = snijpunt y-as (cohesie karakteristiek)' if self.cohesie_kar_handmatig is None else 'a1 kar = cohesie karakteristiek (handmatig)'
-    # name_kar_a2 = 'a2 kar = tan(phi) karakteristiek' if self.phi_kar_handmatig is None else 'a2 kar = tan(phi) karakteristiek (handmatig)'
     name_phi_kar_onder = 'a2 kar onder = tan(phi) karakteristiek ondergrens'
     name_phi_kar_boven = 'a2 kar boven = tan(phi) karakteristiek bovengrens'
 
@@ -122,7 +124,8 @@ def _create_initial_values_table(self: "CPhiAnalyse") -> Table:
     elif self.gem_a1 is not None:
         initial_values.append(['a1 gem = snijpunt y-as (cohesie gemiddeld)', round(self.gem_a1, 3)])
 
-    if self.gem_a2 is not None: initial_values.append(['a2 gem = tan(phi) gemiddeld', round(self.gem_a2, 3)])
+    if self.gem_a2 is not None:
+        initial_values.append(['a2 gem = tan(phi) gemiddeld', round(self.gem_a2, 3)])
 
     if self.cohesie_kar_handmatig is not None:
         initial_values.append(['a1 kar = cohesie karakteristiek (handmatig)', round(self.cohesie_kar_handmatig, 3)])
@@ -204,8 +207,9 @@ def _get_manual_values_paragraphs(self: "CPhiAnalyse", styles) -> list:
         for txt in manual_texts:
             paragraphs.append(Paragraph(txt, styles['Normal']))
     else:
-        paragraphs.append \
-            (Paragraph("Geen handmatig opgegeven waarden, figuur gebaseerd op eerste inschatting", styles['Normal']))
+        paragraphs.append(
+            Paragraph("Geen handmatig opgegeven waarden, figuur gebaseerd op eerste inschatting",
+                      styles['Normal']))
 
     return paragraphs
 
@@ -215,7 +219,7 @@ def save_to_pdf(self: "CPhiAnalyse", path: str) -> str:
     Slaat de analyseresultaten op in een PDF-document, inclusief figuren, datatabellen en numerieke resultaten.
 
     De PDF bevat:
-    - Titel met analysedetails
+    - Titel met details van analyse
     - Overzichtsfiguur van de analyse
     - Tabel met invoerselectie informatie
     - Tabel met initiële waarden
@@ -233,11 +237,13 @@ def save_to_pdf(self: "CPhiAnalyse", path: str) -> str:
     Returns
     -------
     str
-        Het absolute bestandspad van het aangemaakte PDF-bestand
+        Het absolute pad naar het bestand van het aangemaakte PDF-bestand
     """
     # Maak titel en bestandsnaam
-    title = f"{self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]} analyse met {self.effective_stress} op {self.investigation_groups[0]}"
-    file_name = f"c_phi_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf"
+    title = (f"{self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]} analyse met "
+             f"{self.effective_stress} op {self.investigation_groups[0]}")
+    file_name = (f"c_phi_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_"
+                 f"{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf")
     file_path = f"{path}/{file_name}"
 
     # Maak en bewaar de figuur alleen als deze nog niet bestaat
@@ -252,28 +258,21 @@ def save_to_pdf(self: "CPhiAnalyse", path: str) -> str:
     fig_height = 720
     self.figure.write_image(fig_path, width=fig_width, height=fig_height, scale=4, format="png")
 
-    # Maak het PDF document
+    # Maak het PDF-document
     doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='Left', parent=styles['Normal'], alignment=TA_LEFT))
     styles.add(ParagraphStyle(name='TitleLeft', parent=styles['Title'], alignment=TA_LEFT))
-    story = []
-
-    # Voeg titel toe
-    story.append(Paragraph(title, styles['TitleLeft']))
-    story.append(Spacer(width=1, height=12))
+    story = [Paragraph(title, styles['TitleLeft']), Spacer(width=1, height=12)]
 
     # Voeg figuur toe met aangepaste grootte
-    from PIL import Image as PILImage
-    from reportlab.platypus import Image as RLImage
-
     fig_path = f"{path}/temp_plot.png"
 
     # Laad PNG en bepaal pixelafmetingen
     with PILImage.open(fig_path) as im:
         img_width_px, img_height_px = im.size
 
-    # Stel gewenste breedte in punten (bijv. 95% van PDF breedte)
+    # Stel gewenste breedte in punten (bijv. 95% van PDF-breedte)
     max_width_pt = doc.width * 0.95
 
     # Bereken hoogte zodat verhouding gelijk blijft
@@ -291,8 +290,8 @@ def save_to_pdf(self: "CPhiAnalyse", path: str) -> str:
     story.append(Spacer(width=1, height=12))
 
     # Voeg initiële waarden toe
-    story.append \
-        (Paragraph("Parameter bepaling fysisch realiseerbare ondergrens en gemiddelde waarden", styles['Heading2']))
+    story.append(
+        Paragraph("Parameter bepaling fysisch realiseerbare ondergrens en gemiddelde waarden", styles['Heading2']))
     story.append(_create_initial_values_table(self))
     story.append(Spacer(1, 12))
 
