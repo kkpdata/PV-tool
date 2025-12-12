@@ -42,6 +42,8 @@ def test_cphi_analyse():
             file_name = 'Template_PVtool5_0.xlsx'
             analyse.add_results_to_dbase(path=export_dir, file_name=file_name)
             analyse.save_to_pdf(path=export_dir)
+            # plot
+            analyse.show_figure()
 
     # remove temp_folder
     shutil.rmtree(export_dir)
