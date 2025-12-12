@@ -1,3 +1,5 @@
+![Coverage](./readme_images/coverage.svg)
+
 # STOWA Proevenverzameling tool v5.0
 
 De PV-tool (Proevenverzameling tool) is een Python-gebaseerde tooling voor het opstellen van lokale of regionale proevenverzamelingen voor het bepalen van geotechnische parameters. De methode is ontwikkeld voor het uitvoeren van analyses in relatie tot de geotechnische stabiliteit van dijken, maar kan ook breder worden toegepast.

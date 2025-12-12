@@ -258,7 +258,7 @@ class CPhiAnalyse:
                 else ALL_TEXTUAL_NAMES_DSS.get(stress, [])
             if len(columns) > 0:
                 data = relevant_df[columns].copy()
-                if not data.empty and not data.isna().all().all():
+                if not data.empty and not data.isna().all().all():  # TODO: data.isna geeft warning. oplossen.
                     data.columns = NEW_COLUMN_NAMES
                     all_data[stress] = data
 
@@ -565,7 +565,7 @@ class CPhiAnalyse:
         self.set_figure(plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
         self.figure.show()
 
-    def print_short_results(self):
+    def print_short_results(self):  # TODO: hij print niet, naam kan beter zijn get_short_results
         """
         Genereert een samenvattend overzicht van de analyseresultaten.
 
