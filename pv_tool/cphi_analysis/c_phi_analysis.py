@@ -36,7 +36,7 @@ from pv_tool.imports.excel_utils import format_excel_sheet
 
 class CPhiAnalyse:
     """
-    Klasse voor het uitvoeren van c-phi analyses op grondmonsters.
+    Class voor het uitvoeren van c-phi analyses op grondmonsters.
 
     Ondersteunt zowel triaxiaal (TXT) als direct simple shear (DSS) testen,
     en kan zowel reguliere c-phi als schematiseringshandleiding (SH) analyses uitvoeren.

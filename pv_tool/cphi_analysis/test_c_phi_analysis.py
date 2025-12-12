@@ -14,6 +14,42 @@ export_dir = make_temp_folder(
 export_dir = Path(export_dir)
 
 
+# def test_cphi_analyse():
+#     """Test implemented. Do not change input."""
+#     dbase = Dbase()
+#     source_dir = Path(os.path.join(FILE_PATH, "Dbase.xlsx"))
+#     dbase.import_data(source="Dbase", source_dir=source_dir)
+#     dbase.export_dbase_to_excel(export_dir=export_dir)
+#
+#     # Initialize analysis
+#     analysis_types = ['TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH']
+#     for analysis_type in analysis_types:
+#         analyse = CPhiAnalyse(
+#             dbase=dbase,
+#             investigation_groups=['TXT_SAFE_klei_licht_16_175'],
+#             effective_stress='15% rek',
+#             analysis_type=analysis_type
+#         )
+#
+#         if analysis_type == 'TXT_CPhi':
+#             # apply settings
+#             analyse.apply_settings(alpha=0.75)
+#             # apply parameters
+#             analyse.apply_parameters(cohesie_gem=8.0, phi_kar=0.53, cohesie_kar=6.72)
+#             # print results
+#             analyse.print_short_results()
+#             # exports
+#             file_name = 'Template_PVtool5_0.xlsx'
+#             analyse.add_results_to_dbase(path=export_dir, file_name=file_name)
+#             analyse.save_to_pdf(path=export_dir)
+#             # plot
+#             analyse.show_figure()
+#
+#     # remove temp_folder
+#     shutil.rmtree(export_dir)
+#     return True
+
+
 def test_cphi_analyse():
     """Test implemented. Do not change input."""
     dbase = Dbase()
@@ -31,19 +67,18 @@ def test_cphi_analyse():
             analysis_type=analysis_type
         )
 
-        if analysis_type == 'TXT_CPhi':
-            # apply settings
-            analyse.apply_settings(alpha=0.75)
-            # apply parameters
-            analyse.apply_parameters(cohesie_gem=8.0, phi_kar=0.53, cohesie_kar=6.72)
-            # print results
-            analyse.print_short_results()
-            # exports
-            file_name = 'Template_PVtool5_0.xlsx'
-            analyse.add_results_to_dbase(path=export_dir, file_name=file_name)
-            analyse.save_to_pdf(path=export_dir)
-            # plot
-            analyse.show_figure()
+        # apply settings
+        analyse.apply_settings(alpha=0.75)
+        # apply parameters
+        analyse.apply_parameters(cohesie_gem=8.0, phi_kar=0.53, cohesie_kar=6.72)
+        # print results
+        analyse.print_short_results()
+        # exports
+        file_name = 'Template_PVtool5_0.xlsx'
+        analyse.add_results_to_dbase(path=export_dir, file_name=file_name)
+        analyse.save_to_pdf(path=export_dir)
+        # plot
+        analyse.show_figure()
 
     # remove temp_folder
     shutil.rmtree(export_dir)
