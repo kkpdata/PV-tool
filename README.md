@@ -23,7 +23,7 @@ van proefresultaten.
 
 ## Inhoudsopgave
 [Installatie](#installatie)<br>
-[Functionaliteiten](#functionaliteiten)<br>
+[Functionaliteiten??](#functionaliteiten)<br>
 [Gebruik](#gebruik)<br>
 [Referenties](#referenties)<br>
 

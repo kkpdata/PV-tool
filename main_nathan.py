@@ -337,7 +337,7 @@ def sutabel_analysis_test(dbase: Dbase, export_path: Path, export_file: str, plo
 if __name__ == "__main__":
     # Test database import
     source = 'Dbase'  # Opties: 'Stowa', 'PV-tool', 'Dbase'
-    import_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
+    import_name = 'Dbase.xlsx'
     # import_name = 'WSRL 2025 PVtool5_0_gevalideerd.xlsx'
     export_name = 'Template_PVtool5_0_SAFE_2022_PV_aangepast.xlsx'
     export_dir = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")

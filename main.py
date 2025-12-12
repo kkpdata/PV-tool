@@ -56,7 +56,7 @@ print(df)
 
 
 ## CPHI-analyse
-from pv_tool.analysis.c_phi_analysis import CPhiAnalyse
+from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 
 analyse = CPhiAnalyse(dbase=dbase, investigation_groups=['TXT_SAFE_klei_licht_16_175'], effective_stress='15% rek',
                       analysis_type='TXT_CPhi')
