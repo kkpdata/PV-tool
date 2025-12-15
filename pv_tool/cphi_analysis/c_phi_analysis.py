@@ -594,7 +594,7 @@ class CPhiAnalyse:
 
     # ========== Export Methodes ==========
 
-    def add_results_to_dbase(self, path, file_name: str = 'Template_PVtool5_0.xlsx'):
+    def add_results_to_dbase(self, path, file_name: str = 'Template_PVtool5_0.xlsx'): # TODO: moet eerst results opslaan in init, en dan losse functie voor export
         """
         Voegt analyseresultaten toe aan de database export.
 

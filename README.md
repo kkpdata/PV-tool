@@ -25,8 +25,8 @@ van proefresultaten.
 
 ## Inhoudsopgave
 [Installatie](#installatie)<br>
-[Functionaliteiten??](#functionaliteiten)<br>
 [Gebruik](#gebruik)<br>
+[Functionaliteiten??](#functionaliteiten)<br>
 [Referenties](#referenties)<br>
 
 ## Installatie
@@ -44,33 +44,6 @@ git clone https://github.com/PVorganization/PV-tool.git
 ```bash
 pip install -r requirements.txt
 ```
-
-## Functionaliteiten
-
-### 1. Data-import en Validatie
-- **Ondersteunde formaten:**
-  - Excel versie van de proevenverzamelingtool (vanaf versie 4.2n of hoger)
-  - Excel Uitwisselformat-database-proevenverzameling versie 4.2x
-  - Template Proevenverzamelingtool 5.0
-
-- **Validatie:**
-  - Controle op volledigheid en correctheid van ingevulde velden
-  - Onderscheid tussen 'critical errors' en 'warnings'
-  - Export van validatieresultaten naar Excel-bestanden
-  - Automatische conversie naar Template_PVtool5_0.xlsx
-
-### 2. Analyse van Gedraineerde Parameters
-- **C-phi Analyse (Cohesie en hoek van inwendige wrijving):**
-  - Analyse van triaxiaalproeven (TXT)
-  - Analyse van Direct Simple Shear proeven (DSS)
-  - Keuze van rekpercentages: 2%, 5%, 10%, 15%, 20%, eindsterkte of pieksterkte
-  - Bepaling van verwachtingswaarde, karakteristieke waarde en rekenwaarde
-  - Visualisatie van spanningspaden en Mohr-cirkels
-  - Export naar PDF en Excel
-
-### 3. Analyse van Ongedraineerde Parameters
-- **SHANSEP Analyse:** Voor het bepalen van ongedraineerde schuifsterkte parameters
-- **Su-tabel Analyse:** Voor het opstellen van su-tabellen
 
 ## Gebruik
 In Jupyter Notebook is een werkomgeving ontwikkeld, waardoor het mogelijk is om de PV-tool te gebruiken zonder kennis 
@@ -100,7 +73,6 @@ De validatie bestaat uit:
 - Controle op volledigheid en correctheid van ingevulde velden
 - Onderscheid tussen 'critical errors' en 'warnings'
 - Export van validatieresultaten naar Excel-bestanden
-- Automatische conversie naar Template_PVtool5_0.xlsx (is dit niet hetzelfde als vorig punt?)
 
 ```python
 from pv_tool.imports.import_data import Dbase
@@ -110,7 +82,7 @@ dbase.import_data(source="Dbase", source_dir="pad/naar/bestand.xlsx")
 dbase.validate_data(export_path="pad/naar/export-bestand.xlsx")
 ```
 
-## import_dbase_short?
+## import_dbase_short? # TODO: waarom is dit nodig?
 
 ### Stap 2: Analyse van gedraineerde parameters
 - C-phi Analyse (cohesie en hoek van inwendige wrijving):
@@ -121,6 +93,32 @@ dbase.validate_data(export_path="pad/naar/export-bestand.xlsx")
   - Visualisatie van spanningspaden en Mohr-cirkels
   - Export naar PDF en Excel
 
+## Functionaliteiten
+
+### 1. Data-import en Validatie
+- **Ondersteunde formaten:**
+  - Excel versie van de proevenverzamelingtool (vanaf versie 4.2n of hoger)
+  - Excel Uitwisselformat-database-proevenverzameling versie 4.2x
+  - Template Proevenverzamelingtool 5.0
+
+- **Validatie:**
+  - Controle op volledigheid en correctheid van ingevulde velden
+  - Onderscheid tussen 'critical errors' en 'warnings'
+  - Export van validatieresultaten naar Excel-bestanden
+  - Automatische conversie naar Template_PVtool5_0.xlsx
+
+### 2. Analyse van Gedraineerde Parameters
+- **C-phi Analyse (Cohesie en hoek van inwendige wrijving):**
+  - Analyse van triaxiaalproeven (TXT)
+  - Analyse van Direct Simple Shear proeven (DSS)
+  - Keuze van rekpercentages: 2%, 5%, 10%, 15%, 20%, eindsterkte of pieksterkte
+  - Bepaling van verwachtingswaarde, karakteristieke waarde en rekenwaarde
+  - Visualisatie van spanningspaden en Mohr-cirkels
+  - Export naar PDF en Excel
+
+### 3. Analyse van Ongedraineerde Parameters
+- **SHANSEP Analyse:** Voor het bepalen van ongedraineerde schuifsterkte parameters
+- **Su-tabel Analyse:** Voor het opstellen van su-tabellen
 
 ## Workflow
 

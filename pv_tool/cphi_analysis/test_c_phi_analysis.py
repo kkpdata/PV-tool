@@ -6,6 +6,7 @@ from pathlib import Path
 from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 import shutil
 
+
 FILE_PATH = os.path.join(get_repo_root(), "test_files")
 repo_root = get_repo_root()
 export_dir = make_temp_folder(
@@ -55,7 +56,7 @@ def test_cphi_analyse():
     dbase = Dbase()
     source_dir = Path(os.path.join(FILE_PATH, "Dbase.xlsx"))
     dbase.import_data(source="Dbase", source_dir=source_dir)
-    dbase.export_dbase_to_excel(export_dir=export_dir)
+    dbase.export_dbase_to_excel(export_dir=export_dir)  # TODO: deze functie duurt 52 sec, veel te lang!
 
     # Initialize analysis
     analysis_types = ['TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH']
@@ -66,7 +67,6 @@ def test_cphi_analyse():
             effective_stress='15% rek',
             analysis_type=analysis_type
         )
-
         # apply settings
         analyse.apply_settings(alpha=0.75)
         # apply parameters
@@ -75,7 +75,7 @@ def test_cphi_analyse():
         analyse.print_short_results()
         # exports
         file_name = 'Template_PVtool5_0.xlsx'
-        analyse.add_results_to_dbase(path=export_dir, file_name=file_name)
+        analyse.add_results_to_dbase(path=export_dir, file_name=file_name)  # TODO: duurt 15 sec, optimaliseren?
         analyse.save_to_pdf(path=export_dir)
         # plot
         analyse.show_figure()

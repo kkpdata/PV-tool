@@ -6,6 +6,8 @@ from pv_tool.imports.create_dbase import add_missing_columns, select_columns, al
 from pv_tool.imports.import_options import import_dbase, import_pv_tool, import_stowa
 from pv_tool.imports.validation import Validation
 from pv_tool.imports.excel_utils import format_excel_sheet
+from pv_tool.imports.globals import PV_TOOL_DBASE_COLUMNS, ANA_COLUMNS
+import time
 
 
 class Dbase:
@@ -64,32 +66,21 @@ class Dbase:
         Exports the Dbase DataFrame to an Excel file, maintaining the correct column order
         and preserving specified columns from the current DataFrame.
         """
+        timestart = time.time()
         export_path = export_dir / filename
         sheet_name = 'Dbase5_0'
 
         # Ensure the export directory exists
         export_dir.mkdir(parents=True, exist_ok=True)
 
-        # Define analysis columns in their correct order
-        analysis_columns = [
-            'ANA_TERREINSPANNING', 'ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING',
-            'ANA_DSS_MAX_CONSOLIDATIE_SPANNING', 'ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL',
-            'ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG', 'ANA_TXT_CONSOLIDATIE_TYPE_REKEN',
-            'ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL', 'ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG',
-            'ANA_DSS_CONSOLIDATIE_TYPE_REKEN', 'ANA_GRENSSPANNING_PROEF', 'ANA_POP_VELD',
-            'ANA_POP_VELD_GEMIDDELD', 'ANA_GRENSSPANNING_VOORSTEL', 'ANA_GRENSSPANNING_HANDMATIG',
-            'ANA_GRENSSPANNING_REKEN', 'OCR_TXT', 'OCR_DSS'
-        ]
-
         # Get base columns from PV_TOOL_DBASE_COLUMNS
-        from pv_tool.imports.globals import PV_TOOL_DBASE_COLUMNS
         base_columns = [col for col in PV_TOOL_DBASE_COLUMNS if col in self.dbase_df.columns]
 
         # Remove any analysis columns that might be in base_columns to prevent duplication
-        base_columns = [col for col in base_columns if col not in analysis_columns]
+        base_columns = [col for col in base_columns if col not in ANA_COLUMNS]
 
         # Get analysis columns that exist in the DataFrame
-        ana_columns = [col for col in analysis_columns if col in self.dbase_df.columns]
+        ana_columns = [col for col in ANA_COLUMNS if col in self.dbase_df.columns]
 
         # Get any remaining columns that aren't in either list, excluding duplicates
         used_columns = set(base_columns + ana_columns)
@@ -97,14 +88,16 @@ class Dbase:
 
         # Combine all columns in the correct order
         final_columns = base_columns + ana_columns + other_columns
-
+        print("create columns:", time.time() - timestart, "seconds")
         # Create a copy of the DataFrame with reordered columns, ensuring no duplicates
+        timestart = time.time()
         export_df = self.dbase_df[final_columns].copy()
-
+        print("export dataframe:", time.time() - timestart, "seconds")
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(f"Excel sheet Dbase5_0 wordt weggeschreven op {timestamp}")
 
         # Write the DataFrame to Excel with improved settings to prevent corruption
+        timestart = time.time()  # TODO: optimaliseren. ExcelWriter doet er nu 26 sec over
         if export_path.exists():
             with ExcelWriter(export_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
                 export_df.to_excel(
@@ -125,8 +118,9 @@ class Dbase:
                 )
 
         print(f"Excel bestand geëxporteerd naar: {export_path}")
-
-        # Formatting
+        print("write to excel:", time.time() - timestart, "seconds")
+        # Formatting  #TODO: optimaliseren, formatting kost 21 sec
+        timestart = time.time()
         num_columns = export_df.shape[1]
         num_rows = export_df.shape[0]
         format_excel_sheet(
@@ -137,3 +131,4 @@ class Dbase:
             table_name='Dbase',
             index=True
         )
+        print("formating:", time.time() - timestart, "seconds")
