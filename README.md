@@ -85,6 +85,8 @@ dbase.validate_data(export_path="pad/naar/export-bestand.xlsx")
 ## import_dbase_short? # TODO: waarom is dit nodig?
 
 ### Stap 2: Analyse van gedraineerde parameters
+Cphi Analyse wordt gedaan volgens methode xxx.
+
 - C-phi Analyse (cohesie en hoek van inwendige wrijving):
   - Analyse van triaxiaalproeven (TXT)
   - Analyse van Direct Simple Shear proeven (DSS)
