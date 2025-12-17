@@ -80,12 +80,52 @@ from pv_tool.imports.import_data import Dbase
 dbase = Dbase()
 dbase.import_data(source="Dbase", source_dir="pad/naar/bestand.xlsx")
 dbase.validate_data(export_path="pad/naar/export-bestand.xlsx")
+
+dbase.export_dbase_to_template(export_dir="pad/naar/exportlocatie")
 ```
 
-## import_dbase_short? # TODO: waarom is dit nodig?
-
 ### Stap 2: Analyse van gedraineerde parameters
-Cphi Analyse wordt gedaan volgens methode xxx.
+De C-Phi analyse wordt gedaan volgens methode xxx.
+
+
+
+```python
+from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
+
+# Stel de onderzoeksgroep(en) in (PV_NAAM)
+investigation_groups = ['TXT_SAFE_klei_licht_16_175']
+
+# Kies de spanningstoestand (PV_REK)
+effective_stress = '15% rek'  # Mogelijke keuzes: '2% rek', '5% rek', '10% rek', '15% rek', '20% rek', 'pieksterkte', 'eindsterkte'
+
+# Kies het analysetype
+analysis_type = 'TXT_CPhi'  # Mogelijke keuzes: 'TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH'
+
+# Initialiseer de analyse
+analyse = CPhiAnalyse(
+    dbase=dbase,
+    investigation_groups=investigation_groups,
+    effective_stress=effective_stress,
+    analysis_type=analysis_type
+)
+
+# Pas de alpha-waarde aan (bijvoorbeeld 0.75 voor regionale kering en 1.0 voor primaire kering)
+analyse.apply_settings(alpha=0.75)
+
+# Pas de parameters aan om een betere fit te vinden
+analyse.apply_parameters(cohesie_gem=8.0, phi_kar=0.53, cohesie_kar=6.72)
+
+# print results???
+analyse.print_short_results()
+
+# Exporteer de resultaten van de c-phi analyse naar het template en pdf
+export_dir = 'path/to/export_location'
+analyse.add_results_to_template(path=export_dir)
+analyse.save_to_pdf(path=export_dir)
+
+# Plot de figuur van de c-phi analyse
+analyse.show_figure()
+```
 
 - C-phi Analyse (cohesie en hoek van inwendige wrijving):
   - Analyse van triaxiaalproeven (TXT)
@@ -157,23 +197,6 @@ Cphi Analyse wordt gedaan volgens methode xxx.
 Zie specifieke modules in de notebook
 
 
-
-## Project Structuur
-
-```
-pv_tool/
-├── cphi_analysis/         # C-phi analyse functionaliteit
-│   ├── c_phi_analysis.py  # Hoofdmodule voor C-phi berekeningen
-│   ├── calc_parameters.py # Parameterberekeningen
-│   ├── visualization.py   # Visualisaties en grafieken
-│   └── save_and_export.py # Export functionaliteit
-├── imports/               # Data import en validatie
-│   ├── import_data.py     # Hoofdmodule voor import
-│   ├── create_dbase.py    # Database creatie
-│   └── add_ana_columns.py # Toevoegen analysekolommen
-├── shansep_analysis/      # SHANSEP analyse
-└── sutabel_analysis/      # Su-tabel analyse
-```
 
 ## Output
 

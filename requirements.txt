@@ -17,3 +17,11 @@ ipywidgets
 ipyfilechooser
 ipython
 pillow
+
+# packages required for notebook
+importlib
+ipywidgets
+ipython
+ipyfilechooser
+pathlib # native?
+
