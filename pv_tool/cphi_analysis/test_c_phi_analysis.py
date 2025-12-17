@@ -42,7 +42,7 @@ def test_cphi_analyse():
         # plot
         analyse.show_figure()
     # remove temp_folder
-    shutil.rmtree(export_dir)
+    # shutil.rmtree(export_dir)
     return True
 
 
