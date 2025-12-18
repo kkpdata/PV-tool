@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='PV-tool',
-    version='0.2.0',
+    version='0.2.2',
     author='Tjalda Deenekamp',
     author_email='leo.kwakman@arcadis.com',
     description='Functionalities concerning the PV-tool.',
