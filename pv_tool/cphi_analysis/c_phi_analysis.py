@@ -598,13 +598,14 @@ class CPhiAnalyse:
 
     # ========== Export Methodes ==========
 
-    def add_results_to_template(self, path):
+    def add_results_to_template(self, path, export_name=None):
         """
         Voegt een nieuwe resultatenrij toe aan tabblad 'Resultaten c-phi' in het Excel-template.
         Als het tabblad niet bestaat, wordt het aangemaakt en worden de kolomnamen weggeschreven.
         """
-        file_name = 'Template_PVtool5_0.xlsx'
-        file_path = Path(path) / file_name
+        if export_name is None:
+            export_name = "Template_PVtool5_0.xlsx"
+        file_path = Path(path) / export_name
         sheet_name = 'Resultaten c-phi'
         expected_columns = [
             'PV_RESULTAAT_ID', 'PV_NAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE',

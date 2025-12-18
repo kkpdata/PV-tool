@@ -19,6 +19,7 @@ def test_cphi_analyse():
     dbase = Dbase()
     source_dir = Path(os.path.join(FILE_PATH, "Dbase.xlsx"))
     dbase.import_data(source="Dbase", source_dir=source_dir)
+    export_name = 'Template_PVtool5_0.xlsx'
     dbase.export_dbase_to_template(export_dir=export_dir)
 
     # Initialize analysis
@@ -37,7 +38,7 @@ def test_cphi_analyse():
         # print results
         analyse.print_short_results()
         # exports
-        analyse.add_results_to_template(path=export_dir)
+        analyse.add_results_to_template(path=export_dir, export_name=export_name)
         analyse.save_to_pdf(path=export_dir)
         # plot
         analyse.show_figure()

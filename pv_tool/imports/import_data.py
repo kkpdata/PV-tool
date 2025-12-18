@@ -78,10 +78,9 @@ class Dbase:
         # Save in init with reordered columns
         return self.dbase_df[final_columns].copy()
 
-    def export_dbase_to_template(self, export_dir):
+    def export_dbase_to_template(self, export_dir, export_name="Template_PVtool5_0.xlsx"):
         """Exporteert het dbase-dataframe naar de excel-template"""
 
-        template_name = "Template_PVtool5_0.xlsx"
         sheet_name = 'Dbase5_0'
         start_row = 7  # Excel: rij 8
         start_col = 1  # Excel: kolom A
@@ -103,6 +102,6 @@ class Dbase:
             for j, value in enumerate(row):
                 ws.cell(row=start_row + 1 + i, column=start_col + j, value=value)
 
-        export_to = os.path.join(export_dir, template_name)
+        export_to = os.path.join(export_dir, export_name)
         wb.save(export_to)
         print(f"DataFrame naar template geëxporteerd")
