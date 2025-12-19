@@ -1,4 +1,5 @@
 from pandas import DataFrame
+import pandas as pd
 from openpyxl import load_workbook
 import importlib.resources
 from typing import Optional, Literal
@@ -97,6 +98,8 @@ class Dbase:
         export_df = self.create_dbase_for_export()
         index_col_name = export_df.index.name if export_df.index.name else "Index"
         export_df.insert(0, index_col_name, export_df.index)
+
+        export_df = export_df.replace({pd.NA: ""})  # want kan geen NA omschrijven naar excel
 
         for i, row in enumerate(export_df.values):
             for j, value in enumerate(row):

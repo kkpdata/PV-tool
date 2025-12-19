@@ -62,8 +62,3 @@ class TestImportAndValidate(unittest.TestCase):
 
     def test_validate_data(self):
         self.assertTrue(test_validate())
-
-
-if __name__ == "__main__":
-    if __name__ == '__main__':
-        unittest.main()
