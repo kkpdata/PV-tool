@@ -200,7 +200,7 @@ class SHANSEP:
             raise FileNotFoundError(f"Er is geen dbase aanwezig op de locatie {file_path}.")
 
         try:
-            results_df = read_excel(file_path, sheet_name='Resultaten')
+            results_df = read_excel(file_path, sheet_name='Resultaten SHANSEP', header=6)
         except ValueError:
             print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
             return None
@@ -268,7 +268,6 @@ class SHANSEP:
         """
         Berekent de parameters van de shansep analyse
         """
-
         # Voor S-POP analyse berekenen we de standaard parameters
         self.e_a2_oc = e_a2_oc(self)
         self.e_a1_oc = e_a1_oc(self)
