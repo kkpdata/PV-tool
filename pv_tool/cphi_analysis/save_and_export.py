@@ -165,7 +165,7 @@ def _create_results_table(self: "CPhiAnalyse") -> Table:
     Table
         ReportLab tabel object met de resultaten
     """
-    output_table_df = self.print_short_results().copy()
+    output_table_df = self.get_short_results().copy()
     output_table_df.index.name = 'Parameter'
     output_table_df = output_table_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
     output_table_data = _df_to_table_with_index(output_table_df)
