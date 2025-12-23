@@ -570,7 +570,7 @@ class CPhiAnalyse:
         self.set_figure(plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
         self.figure.show()
 
-    def print_short_results(self):  # TODO: hij print niet, naam kan beter zijn get_short_results
+    def get_short_results(self):
         """
         Genereert een samenvattend overzicht van de analyseresultaten.
 
@@ -608,6 +608,7 @@ class CPhiAnalyse:
             export_name = "Template_PVtool5_0.xlsx"
         file_path = Path(path) / export_name
         sheet_name = 'Resultaten c-phi'
+
         expected_columns = [
             'PV_RESULTAAT_ID', 'PV_NAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE',
             'PV_A1_COH_GEM', 'PV_A2_TAN_PHI_GEM', 'PV_A1_COH_KAR', 'PV_A2_TAN_PHI_KAR',
