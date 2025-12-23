@@ -8,7 +8,27 @@ if TYPE_CHECKING:
 
 def import_dbase(self: Dbase, dbase_dir: Path):
     """Importeert de Dbase-df (template)."""
-    dbase = pd.read_excel(dbase_dir, sheet_name='Dbase5_0', index_col='ALG__BORING_MONSTERNR_ID')
+    # First, read the file without headers to find the correct header row
+    temp_df = pd.read_excel(dbase_dir, sheet_name='Dbase5_0', header=None)
+
+    # Search for the row containing ALG__BORING_MONSTERNR_ID
+    header_row: int | None = None
+    for idx, row in temp_df.iterrows():
+        if 'ALG__BORING_MONSTERNR_ID' in row.values:
+            # Cast pandas index to int - pandas ensures this is numeric for default RangeIndex
+            header_row = int(str(idx))
+            break
+
+    if header_row is None:
+        raise ValueError("Column 'ALG__BORING_MONSTERNR_ID' not found in the Excel file")
+
+    # Now read the file with the correct header row and set the index
+    dbase = pd.read_excel(
+        dbase_dir,
+        sheet_name='Dbase5_0',
+        skiprows=header_row,
+        index_col='ALG__BORING_MONSTERNR_ID'
+    )
     self.dbase_df = dbase
     return self.dbase_df
 

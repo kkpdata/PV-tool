@@ -107,4 +107,4 @@ class Dbase:
 
         export_to = os.path.join(export_dir, export_name)
         wb.save(export_to)
-        print(f"DataFrame naar template geëxporteerd")
+        print(f"DataFrame naar template geëxporteerd in {export_to}")
