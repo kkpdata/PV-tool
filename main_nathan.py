@@ -63,7 +63,7 @@ def database_import_test(source: Literal['Stowa', 'PV-tool', 'Dbase'],
                                  file_name_import: str, file_name_export: str = 'Template_PVtool5_0.xlsx', short=False, validate=False, export=False):
     """Test de database import en validatie functionaliteit."""
     repo_root = Path(get_repo_root())
-    path_to_data = repo_root / "example_files" / file_name_import
+    path_to_data = repo_root / "import_files" / file_name_import
     save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
     # Check if input file exists
@@ -337,7 +337,7 @@ def sutabel_analysis_test(dbase: Dbase, export_path: Path, export_file: str, plo
 if __name__ == "__main__":
     # Test database import
     source = 'Dbase'  # Opties: 'Stowa', 'PV-tool', 'Dbase'
-    import_name = 'Template_PVtool5_0_SAFE_2022_PV.xlsx'
+    import_name = 'Dbase.xlsx'
     # import_name = 'WSRL 2025 PVtool5_0_gevalideerd.xlsx'
     export_name = 'Template_PVtool5_0_SAFE_2022_PV_aangepast.xlsx'
     export_dir = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
@@ -361,6 +361,9 @@ if __name__ == "__main__":
     if dbase is None or dbase.dbase_df is None:
         print("ERROR: Database import gefaald!")
         exit(1)
+
+    # TODO aanpassen dat ie wegschrijft naar de map resultaten
+    # Uiteindelijk moeten deze mapjes verwijderd worden van de github repo
 
     plot_extra_dataset = None
     plot_spanningspaden = False

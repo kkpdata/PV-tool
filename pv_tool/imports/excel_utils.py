@@ -9,7 +9,7 @@ def format_excel_sheet(
     num_columns: int,
     num_rows: int,
     table_name: str = None,
-    index: bool = True   # <--- NEW: whether the index was saved
+    index: bool = True
 ):
     """
     Format an Excel worksheet as a table with filters and custom column widths.
@@ -29,10 +29,6 @@ def format_excel_sheet(
     index : bool, default True
         Whether the index column is present
     """
-
-    from openpyxl import load_workbook
-    from openpyxl.worksheet.table import Table as XLTable, TableStyleInfo
-    from openpyxl.utils import get_column_letter
 
     workbook = load_workbook(file_path)
     worksheet = workbook[sheet_name]
@@ -80,5 +76,4 @@ def format_excel_sheet(
 
     # Add the table to the worksheet
     worksheet.add_table(table)
-
     workbook.save(file_path)

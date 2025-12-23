@@ -1,5 +1,4 @@
 from __future__ import annotations
-import numpy as np
 from typing import TYPE_CHECKING
 import pandas as pd
 
@@ -69,14 +68,16 @@ def add_terreinspanning(self: Dbase):
 
 
 def add_txt_max_vert_consol_sp(self: Dbase):
-    """Deze functie berekend de eind verticale consolidatiespanning van de triaxiaalproef. Kan worden omgezet naar max"""
+    """Deze functie berekend de verticale consolidatiespanning bij het einde van de triaxiaalproef.
+    Kan worden omgezet naar max"""
     # product1 = self.dbase_df["TXT_SS_S'_MAX_CONSOLIDATIE"] + self.dbase_df['TXT_SS_T_MAX_CONSOLIDATIE']
     product2 = self.dbase_df["TXT_SS_S'_EIND_CONSOLIDATIE"] + self.dbase_df['TXT_SS_T_EIND_CONSOLIDATIE']
     self.dbase_df['ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING'] = product2
 
 
 def add_dss_max_consol_sp(self: Dbase):
-    """Deze functie berekend de eind verticale consolidatiespanning van de DSS-proef. Kan worden omgezet naar max"""
+    """Deze functie berekend de verticale consolidatiespanning bij het einde van de DSS-proef.
+    Kan worden omgezet naar max"""
     # self.dbase_df['ANA_DSS_MAX_CONSOLIDATIE_SPANNING'] = self.dbase_df[
     #     ['DSS_MAX_EFF_VERT_SPANNING_CONSOLIDATIE', 'DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE']].max(axis=1)
     self.dbase_df['ANA_DSS_MAX_CONSOLIDATIE_SPANNING'] = self.dbase_df['DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE']
@@ -93,6 +94,7 @@ def add_txt_consol_type(self: Dbase):
             else 'NC', axis=1
         )
 
+
 def add_dss_consol_type(self: Dbase):
     """Geeft een voorstel voor het consolidatietype van de DSS-proef. Indien de maximale consolidatiespanning niet
     meer dan 30% afwijkt van de terreinspanning wordt het consolidatietype OC aangenomen, anders wordt het
@@ -103,46 +105,42 @@ def add_dss_consol_type(self: Dbase):
             else 'NC', axis=1
         )
 
+
 def add_txt_consol_type_reken(self: Dbase):
-    """vult de kolom rekenwaarde van consolidatie type: als er een handmatige waarde is ingevuld, wordt deze overgenomen,
-    anders wordt de voorgestelde waarde overgenomen."""
+    """Vult de kolom rekenwaarde van consolidatie type: als er een handmatige waarde is ingevuld,
+    wordt deze overgenomen, anders wordt de voorgestelde waarde overgenomen."""
+
     def calculate_row(row):
-        if row['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'] and row['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'] is not None and not pd.isna(row['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG']):
+        if row['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'] and row[
+            'ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG'] is not None and not pd.isna(
+                row['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG']):
             return row['ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG']
         else:
             return row['ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL']
+
     self.dbase_df['ANA_TXT_CONSOLIDATIE_TYPE_REKEN'] = self.dbase_df.apply(calculate_row, axis=1)
 
+
 def add_dss_consol_type_reken(self: Dbase):
-    """vult de kolom rekenwaarde van consolidatie type: als er een handmatige waarde is ingevuld, wordt deze overgenomen,
-    anders wordt de voorgestelde waarde overgenomen."""
+    """Vult de kolom rekenwaarde van consolidatie type: als er een handmatige waarde is ingevuld,
+    wordt deze overgenomen, anders wordt de voorgestelde waarde overgenomen."""
+
     def calculate_row(row):
-        if row['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] and row['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] is not None and not pd.isna(row['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG']):
+        if row['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] and row[
+            'ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG'] is not None and not pd.isna(
+                row['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG']):
             return row['ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG']
         else:
             return row['ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL']
+
     self.dbase_df['ANA_DSS_CONSOLIDATIE_TYPE_REKEN'] = self.dbase_df.apply(calculate_row, axis=1)
+
 
 def add_grensspanning_proef(self: Dbase):
     """Deze functie bepaalt de grensspanning."""
     columns = ['CRS_GRENSSPANNING_A', 'SD_ISOTACHE_GRENSSPANNING_A']
     grens_values = self.dbase_df[columns].max(axis=1)
     self.dbase_df['ANA_GRENSSPANNING_PROEF'] = grens_values
-
-# def add_grensspanning_proef(self: Dbase):
-#     """Deze functie bepaalt de grensspanning"""
-#     columns = ['CRS_GRENSSPANNING_A', 'SD_ISOTACHE_GRENSSPANNING_A', 'ANA_GRENSSPANNING_HANDMATIG']
-#
-#     for col in columns:
-#         non_numeric_positions = self.dbase_df[
-#             self.dbase_df[col].apply(lambda x: not pd.api.types.is_numeric_dtype(type(x)))].index.tolist()
-#         if non_numeric_positions:
-#             print(f"Column '{col}' contains non-numeric values at positions: {non_numeric_positions}. "
-#                   f"These values will be treated as NaN.")
-#
-#     numeric_dbase = self.dbase_df[columns].apply(pd.to_numeric, errors='coerce')
-#     grens_values = numeric_dbase.max(axis=1)
-#     self.dbase_df['ANA_GRENSSPANNING_PROEF'] = grens_values
 
 
 def calc_pop_veld(self):
@@ -167,25 +165,30 @@ def add_grensspanning_voorstel(self: Dbase):
     # Standaard None, alleen vullen waar geen proefwaarde is
     self.dbase_df['ANA_GRENSSPANNING_VOORSTEL'] = None
     self.dbase_df.loc[mask, 'ANA_GRENSSPANNING_VOORSTEL'] = (
-        self.dbase_df.loc[mask, 'ANA_TERREINSPANNING'] +
-        self.dbase_df.loc[mask, 'ANA_POP_VELD_GEMIDDELD']
+            self.dbase_df.loc[mask, 'ANA_TERREINSPANNING'] +
+            self.dbase_df.loc[mask, 'ANA_POP_VELD_GEMIDDELD']
     )
 
 
-def calc_grensspanning_reken(self: Dbase):  # klopt
+def calc_grensspanning_reken(self: Dbase):
     """
     Berekent de rekenwaarde van de grensspanning per rij.
     """
+
     def calculate_row(row):
-        if 'ANA_GRENSSPANNING_HANDMATIG' in row and row['ANA_GRENSSPANNING_HANDMATIG'] is not None and not pd.isna(row['ANA_GRENSSPANNING_HANDMATIG']):
+        if 'ANA_GRENSSPANNING_HANDMATIG' in row and row['ANA_GRENSSPANNING_HANDMATIG'] is not None and not pd.isna(
+                row['ANA_GRENSSPANNING_HANDMATIG']):
             return row['ANA_GRENSSPANNING_HANDMATIG']
-        elif 'ANA_GRENSSPANNING_VOORSTEL' in row and row['ANA_GRENSSPANNING_VOORSTEL'] is not None and not pd.isna(row['ANA_GRENSSPANNING_VOORSTEL']):
+        elif 'ANA_GRENSSPANNING_VOORSTEL' in row and row['ANA_GRENSSPANNING_VOORSTEL'] is not None and not pd.isna(
+                row['ANA_GRENSSPANNING_VOORSTEL']):
             return row['ANA_GRENSSPANNING_VOORSTEL']
         elif 'ANA_GRENSSPANNING_PROEF' in row:
             return row['ANA_GRENSSPANNING_PROEF']
-            # TODO check of dit goed gaat
         return None
-    if 'ANA_GRENSSPANNING_HANDMATIG' in self.dbase_df.columns or 'ANA_GRENSSPANNING_VOORSTEL' in self.dbase_df.columns or 'ANA_GRENSSPANNING_PROEF' in self.dbase_df.columns:
+
+    if ('ANA_GRENSSPANNING_HANDMATIG' in self.dbase_df.columns
+            or 'ANA_GRENSSPANNING_VOORSTEL' in self.dbase_df.columns
+            or 'ANA_GRENSSPANNING_PROEF' in self.dbase_df.columns):
         self.dbase_df['ANA_GRENSSPANNING_REKEN'] = self.dbase_df.apply(calculate_row, axis=1)
     else:
         self.dbase_df['ANA_GRENSSPANNING_REKEN'] = None
@@ -193,6 +196,7 @@ def calc_grensspanning_reken(self: Dbase):  # klopt
 
 def calc_ocr_txt(self: Dbase):
     """Deze functie berekent de OCR van de triaxiaalproeven per rij."""
+
     def calculate_row(row):
         if row['ALG__TRIAXIAAL']:
             grensspanning_reken = row['ANA_GRENSSPANNING_REKEN']
@@ -201,8 +205,6 @@ def calc_ocr_txt(self: Dbase):
             if grensspanning_reken is not None and terreinspanning is not None:
                 if row['ANA_TXT_CONSOLIDATIE_TYPE_REKEN'] == 'OC':
                     return grensspanning_reken / terreinspanning
-                # elif row['ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL'] == 'OC':
-                #     return grensspanning_reken / terreinspanning
                 else:
                     return 1.0
             return None
@@ -213,62 +215,10 @@ def calc_ocr_txt(self: Dbase):
     else:
         self.dbase_df['OCR_TXT'] = None
 
-# def calc_ocr_txt(self: Dbase):
-#     """
-#     Deze functie berekent de OCR van de triaxiaalproeven volgens de formule:
-#     MAX(TXT_SS_OCR, (MAX(ANA_GRENSSPANNING_INCL_CORRECTIE, ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING) /
-#     (TXT_SS_S''_EIND_CONSOLIDATIE + TXT_SS_T_EIND_CONSOLIDATIE)))
-#     """
-#     def calculate_row(row):
-#         try:
-#             # Get the first part: TXT_SS_OCR
-#             ocr_txt = row.get('TXT_SS_OCR', None)
-#             rownr = row.get('ALG__REGEL', None)
-#             if rownr == 1201:
-#                 print('ocr_txt:', ocr_txt)
-#             # Only proceed with calculation if any of these tests are True
-#             if any([row.get('ALG__CRS', False),
-#                    row.get('ALG__SAMENDRUKKING', False),
-#                    row.get('ALG__DSS', False),
-#                    row.get('ALG__TRIAXIAAL', False)]):
-#                 if rownr == 1201:
-#                     print('proceeding with calculation for row 1201')
-#
-#                 # Get maximum of grensspanning and max verticale consolidatie spanning
-#                 grensspanning = row.get('ANA_GRENSSPANNING_INCL_CORRECTIE', None)
-#                 max_vert_consol = row.get('ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING', None)
-#                 numerator = max(filter(None, [grensspanning, max_vert_consol])) if any(x is not None for x in [grensspanning, max_vert_consol]) else None
-#
-#                 # Get denominator components
-#                 s_eind = row.get("TXT_SS_S'_EIND_CONSOLIDATIE", 0)
-#                 t_eind = row.get('TXT_SS_T_EIND_CONSOLIDATIE', 0)
-#                 denominator = s_eind + t_eind if (s_eind is not None and t_eind is not None) else None
-#
-#                 if rownr == 1201:
-#                     print('proceeding with calculation for row 1201')
-#                     print('numerator:', numerator)
-#                     print('denominator:', denominator)
-#
-#                 # Calculate the ratio if possible
-#                 if numerator is not None and denominator is not None and denominator != 0:
-#                     calculated_ocr = numerator / denominator
-#
-#                     # Return maximum of TXT_SS_OCR and calculated OCR
-#                     if ocr_txt is not None:
-#                         return max(ocr_txt, calculated_ocr)
-#                     return calculated_ocr
-#
-#             # If no calculation possible but TXT_SS_OCR exists, return that
-#             return ocr_txt if ocr_txt is not None else None
-#
-#         except Exception:
-#             return None
-#
-#     self.dbase_df['OCR_TXT'] = self.dbase_df.apply(calculate_row, axis=1)
-
 
 def calc_ocr_dss(self: Dbase):
     """Deze functie berekent de OCR van de DSS-proeven."""
+
     def calculate_row(row):
         if row['ALG__DSS']:
             grensspanning_reken = row['ANA_GRENSSPANNING_REKEN']
@@ -277,8 +227,6 @@ def calc_ocr_dss(self: Dbase):
             if grensspanning_reken is not None and terreinspanning is not None:
                 if row['ANA_DSS_CONSOLIDATIE_TYPE_REKEN'] == 'OC':
                     return grensspanning_reken / terreinspanning
-                # elif row['ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL'] == 'OC':
-                #     return grensspanning_reken / terreinspanning
                 else:
                     return 1.0
             else:

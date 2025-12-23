@@ -200,7 +200,7 @@ class SUTABEL:
             raise FileNotFoundError(f"Er is geen dbase aanwezig op de locatie {file_path}.")
 
         try:
-            results_df = read_excel(file_path, sheet_name='Resultaten')
+            results_df = read_excel(file_path, sheet_name='Resultaten SU-tabel-m', header=6)
         except ValueError:
             print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
             return None
@@ -304,6 +304,8 @@ class SUTABEL:
         else:
             self.vc_fit_kar_sutabel = None
             self.STDEV_logn_vc_sutabel = None
+
+
 
     def calculate_sutabel_grafiek(self):
         """
@@ -447,6 +449,45 @@ class SUTABEL:
 
         # Herbereken de grafiek dataframes met de nieuwe parameters
         self.calculate_sutabel_grafiek()
+
+    def get_short_results(self):
+        """
+        Genereert een samenvattend overzicht van de SUTABEL analyseresultaten.
+
+        Returns
+        -------
+        DataFrame
+            DataFrame met verwachtingswaarden, karakteristieke waarden,
+            en standaarddeviaties voor de belangrijkste SUTABEL parameters
+        """
+        # Voer analyse uit als nog niet gedaan
+        if self.sutabel_data_df is None or self.e_a1_sutabel is None:
+            self._run_sutabel()
+            if self.e_a1_sutabel is None:
+                self.get_sutabel_parameters()
+
+        # Update parameters als handmatige waarden zijn ingesteld
+        if self.parameters_handmatig:
+            self._update_parameters_from_manual()
+
+        index = ['Verwachtingswaarde', 'Karakteristieke waarde', 'Standaarddeviatie']
+        columns = ['svgm [kPa]', 'm [-]', 'vc_fit [-]']
+
+        analyse_output_df = DataFrame(index=index, columns=columns)
+
+        # Gebruik de huidige (mogelijk handmatig aangepaste) parameterwaarden
+        svgm_gem = self.svgm_gem_sutabel
+        svgm_kar = self.svgm_kar_sutabel
+        m_gem = self.m_gem_sutabel
+        m_kar = self.m_kar_sutabel
+        vc_fit_kar = self.vc_fit_kar_sutabel
+        steyx = self.steyx_sutabel
+
+        analyse_output_df['svgm [kPa]'] = [svgm_gem, svgm_kar, steyx]
+        analyse_output_df['m [-]'] = [m_gem, m_kar, '[-]']
+        analyse_output_df['vc_fit [-]'] = [vc_fit_kar, vc_fit_kar, self.STDEV_logn_vc_sutabel]
+
+        return analyse_output_df
 
     def write_analysis_to_excel(self, file_path: str):
         """

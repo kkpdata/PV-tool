@@ -8,6 +8,7 @@ naar Excel en PDF formaat.
 from typing import TYPE_CHECKING, List
 from pandas import ExcelWriter, concat, DataFrame, read_excel
 from datetime import datetime
+from utils import get_repo_root, make_temp_folder
 from openpyxl import load_workbook
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
@@ -16,6 +17,7 @@ from reportlab.lib.enums import TA_LEFT
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, LongTable, PageBreak
 from pv_tool.imports.excel_utils import format_excel_sheet
 import plotly.graph_objects as go
+from pathlib import Path
 
 try:
     from reportlab.platypus import Image as RLImage
@@ -29,7 +31,7 @@ if TYPE_CHECKING:
     from pv_tool.sutabel_analysis.sutabel_analysis import SUTABEL
 
 
-def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = 'Template_PVtool5_0.xlsx'):
+def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = 'Template_PVtool5_0.xlsx'): #TODO wordt vervangen door add_results_to_template
     """
     Voegt de sutabel-m analyseresultaten toe aan de database Excel-bestand.
 
@@ -123,6 +125,108 @@ def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = 'T
     print(f"Sutabel resultaten toegevoegd aan database: {file_path}")
     return df_updated
 
+def add_results_to_template(self: "SUTABEL", path, export_name=None):
+    """
+    Voegt de sutabel-m analyseresultaten toe aan de database Excel-bestand.
+
+    Parameters
+    ----------
+    self : sutabel
+        Instantie van de sutabel analyse klasse
+    path : str
+        Pad naar de map waar het Excel-bestand staat
+    export_name
+        Naam van het Excel-bestand
+
+    Returns
+    -------
+    DataFrame
+        Bijgewerkte DataFrame met alle resultaten
+    """
+    if export_name is None:
+        export_name = "Template_PVtool5_0.xlsx"
+    file_path = Path(path) / export_name
+    sheet_name = 'Resultaten SU-tabel-m'
+
+    if self.sutabel_grafiek is None or self.e_a1_sutabel is None:
+        self._run_sutabel()
+        if hasattr(self, 'vc_fit_kar_sutabel') and self.vc_fit_kar_sutabel is not None:
+            self.get_sutabel_parameters(vc_fit_kar_sutabel=self.vc_fit_kar_sutabel)
+        else:
+            self.get_sutabel_parameters()
+
+    expected_columns = [
+        'PVNAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE', 'PV_RESULTAAT_ID', 'PV_TYPEVERZAMELING',
+        'PV_e_a1_GEM [-]', 'PV_e_a2_GEM [-]', 'PV_svgm_GEM [kPa]', 'PV_m_GEM [-]',
+        'PV_a1_KAR [-]', 'PV_a2_KAR [-]', 'PV_svgm_KAR [kPa]', 'PV_m_KAR [-]',
+        'PV_vc_FIT_KAR [-]', 'PV_STDEV_LOGN_vc [-]', 'PV_STEYX [-]',
+        'PV_VGWNAT_GEM [kN/m3]', 'PV_VGWNAT_SD [kN/m3]', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD',
+        'Timestamp'
+    ]
+
+    new_row = {
+        'PVNAAM': self.investigation_groups[0],
+        'PV_REK': self.effective_stress,
+        'PV_TYPE_PROEF': self.analysis_type.split('_')[0],
+        'PV_ANALYSE': '_'.join(self.analysis_type.split('_')[1:]),
+        'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type}",
+        'PV_TYPEVERZAMELING': self.alpha,
+        'PV_e_a1_GEM [-]': round(self.e_a1_sutabel, 6) if self.e_a1_sutabel is not None else None,
+        'PV_e_a2_GEM [-]': round(self.e_a2_sutabel, 6) if self.e_a2_sutabel is not None else None,
+        'PV_svgm_GEM [kPa]': round(self.svgm_gem_sutabel, 6) if self.svgm_gem_sutabel is not None else None,
+        'PV_m_GEM [-]': round(self.m_gem_sutabel, 6) if self.m_gem_sutabel is not None else None,
+        'PV_a1_KAR [-]': round(self.a1_kar_sutabel, 6) if self.a1_kar_sutabel is not None else None,
+        'PV_a2_KAR [-]': round(self.a2_kar_sutabel, 6) if self.a2_kar_sutabel is not None else None,
+        'PV_svgm_KAR [kPa]': round(self.svgm_kar_sutabel, 6) if self.svgm_kar_sutabel is not None else None,
+        'PV_m_KAR [-]': round(self.m_kar_sutabel, 6) if self.m_kar_sutabel is not None else None,
+        'PV_vc_FIT_KAR [-]': round(self.vc_fit_kar_sutabel, 6) if self.vc_fit_kar_sutabel is not None else None,
+        'PV_STDEV_LOGN_vc [-]': round(self.STDEV_logn_vc_sutabel, 6) if self.STDEV_logn_vc_sutabel is not None else None,
+        'PV_STEYX [-]': round(self.steyx_sutabel, 6) if self.steyx_sutabel is not None else None,
+        'PV_VGWNAT_GEM [kN/m3]': round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
+        'PV_VGWNAT_SD [kN/m3]': round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
+        'PV_WATERGEHALTE_GEM': round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None,
+        'PV_WATERGEHALTE_SD': round(self.calc_watergehalte_sd, 3) if self.calc_watergehalte_sd is not None else None,
+        'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    workbook = load_workbook(file_path)
+
+    if 'Resultaten SU-tabel - m' in workbook.sheetnames:
+        print('Tabblad Resultaten SU-tabel - m in dbase excel bestaat al en wordt aangevuld')
+        df_existing = read_excel(file_path, sheet_name='Resultaten SU-tabel - m')
+        df_existing = df_existing.dropna(how='all')
+        df_existing.columns = df_existing.columns.astype(str)
+        new_row_df = DataFrame([new_row], columns=df_existing.columns)
+        df_updated = concat([df_existing, new_row_df], ignore_index=True)
+    else:
+        print('Tabblad Resultaten SU-tabel - m in dbase excel bestaat nog niet en wordt aangemaakt')
+        df_updated = DataFrame([new_row], columns=expected_columns)
+
+    # Ensure all column headers are strings
+    df_updated.columns = df_updated.columns.astype(str)
+
+    if file_path.exists():
+        wb = load_workbook(file_path)
+    else:
+        template_path = Path(get_repo_root()) / "pv_tool" / "templates" / "Template_PVtool5_0.xlsx"
+        wb = load_workbook(template_path)
+
+    if sheet_name in wb.sheetnames:
+        ws = wb[sheet_name]
+        first_empty_row = ws.max_row + 1 if any(
+            ws.iter_rows(min_row=ws.max_row, max_row=ws.max_row, values_only=True)) else ws.max_row
+    else:
+        ws = wb.create_sheet(sheet_name)
+        for col_idx, col_name in enumerate(expected_columns, start=1):
+            ws.cell(row=1, column=col_idx, value=col_name)
+        first_empty_row = 2
+
+    for col_idx, col_name in enumerate(expected_columns, start=1):
+        ws.cell(row=first_empty_row, column=col_idx, value=new_row.get(col_name, ""))
+
+    wb.save(file_path)
+    print(f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'.")
+    return df_updated
 
 def _create_sutabel_input_table(self: "SUTABEL") -> Table:
     """
@@ -184,13 +288,26 @@ def _create_sutabel_input_table(self: "SUTABEL") -> Table:
             table_df[col] = table_df[col].round(3)
 
     from reportlab.platypus import Paragraph
+    header_style = getSampleStyleSheet()['Normal']
+    header_style.fontSize = 7
+    header_style.fontName = 'Helvetica-Bold'
+    header_style.alignment = 0  # Left align
+
+    # Create header row with index column
     header_paragraphs = []
+    header_paragraphs.append(Paragraph('Monster ID', header_style))
+
     for col in table_df.columns:
         col_display = col.replace('_', '_<br/>')
-        header_paragraphs.append(Paragraph(f'<font size=7>{col_display}</font>', getSampleStyleSheet()['Normal']))
+        header_paragraphs.append(Paragraph(col_display, header_style))
 
-    data = table_df.values.tolist()
-    t_data = [header_paragraphs] + data
+    # Create data rows with index
+    data_rows = []
+    for idx, row in table_df.iterrows():
+        data_row = [str(idx)] + [str(val) if val != "" else "" for val in row]
+        data_rows.append(data_row)
+
+    t_data = [header_paragraphs] + data_rows
 
     t1 = LongTable(t_data, repeatRows=1, hAlign='LEFT')
     t1.setStyle(TableStyle([
