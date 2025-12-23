@@ -637,6 +637,7 @@ class SHANSEP:
         self._run_shansep()
         self.figure = go.Figure()
         self.set_figure_sv_su(plot_extra_dataset)
+        self.figure.show()
 
     def show_figure_ln_ocr_ln_s(self, plot_extra_dataset: Optional[List] = None):
         """
