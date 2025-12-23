@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 
-
+#TODO utils wordt nu niet meegenomen in de wheel - fixen
 def check_package_install(package_name):
     """Checkt of een package is geïnstalleerd; zo niet, wordt het geïnstalleerd."""
     if importlib.util.find_spec(package_name) is None:

@@ -297,6 +297,63 @@ class SHANSEP:
             self.st_dev_pop_handmatig = None
             self.st_dev_s_handmatig = None
 
+    def get_short_results(self):
+        """
+        Genereert een samenvattend overzicht van de SHANSEP analyseresultaten.
+
+        Returns
+        -------
+        DataFrame
+            DataFrame met verwachtingswaarden, karakteristieke waarden,
+            en standaarddeviaties voor de belangrijkste SHANSEP parameters
+        """
+        self._run_shansep()
+
+        index = ['Verwachtingswaarde', 'Karakteristieke waarde', 'Standaarddeviatie']
+        columns = ['S [-]', 'm [-]', 'POP [kPa]']
+
+        analyse_output_df = DataFrame(index=index, columns=columns)
+
+        # Gebruik handmatige parameters indien beschikbaar, anders berekende waarden
+        if self.parameters_handmatig:
+            s_gem = self.s_gem_handmatig
+            s_kar = self.s_kar_handmatig
+            m_gem = self.m_gem_handmatig
+            m_kar = self.m_kar_handmatig
+            pop_gem = self.pop_gem_handmatig
+            pop_kar = self.pop_kar_handmatig
+            st_dev_s = self.st_dev_s_handmatig
+            st_dev_m = self.st_dev_m_handmatig
+            st_dev_pop = self.st_dev_pop_handmatig
+        else:
+            # Gebruik automatisch berekende waarden
+            s_gem = self.e_a2_oc
+            s_kar = self.a2_kar_oc
+            m_gem = self.e_a2_nc_oc
+            m_kar = self.a2_kar_nc_oc
+
+            # Bereken POP uit snijpunt, S en m parameters
+            if self.e_a1_oc and self.e_a2_oc and self.e_a2_nc_oc:
+                pop_gem = self.e_a1_oc / self.e_a2_oc / self.e_a2_nc_oc
+            else:
+                pop_gem = None
+
+            if self.a1_kar_oc and self.a2_kar_oc and self.a2_kar_nc_oc:
+                pop_kar = self.a1_kar_oc / self.a2_kar_oc / self.a2_kar_nc_oc
+            else:
+                pop_kar = None
+
+            # Voor automatische berekening zijn standaarddeviaties niet beschikbaar
+            st_dev_s = None
+            st_dev_m = None
+            st_dev_pop = None
+
+        analyse_output_df['S [-]'] = [s_gem, s_kar, st_dev_s]
+        analyse_output_df['m [-]'] = [m_gem, m_kar, st_dev_m]
+        analyse_output_df['POP [kPa]'] = [pop_gem, pop_kar, st_dev_pop]
+
+        return analyse_output_df
+
     def _run_shansep(self):
         """
         Voert de volledige shansep analyse uit in de juiste volgorde:
