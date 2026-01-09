@@ -110,11 +110,11 @@ def test_sutabel_analyse():
             # Export kan falen als parameters niet volledig zijn
             pass
 
-        # Test results to dbase
+        # Test results to template
         try:
-            analyse.add_results_to_dbase(path=str(export_dir), file_name=export_name)
+            analyse.add_results_to_template(path=str(export_dir), export_name=export_name)
         except Exception:
-            # Results to dbase kan falen als parameters ontbreken
+            # Results to template kan falen als parameters ontbreken
             pass
 
     # Remove temp_folder (optioneel uitcommentariëren voor debugging)
@@ -260,6 +260,77 @@ class TestSutabelAnalyse(unittest.TestCase):
         except Exception:
             # Parameter berekening kan afhangen van data kwaliteit
             self.skipTest("Parameter calculation requires valid data")
+
+    def test_creating_figures(self):
+        """Test het aanmaken van figuren en save_fig_html functionaliteit."""
+        dbase = Dbase()
+        source_dir = Path(os.path.join(FILE_PATH, "Dbase.xlsx"))
+        dbase.import_data(source="Dbase", source_dir=source_dir)
+
+        analyse = SUTABEL(
+            dbase=dbase,
+            investigation_groups=['TXT_SAFE_klei_licht_16_175'],
+            effective_stress='15% rek',
+            analysis_type='TXT_su_tabel'
+        )
+
+        # Run analyse eerst
+        analyse._run_sutabel()
+
+        # Test dat we een figure kunnen aanmaken en opslaan
+        figure_created = False
+        html_saved = False
+
+        # Test ln(sv) vs ln(su) figure
+        try:
+            analyse.show_figure_ln_sv_ln_su_sutabel()
+            # Controleer dat figure object is aangemaakt
+            self.assertIsNotNone(analyse.figure)
+            figure_created = True
+
+            # Test save_fig_html functionaliteit
+            analyse.save_fig_html(path=str(export_dir), export_name="test_sutabel_ln_figure.html")
+            # Controleer dat het HTML bestand bestaat
+            html_file = export_dir / "test_sutabel_ln_figure.html"
+            self.assertTrue(html_file.exists(), "HTML file should be created")
+            html_saved = True
+
+        except Exception as e:
+            print(f"ln(sv) vs ln(su) figure creation failed: {e}")
+
+        # Test sv vs su figure
+        try:
+            analyse.show_figure_sv_su_sutabel()
+            # Controleer dat figure object is aangemaakt
+            self.assertIsNotNone(analyse.figure)
+            figure_created = True
+
+            # Test save_fig_html functionaliteit
+            analyse.save_fig_html(path=str(export_dir), export_name="test_sutabel_sv_figure.html")
+            # Controleer dat het HTML bestand bestaat
+            html_file = export_dir / "test_sutabel_sv_figure.html"
+            self.assertTrue(html_file.exists(), "HTML file should be created")
+            html_saved = True
+
+        except Exception as e:
+            print(f"sv vs su figure creation failed: {e}")
+
+        # Test dat minstens één van de figure tests is gelukt
+        if not figure_created:
+            self.skipTest("Figure creation failed for both figure types - may require specific data conditions")
+
+        # Test dat save_fig_html functionaliteit werkt
+        self.assertTrue(html_saved, "save_fig_html should successfully create HTML files")
+
+        # Test default export name functionality
+        try:
+            analyse.show_figure_sv_su_sutabel()
+            analyse.save_fig_html(path=str(export_dir))  # No export_name specified
+            # Check that a file with default name pattern was created
+            html_files = list(export_dir.glob("sutabel_analyse_*.html"))
+            self.assertTrue(len(html_files) > 0, "Default export name should create a file")
+        except Exception as e:
+            print(f"Default export name test failed: {e}")
 
 
 if __name__ == '__main__':

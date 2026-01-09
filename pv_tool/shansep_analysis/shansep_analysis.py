@@ -4,6 +4,7 @@ from typing import Optional, List, Literal
 from pv_tool.shansep_analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS)
 from pandas import DataFrame, ExcelWriter, read_excel
 import plotly.graph_objects as go
+from pathlib import Path
 from pv_tool.shansep_analysis.calc_parameters import (
     calc_watergehalte_gem_txt, calc_watergehalte_gem_dss,
     calc_watergehalte_sd_txt, calc_watergehalte_sd_dss,
@@ -50,7 +51,7 @@ from pv_tool.shansep_analysis.expand_analysis import (calculate_ln_ocr, calculat
                                                           calculate_sv_eff_nc_oc, calculate_5pr_bovengrens_oc, calculate_5pr_bovengrens_nc_oc)
 
 from pv_tool.shansep_analysis.save_and_export import (
-    add_results_to_dbase as _add_results_to_dbase,
+    add_results_to_template as _add_results_to_template,
     save_total_to_excel as _save_total_to_excel,
     save_to_pdf as _save_to_pdf
 )
@@ -123,6 +124,28 @@ class SHANSEP:
         self.st_dev_s_handmatig: Optional[float] = None
         self.st_dev_pop_handmatig: Optional[float] = None
         self.st_dev_m_handmatig: Optional[float] = None
+
+        # Inschatting (estimation) parameters
+        self.inschatting_snijpunt_gem: Optional[float] = None
+        self.inschatting_s_gem: Optional[float] = None
+        self.inschatting_m_gem: Optional[float] = None
+        self.inschatting_pop_gem: Optional[float] = None
+
+        self.inschatting_snijpunt_kar: Optional[float] = None
+        self.inschatting_s_kar: Optional[float] = None
+        self.inschatting_m_kar: Optional[float] = None
+        self.inschatting_pop_kar: Optional[float] = None
+
+        # NC (Normal Consolidated) inschatting parameters
+        self.inschatting_snijpunt_gem_nc: Optional[float] = None
+        self.inschatting_s_gem_nc: Optional[float] = None
+        self.inschatting_m_gem_nc: Optional[float] = None
+        self.inschatting_pop_gem_nc: Optional[float] = None
+
+        self.inschatting_snijpunt_kar_nc: Optional[float] = None
+        self.inschatting_s_kar_nc: Optional[float] = None
+        self.inschatting_m_kar_nc: Optional[float] = None
+        self.inschatting_pop_kar_nc: Optional[float] = None
 
         # dataframes
         self.shansep_data_df: Optional[DataFrame] = None
@@ -353,6 +376,58 @@ class SHANSEP:
 
         return analyse_output_df
 
+    def get_estimated_parameters(self):
+        """
+        Haalt de geschatte parameters op voor gebruik als eerste benadering.
+        Deze methode moet worden aangeroepen nadat get_result_values_shansep() is uitgevoerd.
+
+        Returns
+        -------
+        dict
+            Dictionary met geschatte parameters voor gemiddelde en karakteristieke waarden
+        """
+        # Zorg dat resultaten zijn berekend
+        self.get_result_values_shansep()
+
+        estimated_params = {
+            'snijpunt_gem': self.inschatting_snijpunt_gem,
+            's_gem': self.inschatting_s_gem,
+            'm_gem': self.inschatting_m_gem,
+            'pop_gem': self.inschatting_pop_gem,
+            'snijpunt_kar': self.inschatting_snijpunt_kar,
+            's_kar': self.inschatting_s_kar,
+            'm_kar': self.inschatting_m_kar,
+            'pop_kar': self.inschatting_pop_kar
+        }
+
+        return estimated_params
+
+    def get_estimated_parameters_nc(self):
+        """
+        Haalt de geschatte NC (Normal Consolidated) parameters op.
+        Deze methode moet worden aangeroepen nadat get_result_values_nc() is uitgevoerd.
+
+        Returns
+        -------
+        dict
+            Dictionary met geschatte NC parameters voor gemiddelde en karakteristieke waarden
+        """
+        # Zorg dat NC resultaten zijn berekend
+        self.get_result_values_nc()
+
+        estimated_params_nc = {
+            'snijpunt_gem_nc': self.inschatting_snijpunt_gem_nc,
+            's_gem_nc': self.inschatting_s_gem_nc,
+            'm_gem_nc': self.inschatting_m_gem_nc,
+            'pop_gem_nc': self.inschatting_pop_gem_nc,
+            'snijpunt_kar_nc': self.inschatting_snijpunt_kar_nc,
+            's_kar_nc': self.inschatting_s_kar_nc,
+            'm_kar_nc': self.inschatting_m_kar_nc,
+            'pop_kar_nc': self.inschatting_pop_kar_nc
+        }
+
+        return estimated_params_nc
+
     def _run_shansep(self):
         """
         Voert de volledige shansep analyse uit in de juiste volgorde:
@@ -395,6 +470,25 @@ class SHANSEP:
         pop_bepaald = self.a1_kar_oc/self.a2_kar_oc/self.a2_kar_nc_oc
         self.df_results_shansep_kar['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_kar_oc, None, self.pop_kar_handmatig]
 
+        self.inschatting_snijpunt_gem = self.e_a1_oc
+        self.inschatting_s_gem = self.e_a2_oc
+        self.inschatting_m_gem = self.e_a2_nc_oc
+        self.inschatting_pop_gem = pop_bepaald
+
+        self.inschatting_snijpunt_kar = self.a1_kar_oc
+        self.inschatting_s_kar = self.a2_kar_oc
+        self.inschatting_m_kar = self.a2_kar_nc_oc
+        self.inschatting_pop_kar = pop_bepaald
+
+        # write a warning that if any of the values of m are larger than 1, the user should change this
+        for m_value in [self.m_gem_handmatig, self.m_kar_handmatig]:
+            if m_value is not None and m_value > 1:
+                print("Waarschuwing: De handmatige waarde van m is groter dan 1. Dit is fysiek niet mogelijk. Overweeg om deze waarde aan te passen.")
+        for m_value in [self.e_a2_nc_oc, self.a2_kar_nc_oc]:
+            if m_value is not None and m_value > 1:
+                print("Waarschuwing: De inschatting van de waarde van m is groter dan 1. Dit is fysiek niet mogelijk. Overweeg om deze waarde aan te passen.")
+
+
         # write these dataframes to excel
         return self.df_results_shansep_gem, self.df_results_shansep_kar
 
@@ -434,6 +528,16 @@ class SHANSEP:
         df_results_nc_kar['Schuifsterkteratio S [-]'] = [self.a2_kar_oc, self.exp_a1_kar_nc_oc, None, self.exp_kar_ln_su_svc_nc, self.s_kar_handmatig if self.s_kar_handmatig else 0]
         df_results_nc_kar['sterkte toename exponent = m [-]'] = [None, 0, None, None, 0]
         df_results_nc_kar['POP [kPa]'] = [0, 0, 0, None, 0]
+
+        self.inschatting_snijpunt_gem_nc = 0
+        self.inschatting_s_gem_nc = self.e_a2_oc
+        self.inschatting_m_gem_nc = 0
+        self.inschatting_pop_gem_nc = 0
+
+        self.inschatting_snijpunt_kar_nc = 0
+        self.inschatting_s_kar_nc = self.a2_kar_oc
+        self.inschatting_m_kar_nc = 0
+        self.inschatting_pop_kar_nc = 0
 
         return df_results_nc_gem, df_results_nc_kar
 
@@ -666,17 +770,37 @@ class SHANSEP:
         self.set_figure_sv_su_nc(plot_extra_dataset)
         self.figure.show()
 
+    def save_fig_html(self, path: str, export_name: Optional[str] = None):
+        """
+        Slaat de visualisatie van de analyseresultaten op als een HTML-bestand.
+
+        NB: als de figuur leeg is, roep dan eerst show_figure_...() aan om de figuur te genereren.
+        Kies uit show_figure_sv_su, show_figure_ln_ocr_ln_s of show_figure_sv_su_nc.
+
+        Parameters
+        ----------
+        path: str
+            Pad naar de map waar het bestand opgeslagen moet worden
+        export_name : str, optioneel
+            Naam van het HTML-bestand
+        """
+        if export_name is None:
+            export_name = f"shansep_analyse_{self.investigation_groups[0].value.replace(' ', '_')}.html"
+        file_path = Path(path) / export_name
+        self.figure.write_html(file_path)
+        print(f"figuur opgeslagen als HTML: {file_path}")
+
     # ========== Export Methodes ==========
 
-    def add_results_to_dbase(self, path: str, file_name: str = 'Template_PVtool5_0.xlsx'):
+    def add_results_to_template(self, path: str, export_name: str = 'Template_PVtool5_0.xlsx'):
         """
-        Voegt de SHANSEP analyseresultaten toe aan de database Excel-bestand.
+        Voegt de SHANSEP analyseresultaten toe aan het template Excel-bestand.
 
         Parameters
         ----------
         path : str
             Pad naar de map waar het Excel-bestand staat
-        file_name : str, optioneel
+        export_name : str, optioneel
             Naam van het Excel-bestand (default: 'Template_PVtool5_0.xlsx')
 
         Returns
@@ -684,7 +808,7 @@ class SHANSEP:
         DataFrame
             Bijgewerkte DataFrame met alle resultaten
         """
-        return _add_results_to_dbase(self, path, file_name)
+        return _add_results_to_template(self, path, export_name)
 
     def save_total_to_excel(self, path: str):
         """

@@ -282,7 +282,7 @@ def shansep_analysis_test(dbase: Dbase, export_path: Path, export_file: str, plo
 
     # Print en exporteer resultaten
     print('\nResultaten SHANSEP analyse:')
-    analyse.add_results_to_dbase(path=str(export_path), file_name=export_file)
+    analyse.add_results_to_template(path=str(export_path), export_name=export_file)
 
     analyse.set_parameters_handmatig(snijpunt_gem=11, s_gem=0.31, m_gem=0.9, snijpunt_kar=7, s_kar=0.28, m_kar=0.9)
 
@@ -330,7 +330,7 @@ def sutabel_analysis_test(dbase: Dbase, export_path: Path, export_file: str, plo
     sutabel.show_figure_sv_su_sutabel(plot_extra_dataset=plot_extra_dataset)
 
     # Export (analysis runs automatically if needed)
-    sutabel.add_results_to_dbase(str(export_path), export_file)
+    sutabel.add_results_to_template(str(export_path), export_file)
     sutabel.save_to_pdf(str(export_path))
 
 

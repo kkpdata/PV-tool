@@ -570,6 +570,25 @@ class CPhiAnalyse:
         self.set_figure(plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
         self.figure.show()
 
+    def save_fig_html(self, path: str, export_name: Optional[str] = None):
+        """
+        Slaat de visualisatie van de analyseresultaten op als een HTML-bestand.
+
+        NB: als de figuur leeg is, roep dan eerst show_figure() aan om de figuur te genereren.
+
+        Parameters
+        ----------
+        path : str
+            Pad naar de map waar het bestand opgeslagen moet worden
+        export_name : str, optioneel
+            Naam van het HTML-bestand
+        """
+        if export_name is None:
+            export_name = f"c-phi_analyse_{self.investigation_groups[0].value.replace(' ', '_')}.html"
+        file_path = Path(path) / export_name
+        self.figure.write_html(file_path)
+        print(f"figuur opgeslagen als HTML: {file_path}")
+
     def get_short_results(self):
         """
         Genereert een samenvattend overzicht van de analyseresultaten.
