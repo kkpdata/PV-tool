@@ -96,8 +96,8 @@ def database_import_test(source: Literal['Stowa', 'PV-tool', 'Dbase'],
             return None
 
         if export:
-            print(f"Exporting database to {save_test / file_name_export}")
-            dbase.export_dbase_to_excel(export_dir=save_test, filename=file_name_export)
+            print(f"Exporting database to {save_test / file_name_export} is no longer part of the test.")
+            # dbase.export_dbase_to_excel(export_dir=save_test, filename=file_name_export)
 
         return dbase
 
@@ -141,8 +141,8 @@ def cphi_analysis_txt_test(dbase: Dbase, export_path: Path, export_file: str, pl
 
     # Print en exporteer resultaten
     print('\nResultaten TXT C-phi analyse:')
-    print(analyse.print_short_results())
-    analyse.add_results_to_dbase(path=str(export_path), file_name=export_file)
+    print(analyse.get_short_results())
+    analyse.add_results_to_template(path=str(export_path), export_name=export_file)
 
     # Visualisatie
     analyse.show_figure(plot_extra_dataset = plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
@@ -175,8 +175,8 @@ def cphi_analysis_dss_test(dbase: Dbase, export_path: Path, export_file: str, pl
 
     # Print en exporteer resultaten
     print('\nResultaten DSS C-phi analyse:')
-    print(analyse.print_short_results())
-    analyse.add_results_to_dbase(path=str(export_path), file_name=export_file)
+    print(analyse.get_short_results())
+    analyse.add_results_to_template(path=str(export_path), export_name=export_file)
 
     # Visualisatie
     analyse.show_figure(plot_extra_dataset = plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
@@ -243,8 +243,8 @@ def cphi_analysis_dss_sh_test(dbase: Dbase, export_path: Path, export_file: str,
 
     # Print en exporteer resultaten
     print('\nResultaten DSS C-phi analyse (schematiseringshandleiding):')
-    print(analyse.print_short_results())
-    analyse.add_results_to_dbase(path=str(export_path), file_name=export_file)
+    print(analyse.get_short_results())
+    analyse.add_results_to_template(path=str(export_path), export_name=export_file)
 
     # Visualisatie
     analyse.show_figure(plot_extra_dataset = plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
@@ -369,25 +369,25 @@ if __name__ == "__main__":
 
     # Test verschillende analyses
     print("\nUitvoeren van verschillende test cases...")
-    #
-    # print("\nTXT C-phi analyse test")
-    # cphi_analysis_txt_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
-    #
-    # print("\nDSS C-phi analyse test")
-    # cphi_analysis_dss_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
+
+    print("\nTXT C-phi analyse test")
+    cphi_analysis_txt_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
+
+    print("\nDSS C-phi analyse test")
+    cphi_analysis_dss_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
 
     print("\nTXT C-phi analyse (schematiseringshandleiding) test")
     cphi_analysis_txt_sh_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
 
-    # print("\nDSS C-phi analyse (schematiseringshandleiding) test")
-    # cphi_analysis_dss_sh_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
-    #
-    # plot_extra_dataset = ['TXT_SAFE_klei_zwaar']
-    #
-    # print("\nTXT SHANSEP analyse test")
-    # shansep_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
-    #
-    # print("\nSUTABEL analyse test")
-    # sutabel_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
+    print("\nDSS C-phi analyse (schematiseringshandleiding) test")
+    cphi_analysis_dss_sh_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
+
+    plot_extra_dataset = ['TXT_SAFE_klei_zwaar']
+
+    print("\nTXT SHANSEP analyse test")
+    shansep_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
+
+    print("\nSUTABEL analyse test")
+    sutabel_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
 
     print("\nAlle tests zijn voltooid!")

@@ -36,7 +36,7 @@ def test_cphi_analyse():
         # apply parameters
         analyse.apply_parameters(cohesie_gem=8.0, phi_kar=0.53, cohesie_kar=6.72)
         # print results
-        analyse.print_short_results()
+        analyse.get_short_results()
         # exports
         analyse.add_results_to_template(path=export_dir, export_name=export_name)
         analyse.save_to_pdf(path=export_dir)
