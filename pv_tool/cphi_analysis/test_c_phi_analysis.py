@@ -1,7 +1,7 @@
 import os.path
 import unittest
 from pv_tool.imports.import_data import Dbase
-from utils import get_repo_root, make_temp_folder
+from pv_tool.utilities.utils import get_repo_root, make_temp_folder
 from pathlib import Path
 from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 import shutil
