@@ -19,7 +19,6 @@ ipython
 pillow
 
 # packages required for notebook
-notebook
 ipywidgets
 ipython
 ipyfilechooser
