@@ -12,6 +12,7 @@ from typing import Optional, List, Literal
 from pv_tool.shansep_analysis.globals import (TEXTUAL_NAMES, NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS)
 from pandas import DataFrame, ExcelWriter
 import plotly.graph_objects as go
+from pathlib import Path
 from pv_tool.shansep_analysis.calc_parameters import (
     calc_watergehalte_gem_txt, calc_watergehalte_gem_dss,
     calc_watergehalte_sd_txt, calc_watergehalte_sd_dss,
@@ -611,11 +612,31 @@ class SUTABEL:
         self.set_figure_sv_su_sutabel(plot_extra_dataset)
         self.figure.show()
 
+    def save_fig_html(self, path: str, export_name: Optional[str] = None):
+        """
+        Slaat de visualisatie van de analyseresultaten op als een HTML-bestand.
+
+        NB: als de figuur leeg is, roep dan eerst show_figure_...() aan om de figuur te genereren.
+        Kies uit show_figure_ln_sv_ln_su_sutabel() of show_figure_sv_su_sutabel().
+
+        Parameters
+        ----------
+        path: str
+            Pad naar de map waar het bestand opgeslagen moet worden
+        export_name : str, optioneel
+            Naam van het HTML-bestand
+        """
+        if export_name is None:
+            export_name = f"sutabel_analyse_{self.investigation_groups[0].value.replace(' ', '_')}.html"
+        file_path = Path(path) / export_name
+        self.figure.write_html(file_path)
+        print(f"figuur opgeslagen als HTML: {file_path}")
+
     # ========== Export Methodes ==========
 
-    def add_results_to_dbase(self, path: str, file_name: str = 'Template_PVtool5_0.xlsx'):
+    def add_results_to_template(self, path: str, export_name: str = 'Template_PVtool5_0.xlsx'):
         """
-        Voegt de sutabel-m analyseresultaten toe aan de database Excel-bestand.
+        Voegt de sutabel-m analyseresultaten toe aan het template Excel-bestand.
 
         De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
 
@@ -623,7 +644,7 @@ class SUTABEL:
         ----------
         path : str
             Pad naar de map waar het Excel-bestand staat
-        file_name : str
+        export_name : str
             Naam van het Excel-bestand
 
         Returns
@@ -638,8 +659,10 @@ class SUTABEL:
             if self.e_a1_sutabel is None:
                 self.get_sutabel_parameters()
 
-        from pv_tool.sutabel_analysis.save_and_export import add_sutabel_results_to_dbase
-        return add_sutabel_results_to_dbase(self, path, file_name)
+        from pv_tool.sutabel_analysis.save_and_export import add_results_to_template
+        return add_results_to_template(self, path, export_name)
+
+
 
     def save_to_pdf(self, path: str, vc_fit_kar: float = None) -> str:
         """

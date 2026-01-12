@@ -3,7 +3,7 @@ from openpyxl import load_workbook, Workbook
 from openpyxl.utils import get_column_letter
 from pathlib import Path
 from datetime import datetime
-from utils import get_repo_root, make_temp_folder
+from pv_tool.utilities.utils import get_repo_root, make_temp_folder
 from pandas import DataFrame, ExcelWriter, concat, read_excel, isna
 from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, ALL_TEXTUAL_NAMES,
                                            NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS, ALL_TEXTUAL_NAMES_DSS)
@@ -569,6 +569,25 @@ class CPhiAnalyse:
         self.figure = go.Figure()
         self.set_figure(plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
         self.figure.show()
+
+    def save_fig_html(self, path: str, export_name: Optional[str] = None):
+        """
+        Slaat de visualisatie van de analyseresultaten op als een HTML-bestand.
+
+        NB: als de figuur leeg is, roep dan eerst show_figure() aan om de figuur te genereren.
+
+        Parameters
+        ----------
+        path : str
+            Pad naar de map waar het bestand opgeslagen moet worden
+        export_name : str, optioneel
+            Naam van het HTML-bestand
+        """
+        if export_name is None:
+            export_name = f"c-phi_analyse_{self.investigation_groups[0].value.replace(' ', '_')}.html"
+        file_path = Path(path) / export_name
+        self.figure.write_html(file_path)
+        print(f"figuur opgeslagen als HTML: {file_path}")
 
     def get_short_results(self):
         """

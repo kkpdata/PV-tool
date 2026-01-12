@@ -23,5 +23,3 @@ ipywidgets
 ipython
 ipyfilechooser
 
-#TODO moet jupyter notebook zelf ook in de requirements? Dan wordt die met een wheel meteen mee geinstalleerd
-
