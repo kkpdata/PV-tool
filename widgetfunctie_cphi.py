@@ -6,6 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
+import os
 
 #TODO utils wordt nu niet meegenomen in de wheel - fixen
 def check_package_install(package_name):
@@ -60,8 +61,42 @@ def select_export_location_and_name(default_filename="Template_PVtool5_0.xlsx"):
         style={'description_width': 'initial'},
         layout=widgets.Layout(width='50%')
     )
-    display(widgets.VBox([dir_chooser, name_box]))
-    return dir_chooser, name_box
+    return widgets.VBox([dir_chooser, name_box]), dir_chooser, name_box
+
+
+def setup_interactive_import_export():
+    import_dropdown = create_import_dropdown()
+    import_filechooser = create_file_chooser()
+    export_box, export_dirchooser, export_namebox = select_export_location_and_name()
+
+    export_placeholder = widgets.Output()
+
+    def update_export_selection(*args):
+        with export_placeholder:
+            clear_output()
+            if import_dropdown.value == "Proevenverzamelingtool 5.0":
+                if import_filechooser.selected:
+                    export_path = import_filechooser.selected
+                    display(widgets.HTML(
+                        f"<b>Exportbestand is gelijk aan importbestand:</b><br>{export_path}"
+                    ))
+                else:
+                    display(widgets.HTML(
+                        "<i>Kies eerst een bestand om deze functie te activeren.</i>"
+                    ))
+            else:
+                display(export_box)
+
+    import_dropdown.observe(update_export_selection, names='value')
+    import_filechooser.register_callback(update_export_selection)
+
+    display(import_dropdown)
+    display(import_filechooser)
+    display(export_placeholder)
+
+    update_export_selection()
+
+    return import_dropdown, import_filechooser, export_dirchooser, export_namebox
 
 
 def process_import_and_validate(dbase, template_name, file_path, export_dir):
@@ -71,6 +106,71 @@ def process_import_and_validate(dbase, template_name, file_path, export_dir):
     dbase.import_data(source=template_code, source_dir=file_path)
     dbase.validate_data(export_path=export_dir)
     display(Markdown(f"**Validatierapporten geëxporteerd naar:** {export_dir}"))
+
+
+def handle_import_export(
+    dbase,
+    import_dropdown,
+    import_filechooser,
+    export_dirchooser,
+    process_import_and_validate
+):
+    # Validatie
+    if not import_dropdown.value:
+        print("Er is geen template geselecteerd.")
+        return
+    if not import_filechooser.selected:
+        print("Er is geen bestand geselecteerd. Selecteer een bestand voordat je verder gaat.")
+        return
+
+    # Bepaal exportmap
+    if import_dropdown.value == "Proevenverzamelingtool 5.0":
+        export_dir = os.path.dirname(import_filechooser.selected)
+    else:
+        export_dir = export_dirchooser.selected_path
+        if not export_dir:
+            print("Selecteer een exportlocatie.")
+            return
+
+    # Aanroepen van de hoofd-functionaliteit
+    process_import_and_validate(
+        dbase=dbase,
+        template_name=import_dropdown.value,
+        file_path=import_filechooser.selected,
+        export_dir=Path(export_dir)   # Alleen de map!
+    )
+
+
+def process_import_only(dbase, template_name, file_path):
+    """
+    Importeert alleen de data, zonder validatie of export.
+    """
+    template_code = determine_template_code(template_name)
+    display(Markdown(f"**Template-code:** {template_code}"))
+    dbase.import_dbase_short(source=template_code, source_dir=file_path)
+    display(Markdown(f"**Data geïmporteerd uit:** {file_path}"))
+
+
+def handle_import_only(
+    dbase,
+    import_dropdown,
+    import_filechooser,
+    process_import_only
+):
+    # Validatie
+    if not import_dropdown.value:
+        print("Er is geen template geselecteerd.")
+        return
+    if not import_filechooser.selected:
+        print("Er is geen bestand geselecteerd. Selecteer een bestand voordat je verder gaat.")
+        return
+
+    # Alleen import uitvoeren
+    process_import_only(
+        dbase=dbase,
+        template_name=import_dropdown.value,
+        file_path=import_filechooser.selected
+    )
 
 
 def process_export(dbase, export_dir, filename=None):
@@ -96,7 +196,7 @@ def maak_proef_widgets(pv_txt_lijst, pv_dss_lijst):
     """Maakt de widgets voor de proefkeuze, rekpercentage en verzamelingen"""
     # Dropdowns
     dropdown_type_proef = widgets.Dropdown(
-        options=['TXT_CPhi', 'DSS_CPhi'],
+        options=['TXT_CPhi', 'DSS_CPhi', 'TXT_SH', 'DSS_SH'],
         value='TXT_CPhi',
         description='Type proef:',
         layout=widgets.Layout(width='400px')
@@ -113,7 +213,7 @@ def maak_proef_widgets(pv_txt_lijst, pv_dss_lijst):
         description='Rekpercentage DSS:',
         layout=widgets.Layout(width='400px')
     )
-    dropdown_verzameling = widgets.Dropdown(  # TODO: moet hier ook DSS in kunnen?
+    dropdown_verzameling = widgets.Dropdown(
         options=pv_txt_lijst,
         value=pv_txt_lijst[0] if pv_txt_lijst else None,
         description='Verzameling:',
@@ -142,7 +242,7 @@ def koppel_callbacks(
     def update_verzamelings_dropdowns(change=None):
         with container_rekpercentage:
             clear_output()
-            if dropdown_type_proef.value == 'TXT_CPhi':
+            if dropdown_type_proef.value in ['TXT_CPhi', 'TXT_SH']:
                 dropdown_verzameling.options = pv_txt_lijst
                 dropdown_verzameling.value = pv_txt_lijst[0]
                 multi_select_verzameling.options = pv_txt_lijst
@@ -270,16 +370,54 @@ def toon_cphi_tabel(
     display(grid)
 
 
+def toon_grid_settings(type_proef):
+    """
+    Toon een grid met materiaalfactoren en alpha.
+    Als type_proef eindigt op 'SH', dan wordt partcoh_widget niet getoond.
+    """
+    display(Markdown("**Pas alpha aan (lokaal = 1,0, regionaal = 0,75):**"))
+    alpha_widget = widgets.FloatText(
+        value=0.75,
+        description='Alpha:',
+        step=0.01
+    )
+    display(widgets.VBox([alpha_widget]))
+
+    display(Markdown("**Pas materiaalfactoren aan:**"))
+    partphi_widget = widgets.FloatText(
+        value=1.0,
+        description='φ:',
+        step=0.01
+    )
+    partcoh_widget = widgets.FloatText(
+        value=1.0,
+        description='c:',
+        step=0.01
+    )
+
+    if str(type_proef).endswith('_CPhi'):
+        display(widgets.VBox([partphi_widget, partcoh_widget]))
+        return alpha_widget, partphi_widget, partcoh_widget
+    else:
+        display(widgets.VBox([partphi_widget]))
+        return alpha_widget, partphi_widget, None
+
+
 def voer_cphi_analyse_uit(
     dbase,
+    import_dropdown,
+    import_filechooser,
     dropdown_verzameling,
     dropdown_type_proef,
     dropdown_rekpercentage_txt,
     dropdown_rekpercentage_dss,
-    export_dir_widget,
-    export_name_widget,
     gekozen_rekpercentage,
-    toon_cphi_tabel
+    toon_cphi_tabel,
+    partphi_widget,
+    alpha_widget,
+    partcoh_widget=None,
+    export_dir_widget=None,
+    export_name_widget=None,
 ):
     """Voert de C-Phi analyse uit en toont het resultaat in een interactieve tabel."""
     verzameling = dropdown_verzameling.value
@@ -287,10 +425,16 @@ def voer_cphi_analyse_uit(
         'TXT') else dropdown_rekpercentage_dss.value
 
     # Ophalen van directory en bestandsnaam uit widgets
-    export_dir = export_dir_widget.selected_path
-    export_name = export_name_widget.value
-    if not export_name.lower().endswith('.xlsx'):
-        export_name += '.xlsx'
+    if import_dropdown.value == 'Proevenverzamelingtool 5.0':
+        import_path = Path(import_filechooser.selected)
+        export_dir = str(import_path.parent)
+        export_name = import_path.name
+    else:
+        export_dir = export_dir_widget.selected_path if hasattr(export_dir_widget,
+                                                                "selected_path") else export_dir_widget
+        export_name = export_name_widget.value if hasattr(export_name_widget, "value") else export_name_widget
+        if not export_name.lower().endswith('.xlsx'):
+            export_name += '.xlsx'
 
     # C-phi analyse uitvoeren
     analyse = CPhiAnalyse(
@@ -299,67 +443,161 @@ def voer_cphi_analyse_uit(
         effective_stress=rekpercentage,
         analysis_type=dropdown_type_proef.value
     )
-    analyse._run()
 
-    # Benaderingswaarden ophalen
-    PV_A2_PHI_GEM_benadering = round(analyse.eerste_benadering_a2_gem, 2)
-    PV_A1_COH_GEM_benadering = round(analyse.eerste_benadering_a1_gem, 2)
-    PV_A2_PHI_KAR_benadering = round(analyse.eerste_benadering_a2_kar, 2)
-    PV_A1_COH_KAR_benadering = round(analyse.eerste_benadering_a1_kar, 2)
+    if dropdown_type_proef.value in ['TXT_CPhi', 'DSS_CPhi']:
+        analyse._run()
+
+        # Benaderingswaarden ophalen
+        PV_A2_PHI_GEM_benadering = round(analyse.eerste_benadering_a2_gem, 2)
+        PV_A1_COH_GEM_benadering = round(analyse.eerste_benadering_a1_gem, 2)
+        PV_A2_PHI_KAR_benadering = round(analyse.eerste_benadering_a2_kar, 2)
+        PV_A1_COH_KAR_benadering = round(analyse.eerste_benadering_a1_kar, 2)
 
     # Ophalen handmatige waardes of defaults
-    laatste_resultaten = analyse.get_previous_results(path=export_dir, file_name=export_name)
-    if (
-        laatste_resultaten is not None and
-        not laatste_resultaten.empty and
-        'PV_A1_COH_GEM' in laatste_resultaten
-    ):
-        PV_A1_COH_GEM_handmatig = [laatste_resultaten['PV_A1_COH_GEM']]
-        PV_A2_PHI_KAR_handmatig = [laatste_resultaten['PV_A2_TAN_PHI_KAR']]
-        PV_A1_COH_KAR_handmatig = [laatste_resultaten['PV_A1_COH_KAR']]
-        PV_PARTPHI = [laatste_resultaten['PV_PARTPHI']]
-        PV_PARTCOH = [laatste_resultaten['PV_PARTCOH']]
-        PV_TYPEVERZAMELING = [laatste_resultaten['PV_TYPEVERZAMELING']]
-    else:
-        PV_A1_COH_GEM_handmatig = [PV_A1_COH_GEM_benadering]
-        PV_A2_PHI_KAR_handmatig = [PV_A2_PHI_KAR_benadering]
-        PV_A1_COH_KAR_handmatig = [PV_A1_COH_KAR_benadering]
-        PV_PARTPHI = [1]
-        PV_PARTCOH = [1]
-        PV_TYPEVERZAMELING = [0.75]
+        laatste_resultaten = analyse.get_previous_results(path=export_dir, file_name=export_name)
+        if (
+            laatste_resultaten is not None and
+            not laatste_resultaten.empty and
+            'PV_A1_COH_GEM' in laatste_resultaten
+        ):
+            PV_A1_COH_GEM_handmatig = [laatste_resultaten['PV_A1_COH_GEM']]
+            PV_A2_PHI_KAR_handmatig = [laatste_resultaten['PV_A2_TAN_PHI_KAR']]
+            PV_A1_COH_KAR_handmatig = [laatste_resultaten['PV_A1_COH_KAR']]
+            PV_PARTPHI = [partphi_widget.value]
+            PV_PARTCOH = [partcoh_widget.value]
+            PV_TYPEVERZAMELING = [alpha_widget.value]
+        else:
+            PV_A1_COH_GEM_handmatig = [PV_A1_COH_GEM_benadering]
+            PV_A2_PHI_KAR_handmatig = [PV_A2_PHI_KAR_benadering]
+            PV_A1_COH_KAR_handmatig = [PV_A1_COH_KAR_benadering]
+            PV_PARTPHI = [partphi_widget.value]
+            PV_PARTCOH = [partcoh_widget.value]
+            PV_TYPEVERZAMELING = [alpha_widget.value]
 
     # Toelichting tonen
-    display(Markdown("**Stel de raaklijnen voor de gemiddelde en karakteristieke waarden van de cohesie en hoek van inwendige wrijving vast:**"))
-    display(Markdown("Op basis van regressie wordt een eerste benadering gegeven voor het snijpunt met de y-as (a1) en de helling (a2) voor de gemiddelde en karakteristieke waarde."))
-    display(Markdown("Toets in de volgende stap bij het genereren van de grafieken of de raaklijnen juist zijn gekozen en pas deze aan naar eigen inzicht"))
-    display(Markdown("De invoer wordt automatisch opgehaald uit het template_PVtool5_0.xlsx [resultaten] indien er eerder resultaten zijn opgeslagen voor de betreffende verzameling."))
-    print()
+        display(Markdown("**Stel de raaklijnen voor de gemiddelde en karakteristieke waarden van de cohesie en hoek van inwendige wrijving vast:**"))
+        display(Markdown("Op basis van regressie wordt een eerste benadering gegeven voor het snijpunt met de y-as (a1) en de helling (a2) voor de gemiddelde en karakteristieke waarde."))
+        display(Markdown("Toets in de volgende stap bij het genereren van de grafieken of de raaklijnen juist zijn gekozen en pas deze aan naar eigen inzicht"))
+        display(Markdown("De invoer wordt automatisch opgehaald uit het template_PVtool5_0.xlsx [resultaten] indien er eerder resultaten zijn opgeslagen voor de betreffende verzameling."))
+        print()
 
-    # Tabel tonen
-    toon_cphi_tabel(
-        PV_A2_PHI_GEM_benadering,
-        PV_A1_COH_GEM_benadering,
-        PV_A2_PHI_KAR_benadering,
-        PV_A1_COH_KAR_benadering,
-        PV_A1_COH_GEM_handmatig,
-        PV_A2_PHI_KAR_handmatig,
-        PV_A1_COH_KAR_handmatig,
-        PV_PARTPHI,
-        PV_PARTCOH,
-        PV_TYPEVERZAMELING,
-        dropdown_verzameling,
-        gekozen_rekpercentage
-    )
-
-    # Handig voor vervolg
-    return analyse, PV_A1_COH_GEM_handmatig, PV_A2_PHI_KAR_handmatig, PV_A1_COH_KAR_handmatig, PV_PARTPHI, PV_PARTCOH, PV_TYPEVERZAMELING
-
-
-
-
-
+        # Tabel tonen
+        toon_cphi_tabel(
+            PV_A2_PHI_GEM_benadering,
+            PV_A1_COH_GEM_benadering,
+            PV_A2_PHI_KAR_benadering,
+            PV_A1_COH_KAR_benadering,
+            PV_A1_COH_GEM_handmatig,
+            PV_A2_PHI_KAR_handmatig,
+            PV_A1_COH_KAR_handmatig,
+            PV_PARTPHI,
+            PV_PARTCOH,
+            PV_TYPEVERZAMELING,
+            dropdown_verzameling,
+            gekozen_rekpercentage
+        )
+        return analyse, PV_A1_COH_GEM_handmatig, PV_A2_PHI_KAR_handmatig, PV_A1_COH_KAR_handmatig, PV_PARTPHI, PV_PARTCOH, PV_TYPEVERZAMELING
+    elif dropdown_type_proef.value in ['TXT_SH', 'DSS_SH']:
+        analyse._run_sh()
+        display(Markdown("Geen extra invoer nodig voor de SH-proeven."))
+        print()
+        return analyse, None, None, None, None, None, None
 
 
+def show_cphi_analysis(
+    dbase,
+    dropdown_verzameling,
+    dropdown_type_proef,
+    dropdown_rekpercentage_txt,
+    dropdown_rekpercentage_dss,
+    coh_gem,
+    phi_kar,
+    coh_kar,
+    multi_select_verzameling,
+    alpha_widget,
+    partphi_widget,
+    partcoh_widget=None,
+):
+    """
+    Voer C-Phi analyse uit, toon resultaten, figuren en tabel.
+    """
+    # Kies rekpercentage afhankelijk van type proef
+    if dropdown_type_proef.value.startswith('TXT'):
+        rekpercentage = dropdown_rekpercentage_txt.value
+    else:
+        rekpercentage = dropdown_rekpercentage_dss.value
+
+    if dropdown_type_proef.value in ['TXT_CPhi', 'DSS_CPhi']:
+        # Initialiseer en configureer analyse
+        analyse = CPhiAnalyse(
+            dbase=dbase,
+            investigation_groups=[dropdown_verzameling.value],
+            effective_stress=rekpercentage,
+            analysis_type=dropdown_type_proef.value
+        )
+        analyse.apply_parameters(
+            cohesie_gem=coh_gem[0],
+            phi_kar=phi_kar[0],
+            cohesie_kar=coh_kar[0]
+        )
+        analyse.apply_settings(
+            material_factor_cohesion=partcoh_widget.value,
+            material_factor_tan_phi=partphi_widget.value,
+            alpha=alpha_widget.value
+        )
+
+        # Toon resultaten
+        output_df = analyse.get_short_results()
+        print(output_df)
+        extra_verzamelingen_tonen = list(multi_select_verzameling.value)
+        analyse.show_figure(plot_extra_dataset=extra_verzamelingen_tonen)
+        analyse.show_figure(plot_spanningspaden=True)
+
+        return analyse, output_df
+    elif dropdown_type_proef.value in ['TXT_SH', 'DSS_SH']:
+        analyse = CPhiAnalyse(
+            dbase=dbase,
+            investigation_groups=[dropdown_verzameling.value],
+            effective_stress=rekpercentage,
+            analysis_type=dropdown_type_proef.value
+        )
+        # pas instellingen aan
+        analyse.apply_settings(alpha=alpha_widget.value)
+        # Print en exporteer resultaten
+        print('\nResultaten TXT C-phi analyse (schematiseringshandleiding):')
+        output_df = analyse.get_short_results()
+        print(output_df)
+
+        # Visualisatie
+        extra_verzamelingen_tonen = list(multi_select_verzameling.value)
+        analyse.show_figure(plot_extra_dataset=extra_verzamelingen_tonen, plot_spanningspaden=True)
+        return analyse, output_df
+
+
+def export_results(analyse,
+                   dropdown_verzameling,
+                   dropdown_type_proef,
+                   import_dropdown,
+                   import_filechooser,
+                   export_dir_widget=None,
+                   export_name_widget=None):
+    """Export de resultaten"""
+    # Ophalen van directory en bestandsnaam uit widgets
+    if import_dropdown.value == 'Proevenverzamelingtool 5.0':
+        import_path = Path(import_filechooser.selected)
+        export_dir = str(import_path.parent)
+        export_name = import_path.name
+    else:
+        export_dir = export_dir_widget.selected_path if hasattr(export_dir_widget,
+                                                                "selected_path") else export_dir_widget
+        export_name = export_name_widget.value if hasattr(export_name_widget, "value") else export_name_widget
+        if not export_name.lower().endswith('.xlsx'):
+            export_name += '.xlsx'
+
+    # resultaten toevoegen aan template
+    analyse.add_results_to_template(path=export_dir, export_name=export_name)
+    # exporteer figuren als plotly  # TODO!
+    # export to pdf  # TODO!
 
 
 
