@@ -8,7 +8,7 @@ naar Excel en PDF formaat.
 from typing import TYPE_CHECKING, List
 from pandas import ExcelWriter, concat, DataFrame, read_excel
 from datetime import datetime
-from utils import get_repo_root, make_temp_folder
+from pv_tool.utilities.utils import get_repo_root, make_temp_folder
 from openpyxl import load_workbook
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
