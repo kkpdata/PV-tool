@@ -604,111 +604,92 @@ class CPhiAnalyse:
 
     # ========== Export Methodes ==========
 
-    def add_results_to_dbase(self, path, file_name: str = 'Template_PVtool5_0.xlsx'):
+    def add_results_to_template(self, path, export_name=None):
         """
-        Voegt analyseresultaten toe aan de database export.
-
-        Voegt de resultaten toe aan een tabblad 'Resultaten c-phi' in de Template_PVtool5_0.xlsx.
-        Als het tabblad al bestaat wordt het aangevuld, anders wordt het aangemaakt.
-
-        Parameters
-        ----------
-        path : str
-            Map locatie waar het Excel-bestand staat of moet komen
-        file_name : str, optioneel
-            Naam van het Excel-bestand (standaard 'Template_PVtool5_0.xlsx')
-
-        Returns
-        -------
-        DataFrame
-            DataFrame met alle resultaten in het tabblad
+        Voegt een nieuwe resultatenrij toe aan tabblad 'Resultaten c-phi' in het Excel-template.
+        Als het tabblad niet bestaat, wordt het aangemaakt en worden de kolomnamen weggeschreven.
         """
-        file_path = f"{path}/{file_name}"
-
-        if self.analysis_type in ['TXT_SH', 'DSS_SH']:
-            self._run_sh()
-        else:
-            self._run()
-
-        try:
-            with open(file_path, 'r'):
-                pass
-        except FileNotFoundError:
-            raise FileNotFoundError(f"Er is geen dbase aanwezig onder de naam {file_name}")
+        if export_name is None:
+            export_name = "Template_PVtool5_0.xlsx"
+        file_path = Path(path) / export_name
+        sheet_name = 'Resultaten c-phi'
 
         expected_columns = [
-            'PV_RESULTAAT_ID', 'PVNAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE',
-            'PV_A1_COH_GEM [kPa]', 'PV_A2_TAN_PHI_GEM [-]', 'PV_A1_COH_KAR [kPa]', 'PV_A2_TAN_PHI_KAR [-]',
-            'PV_PARTPHI [-]', 'PV_PARTCOH [-]', 'PV_TYPEVERZAMELING', 'PV_COH_GEM [kPa]', 'PV_PHI_GEM [graden]',
-            'PV_COH_KAR [kPa]', 'PV_PHI_KAR [graden]', 'PV_COH_SD_DSTAB [-]', 'PV_PHI_SD_DSTAB [-]',
-            'PV_VGWNAT_GEM [kN/m3]', 'PV_VGWNAT_SD [kN/m3]', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD', 'Timestamp'
+            'PV_RESULTAAT_ID', 'PV_NAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE',
+            'PV_A1_COH_GEM', 'PV_A2_TAN_PHI_GEM', 'PV_A1_COH_KAR', 'PV_A2_TAN_PHI_KAR',
+            'PV_PARTPHI', 'PV_PARTCOH', 'PV_TYPEVERZAMELING', 'PV_COH_GEM', 'PV_PHI_GEM',
+            'PV_COH_KAR', 'PV_PHI_KAR', 'PV_COH_SD_DSTAB', 'PV_PHI_SD_DSTAB',
+            'PV_VGWNAT_GEM', 'PV_VGWNAT_SD', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD', 'Timestamp'
         ]
 
+        # Maak de resultaat-rij aan
         new_row = {
-            'PVNAAM': self.investigation_groups[0],
+            'PV_NAAM': self.investigation_groups[0],
             'PV_REK': self.effective_stress,
             'PV_TYPE_PROEF': self.analysis_type.split('_')[0],
             'PV_ANALYSE': self.analysis_type.split('_')[1],
-            'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
+            'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_"
+                               f"{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
             'PV_TYPEVERZAMELING': self.alpha,
-            'PV_A1_COH_GEM [kPa]': round(self.gem_a1, 3) if self.gem_a1 is not None else None,
-            'PV_A2_TAN_PHI_GEM [-]': round(self.gem_a2, 3) if self.gem_a2 is not None else None,
-            'PV_A1_COH_KAR [kPa]': round(self.kar_a1, 3) if self.kar_a1 is not None else None,
-            'PV_A2_TAN_PHI_KAR [-]': round(self.kar_a2, 3) if self.kar_a2 is not None else None,
-            'PV_COH_GEM [kPa]': (round(self.c_gem, 3) if self.c_gem is not None and self.c_gem >= 0
-                                else "[-]" if self.c_gem is None
-                                else f"{round(self.c_gem, 3)} (kan niet - aanpassen!)"
-                                ),
-            'PV_PHI_GEM [graden]': round(self.phi_gem, 3) if self.phi_gem is not None else None,
-            'PV_COH_KAR [kPa]': (round(self.c_kar, 3) if self.c_kar is not None and self.c_kar >= 0
-                                else "[-]" if self.c_kar is None
-                                else f"{round(self.c_kar, 3)} (kan niet - aanpassen!)"
-                                ),
-            'PV_PHI_KAR [graden]': round(self.phi_kar, 3) if self.phi_kar is not None else None,
-            'PV_COH_SD_DSTAB [-]': (round(self.st_dev_c, 3) if self.c_gem is not None and self.c_kar is not None
-                                    and self.c_gem >= 0 and self.c_kar >= 0
-                                    else "[-]" if self.c_gem is None or self.c_kar is None
-                                    else "[-] (c < 0)"),
-            'PV_PHI_SD_DSTAB [-]': round(self.st_dev_phi, 3) if self.st_dev_phi is not None else None,
-            'PV_PARTPHI [-]': self.material_tan_phi,
-            'PV_PARTCOH [-]': self.material_cohesie,
-            'PV_VGWNAT_GEM [kN/m3]': round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
-            'PV_VGWNAT_SD [kN/m3]': round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
-            'PV_WATERGEHALTE_GEM': round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None,
-            'PV_WATERGEHALTE_SD': round(self.calc_watergehalte_sd, 3) if self.calc_watergehalte_sd is not None else None,
+            'PV_A1_COH_GEM': round(self.gem_a1, 3) if self.gem_a1 is not None else None,
+            'PV_A2_TAN_PHI_GEM': round(self.gem_a2, 3) if self.gem_a2 is not None else None,
+            'PV_A1_COH_KAR': round(self.kar_a1, 3) if self.kar_a1 is not None else None,
+            'PV_A2_TAN_PHI_KAR': round(self.kar_a2, 3) if self.kar_a2 is not None else None,
+
+            'PV_COH_GEM': (
+                round(self.c_gem, 3) if self.c_gem is not None and self.c_gem >= 0
+                else "[-]" if self.c_gem is None
+                else f"{round(self.c_gem, 3)} (kan niet - aanpassen!)"
+            ),
+            'PV_PHI_GEM': round(self.phi_gem, 3) if self.phi_gem is not None else None,
+
+            'PV_COH_KAR': (
+                round(self.c_kar, 3) if self.c_kar is not None and self.c_kar >= 0
+                else "[-]" if self.c_kar is None
+                else f"{round(self.c_kar, 3)} (kan niet - aanpassen!)"
+            ),
+            'PV_PHI_KAR': round(self.phi_kar, 3) if self.phi_kar is not None else None,
+
+            'PV_COH_SD_DSTAB': (
+                round(self.st_dev_c, 3) if (
+                        self.c_gem is not None and self.c_kar is not None and self.c_gem >= 0 and self.c_kar >= 0
+                ) else "[-]" if self.c_gem is None or self.c_kar is None
+                else "[-] (c < 0)"
+            ),
+            'PV_PHI_SD_DSTAB': round(self.st_dev_phi, 3) if self.st_dev_phi is not None else None,
+
+            'PV_PARTPHI': self.material_tan_phi,
+            'PV_PARTCOH': self.material_cohesie,
+            'PV_VGWNAT_GEM': round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
+            'PV_VGWNAT_SD': round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
+            'PV_WATERGEHALTE_GEM': round(self.calc_watergehalte_gem,
+                                         3) if self.calc_watergehalte_gem is not None else None,
+            'PV_WATERGEHALTE_SD': round(self.calc_watergehalte_sd,
+                                        3) if self.calc_watergehalte_sd is not None else None,
             'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
 
-        workbook = load_workbook(file_path)
-
-        if 'Resultaten c-phi' in workbook.sheetnames:
-            print('Tabblad Resultaten c-phi in dbase excel bestaat al en wordt aangevuld')
-            df_existing = read_excel(file_path, sheet_name='Resultaten c-phi')
-            # Filter out empty rows and ensure consistent types before concatenation
-            df_existing = df_existing.dropna(how='all')
-            new_row_df = DataFrame([new_row], columns=df_existing.columns)
-            df_updated = concat([df_existing, new_row_df], ignore_index=True)
+        if file_path.exists():
+            wb = load_workbook(file_path)
         else:
-            print('Tabblad Resultaten c-phi in dbase excel bestaat nog niet en wordt aangemaakt')
-            df_updated = DataFrame([new_row], columns=expected_columns)
+            template_path = Path(get_repo_root()) / "pv_tool" / "templates" / "Template_PVtool5_0.xlsx"
+            wb = load_workbook(template_path)
 
-        # Write data to Excel
-        with ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
-            df_updated.to_excel(writer, sheet_name='Resultaten c-phi', index=False)
+        if sheet_name in wb.sheetnames:
+            ws = wb[sheet_name]
+            first_empty_row = ws.max_row + 1 if any(
+                ws.iter_rows(min_row=ws.max_row, max_row=ws.max_row, values_only=True)) else ws.max_row
+        else:
+            ws = wb.create_sheet(sheet_name)
+            for col_idx, col_name in enumerate(expected_columns, start=1):
+                ws.cell(row=1, column=col_idx, value=col_name)
+            first_empty_row = 2
 
-        # Formatting
-        num_columns = df_updated.shape[1]
-        num_rows = df_updated.shape[0]
-        format_excel_sheet(
-            file_path=file_path,
-            sheet_name='Resultaten c-phi',
-            num_columns=num_columns,
-            num_rows=num_rows,
-            table_name='Resultaten_CPHI_Table',
-            index=False  # Changed from True to False to match the to_excel call
-        )
+        for col_idx, col_name in enumerate(expected_columns, start=1):
+            ws.cell(row=first_empty_row, column=col_idx, value=new_row.get(col_name, ""))
 
-        return df_updated
+        wb.save(file_path)
+        print(f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'.")
 
     @property
     def save_total_to_excel(self):
