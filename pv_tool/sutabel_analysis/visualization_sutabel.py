@@ -24,7 +24,7 @@ def add_proefresultaten_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     x_proefresultaten = self.sutabel_data_df['ln(s\'v)']
     y_proefresultaten = self.sutabel_data_df['ln(su)']
 
-    self.figure.add_trace(
+    self.figure_ln_sv_ln_su.add_trace(
         go.Scatter(
             x=x_proefresultaten,
             y=y_proefresultaten,
@@ -37,6 +37,7 @@ def add_proefresultaten_ln_sv_ln_su_sutabel(self: "SUTABEL"):
             hoverinfo='text'
         )
     )
+
 
 def get_extra_data(self: "SUTABEL", investigationgroups_extra: Optional[List]):
     if self.analysis_type in ['TXT_su_tabel']:
@@ -55,6 +56,7 @@ def get_extra_data(self: "SUTABEL", investigationgroups_extra: Optional[List]):
     dataset_df.columns = NEW_COLUMN_NAMES
     return dataset_df
 
+
 def add_extra_proefresultaten_ln_sv_ln_su_sutabel(self: "SUTABEL", extra_groepen: Optional[List]):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
     df = get_extra_data(self, investigationgroups_extra=extra_groepen)
@@ -71,14 +73,14 @@ def add_extra_proefresultaten_ln_sv_ln_su_sutabel(self: "SUTABEL", extra_groepen
 
     boring_monsternummer = df.index
 
-    n=0
+    n = 0
     for naam in df['PV_NAAM'].unique():
 
         sub_df = df[df['PV_NAAM'] == naam]
         x_extra_proefresultaten = self.sutabel_data_df['ln(s\'v)']
         y_extra_proefresultaten = self.sutabel_data_df['ln(su)']
 
-        self.figure.add_trace(
+        self.figure_ln_sv_ln_su.add_trace(
             go.Scatter(
                 x=x_extra_proefresultaten,
                 y=y_extra_proefresultaten,
@@ -89,6 +91,7 @@ def add_extra_proefresultaten_ln_sv_ln_su_sutabel(self: "SUTABEL", extra_groepen
             )
         )
         n += 1
+
 
 def add_lineair_fit_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     """Voegt de lineaire fit toe aan de figuur voor sutabel analyse."""
@@ -108,7 +111,7 @@ def add_lineair_fit_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     x = [x1, x2]
     y = [y1, y2]
 
-    self.figure.add_trace(
+    self.figure_ln_sv_ln_su.add_trace(
         go.Scatter(
             x=x,
             y=y,
@@ -118,12 +121,13 @@ def add_lineair_fit_ln_sv_ln_su_sutabel(self: "SUTABEL"):
         )
     )
 
+
 def add_5pr_bovengrens_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     """Voegt de 5% bovengrens toe aan de figuur voor sutabel analyse."""
     x_5pr = self.sutabel_data_df['s\'']
     y_5pr = self.sutabel_data_df['5_pr_bovengrens']
 
-    self.figure.add_trace(
+    self.figure_ln_sv_ln_su.add_trace(
         go.Scatter(
             x=x_5pr,
             y=y_5pr,
@@ -137,12 +141,13 @@ def add_5pr_bovengrens_ln_sv_ln_su_sutabel(self: "SUTABEL"):
         )
     )
 
+
 def add_5pr_ondergrens_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     """Voegt de 5% ondergrens toe aan de figuur voor sutabel analyse."""
     x_5pr = self.sutabel_data_df['s\'']
     y_5pr = self.sutabel_data_df['5_pr_ondergrens']
 
-    self.figure.add_trace(
+    self.figure_ln_sv_ln_su.add_trace(
         go.Scatter(
             x=x_5pr,
             y=y_5pr,
@@ -155,6 +160,7 @@ def add_5pr_ondergrens_ln_sv_ln_su_sutabel(self: "SUTABEL"):
             )
         )
     )
+
 
 def add_fysische_realiseerbare_ondergrens_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     """Voegt de fysische realiseerbare ondergrens toe aan de figuur voor sutabel analyse."""
@@ -180,7 +186,7 @@ def add_fysische_realiseerbare_ondergrens_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     x = [x1, x2]
     y = [y1, y2]
 
-    self.figure.add_trace(
+    self.figure_ln_sv_ln_su.add_trace(
         go.Scatter(
             x=x,
             y=y,
@@ -190,6 +196,7 @@ def add_fysische_realiseerbare_ondergrens_ln_sv_ln_su_sutabel(self: "SUTABEL"):
         )
     )
 
+
 def set_layout_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     """Stelt de layout van de figuur in voor sutabel analyse (ln(s'v) vs ln(su))."""
     title = f'Sutabel-m analyse: ln(s\'v) vs ln(su) - {self.analysis_type} proef'
@@ -198,7 +205,7 @@ def set_layout_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     yas_title = r'$\ln(s_{u}) [-]$'
 
     legend_title = 'Legenda'
-    self.figure.update_layout(
+    self.figure_ln_sv_ln_su.update_layout(
         width=1280,
         height=720,
         title=title if self.show_title else None,
@@ -208,7 +215,6 @@ def set_layout_ln_sv_ln_su_sutabel(self: "SUTABEL"):
         margin=dict(t=100, r=50, b=100, l=50)
     )
 
-# ========================== SUTABEL SV-SU PLOT ==========================
 
 def add_proefresultaten_sv_su_sutabel(self: "SUTABEL"):
     """Voegt de proefresultaten toe aan de figuur voor sutabel analyse (s'v vs su)."""
@@ -217,7 +223,7 @@ def add_proefresultaten_sv_su_sutabel(self: "SUTABEL"):
     x_proefresultaten = self.sutabel_data_df['S\'v']
     y_proefresultaten = self.sutabel_data_df['Su']
 
-    self.figure.add_trace(
+    self.figure_sv_su.add_trace(
         go.Scatter(
             x=x_proefresultaten,
             y=y_proefresultaten,
@@ -231,20 +237,21 @@ def add_proefresultaten_sv_su_sutabel(self: "SUTABEL"):
         )
     )
 
+
 def add_extra_proefresultaten_sv_su_sutabel(self: "SUTABEL", extra_groepen: Optional[List]):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
     df = get_extra_data(self, investigationgroups_extra=extra_groepen)
     df = df[df['consolidatietype'] == 'OC'].copy()
     boring_monsternummer = df.index
 
-    n=0
+    n = 0
     for naam in df['PV_NAAM'].unique():
 
         sub_df = df[df['PV_NAAM'] == naam]
         x_extra_proefresultaten = self.sutabel_data_df['S\'v']
         y_extra_proefresultaten = self.sutabel_data_df['Su']
 
-        self.figure.add_trace(
+        self.figure_sv_su.add_trace(
             go.Scatter(
                 x=x_extra_proefresultaten,
                 y=y_extra_proefresultaten,
@@ -255,6 +262,7 @@ def add_extra_proefresultaten_sv_su_sutabel(self: "SUTABEL", extra_groepen: Opti
             )
         )
         n += 1
+
 
 def add_sutabel_kar_line(self: "SUTABEL"):
     """
@@ -268,7 +276,7 @@ def add_sutabel_kar_line(self: "SUTABEL"):
     x = self.sutabel_grafiek["s'v [kPa]"].tolist()
     y = self.sutabel_grafiek["su_kar [kPa]"].tolist()
 
-    self.figure.add_trace(
+    self.figure_sv_su.add_trace(
         go.Scatter(
             x=x,
             y=y,
@@ -277,6 +285,7 @@ def add_sutabel_kar_line(self: "SUTABEL"):
             line=dict(color='black', width=2)
         )
     )
+
 
 def add_sutabel_gem_line(self: "SUTABEL"):
     """
@@ -290,7 +299,7 @@ def add_sutabel_gem_line(self: "SUTABEL"):
     x = self.sutabel_grafiek["s'v [kPa]"].tolist()
     y = self.sutabel_grafiek["su_gem [kPa]"].tolist()
 
-    self.figure.add_trace(
+    self.figure_sv_su.add_trace(
         go.Scatter(
             x=x,
             y=y,
@@ -299,6 +308,7 @@ def add_sutabel_gem_line(self: "SUTABEL"):
             line=dict(color='purple', width=2, dash='dot')
         )
     )
+
 
 def add_su_kar_fit_constante_vc(self: "SUTABEL"):
     """
@@ -313,7 +323,7 @@ def add_su_kar_fit_constante_vc(self: "SUTABEL"):
     x = self.su_fit_constante_vc["s'v [kPa]"].tolist()
     y = self.su_fit_constante_vc["su_kar fit met constante vc [kPa]"].tolist()
 
-    self.figure.add_trace(
+    self.figure_sv_su.add_trace(
         go.Scatter(
             x=x,
             y=y,
@@ -323,6 +333,7 @@ def add_su_kar_fit_constante_vc(self: "SUTABEL"):
         )
     )
 
+
 def set_layout_sv_su_sutabel(self: "SUTABEL"):
     """Stelt de layout van de figuur in voor sutabel analyse (s'v vs su)."""
     title = f'Sutabel-m analyse: s\'v vs su - {self.analysis_type} proef'
@@ -331,7 +342,7 @@ def set_layout_sv_su_sutabel(self: "SUTABEL"):
     yas_title = r'$s_{u} [kPa]$'
 
     legend_title = 'Legenda'
-    self.figure.update_layout(
+    self.figure_sv_su.update_layout(
         width=1280,
         height=720,
         title=title if self.show_title else None,

@@ -584,7 +584,7 @@ class CPhiAnalyse:
             Naam van het HTML-bestand
         """
         if export_name is None:
-            export_name = f"c-phi_analyse_{self.investigation_groups[0].value.replace(' ', '_')}.html"
+            export_name = f"c-phi_analyse_{self.investigation_groups[0].replace(' ', '_')}.html"
         file_path = Path(path) / export_name
         self.figure.write_html(file_path)
         print(f"figuur opgeslagen als HTML: {file_path}")

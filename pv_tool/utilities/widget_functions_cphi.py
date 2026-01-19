@@ -8,7 +8,7 @@ from pathlib import Path
 from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 import os
 
-#TODO utils wordt nu niet meegenomen in de wheel - fixen
+
 def check_package_install(package_name):
     """Checkt of een package is geïnstalleerd; zo niet, wordt het geïnstalleerd."""
     if importlib.util.find_spec(package_name) is None:
@@ -62,6 +62,35 @@ def select_export_location_and_name(default_filename="Template_PVtool5_0.xlsx"):
         layout=widgets.Layout(width='50%')
     )
     return widgets.VBox([dir_chooser, name_box]), dir_chooser, name_box
+
+
+def toon_grid_settings():
+    """
+    Toon een grid met materiaalfactoren en alpha.
+    Als type_proef eindigt op 'SH', dan wordt partcoh_widget niet getoond.
+    """
+    display(Markdown("**Pas alpha aan (lokaal = 1,0, regionaal = 0,75):**"))
+    alpha_widget = widgets.FloatText(
+        value=0.75,
+        description='Alpha :',
+        step=0.01
+    )
+    display(widgets.VBox([alpha_widget]))
+
+    display(Markdown("**Pas materiaalfactoren aan:**"))
+    partphi_widget = widgets.FloatText(
+        value=1.0,
+        description='φ :',
+        step=0.01
+    )
+    partcoh_widget = widgets.FloatText(
+        value=1.0,
+        description='c :',
+        step=0.01
+    )
+
+    display(widgets.VBox([partphi_widget, partcoh_widget]))
+    return alpha_widget, partphi_widget, partcoh_widget
 
 
 def setup_interactive_import_export():
@@ -370,39 +399,6 @@ def toon_cphi_tabel(
     display(grid)
 
 
-def toon_grid_settings(type_proef):
-    """
-    Toon een grid met materiaalfactoren en alpha.
-    Als type_proef eindigt op 'SH', dan wordt partcoh_widget niet getoond.
-    """
-    display(Markdown("**Pas alpha aan (lokaal = 1,0, regionaal = 0,75):**"))
-    alpha_widget = widgets.FloatText(
-        value=0.75,
-        description='Alpha:',
-        step=0.01
-    )
-    display(widgets.VBox([alpha_widget]))
-
-    display(Markdown("**Pas materiaalfactoren aan:**"))
-    partphi_widget = widgets.FloatText(
-        value=1.0,
-        description='φ:',
-        step=0.01
-    )
-    partcoh_widget = widgets.FloatText(
-        value=1.0,
-        description='c:',
-        step=0.01
-    )
-
-    if str(type_proef).endswith('_CPhi'):
-        display(widgets.VBox([partphi_widget, partcoh_widget]))
-        return alpha_widget, partphi_widget, partcoh_widget
-    else:
-        display(widgets.VBox([partphi_widget]))
-        return alpha_widget, partphi_widget, None
-
-
 def voer_cphi_analyse_uit(
     dbase,
     import_dropdown,
@@ -549,6 +545,7 @@ def show_cphi_analysis(
         # Toon resultaten
         output_df = analyse.get_short_results()
         print(output_df)
+        # Figuur tonen
         extra_verzamelingen_tonen = list(multi_select_verzameling.value)
         analyse.show_figure(plot_extra_dataset=extra_verzamelingen_tonen)
         analyse.show_figure(plot_spanningspaden=True)
@@ -568,7 +565,7 @@ def show_cphi_analysis(
         output_df = analyse.get_short_results()
         print(output_df)
 
-        # Visualisatie
+        # Figuur tonen
         extra_verzamelingen_tonen = list(multi_select_verzameling.value)
         analyse.show_figure(plot_extra_dataset=extra_verzamelingen_tonen, plot_spanningspaden=True)
         return analyse, output_df
@@ -596,8 +593,10 @@ def export_results(analyse,
 
     # resultaten toevoegen aan template
     analyse.add_results_to_template(path=export_dir, export_name=export_name)
-    # exporteer figuren als plotly  # TODO!
-    # export to pdf  # TODO!
+    # exporteer figuren als plotly
+    analyse.save_fig_html(path=export_dir)
+    # export to pdf
+    analyse.save_to_pdf(path=export_dir)
 
 
 

@@ -505,13 +505,13 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, vc_fit_kar: float = None) ->
             fig_path1 = f"{path}/temp_sutabel_plot1.png"
             self.show_title = False
 
-            self.figure = go.Figure()
+            self.figure_sv_su = go.Figure()
             self.set_figure_sv_su_sutabel()
 
-            if hasattr(self, 'figure') and self.figure is not None:
+            if self.figure_sv_su is not None and len(self.figure_sv_su.data) > 0:
                 fig_width = 1280
                 fig_height = 720
-                self.figure.write_image(fig_path1, width=fig_width, height=fig_height, scale=4, format="png")
+                self.figure_sv_su.write_image(fig_path1, width=fig_width, height=fig_height, scale=4, format="png")
 
                 title_and_heading_height = 100
                 available_height = doc.height - title_and_heading_height
@@ -535,7 +535,7 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, vc_fit_kar: float = None) ->
                 img1.drawHeight = img_height_pt
                 img1.hAlign = 'LEFT'
 
-                story.append(Paragraph("Figuur 1: ln(s'v) vs ln(su)", styles['Heading2']))
+                story.append(Paragraph("Figuur 1: s'v vs su", styles['Heading2']))
                 story.append(Spacer(width=1, height=6))
                 story.append(img1)
                 story.append(PageBreak())
@@ -550,13 +550,13 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, vc_fit_kar: float = None) ->
             fig_path2 = f"{path}/temp_sutabel_plot2.png"
             self.show_title = False
 
-            self.figure = go.Figure()
+            self.figure_ln_sv_ln_su = go.Figure()
             self.set_figure_ln_sv_ln_su_sutabel()
 
-            if hasattr(self, 'figure') and self.figure is not None:
+            if self.figure_ln_sv_ln_su is not None and len(self.figure_ln_sv_ln_su.data) > 0:
                 fig_width = 1280
                 fig_height = 720
-                self.figure.write_image(fig_path2, width=fig_width, height=fig_height, scale=4, format="png")
+                self.figure_ln_sv_ln_su.write_image(fig_path2, width=fig_width, height=fig_height, scale=4, format="png")
 
                 with PILImage.open(fig_path2) as im:
                     img_width_px, img_height_px = im.size
@@ -578,7 +578,7 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, vc_fit_kar: float = None) ->
                 img2.drawHeight = img_height_pt
                 img2.hAlign = 'LEFT'
 
-                story.append(Paragraph("Figuur 2: s'v vs su", styles['Heading2']))
+                story.append(Paragraph("Figuur 2: ln(s'v) vs ln(su)", styles['Heading2']))
                 story.append(Spacer(width=1, height=6))
                 story.append(img2)
                 story.append(PageBreak())

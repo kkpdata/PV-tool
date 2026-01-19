@@ -160,7 +160,9 @@ class SHANSEP:
         self.df_results_shansep_kar: Optional[DataFrame] = None
 
         # Figure
-        self.figure = go.Figure()
+        self.figure_sv_su = go.Figure()
+        self.figure_ln_ocr_ln_s = go.Figure()
+        self.figure_sv_su_nc = go.Figure()
         self.show_title: Optional[bool] = True
 
     # ========= Instelling en Data Ophalen Methodes ==========
@@ -739,8 +741,9 @@ class SHANSEP:
             Extra dataset om in de plot weer te geven
         """
         self._run_shansep()
-        self.figure = go.Figure()
+        self.figure_sv_su = go.Figure()
         self.set_figure_sv_su(plot_extra_dataset)
+        self.figure_sv_su.show()
 
     def show_figure_ln_ocr_ln_s(self, plot_extra_dataset: Optional[List] = None):
         """
@@ -752,9 +755,9 @@ class SHANSEP:
             Extra dataset om in de plot weer te geven
         """
         self._run_shansep()
-        self.figure = go.Figure()
+        self.figure_ln_ocr_ln_s = go.Figure()
         self.set_figure_ln_ocr_ln_s(plot_extra_dataset)
-        self.figure.show()
+        self.figure_ln_ocr_ln_s.show()
 
     def show_figure_sv_su_nc(self, plot_extra_dataset: Optional[List] = None):
         """
@@ -766,11 +769,11 @@ class SHANSEP:
             Extra dataset om in de plot weer te geven
         """
         self._run_shansep()
-        self.figure = go.Figure()
+        self.figure_sv_su_nc = go.Figure()
         self.set_figure_sv_su_nc(plot_extra_dataset)
-        self.figure.show()
+        self.figure_sv_su_nc.show()
 
-    def save_fig_html(self, path: str, export_name: Optional[str] = None):
+    def save_fig_html(self, path: str, fig: go.Figure, export_name: Optional[str] = None):
         """
         Slaat de visualisatie van de analyseresultaten op als een HTML-bestand.
 
@@ -781,14 +784,25 @@ class SHANSEP:
         ----------
         path: str
             Pad naar de map waar het bestand opgeslagen moet worden
+        fig: plotly.graph_objs.Figure
+            De Plotly figuur om op te slaan
         export_name : str, optioneel
             Naam van het HTML-bestand
         """
         if export_name is None:
-            export_name = f"shansep_analyse_{self.investigation_groups[0].value.replace(' ', '_')}.html"
+            export_name = f"shansep_analyse_{self.investigation_groups[0].replace(' ', '_')}.html"
         file_path = Path(path) / export_name
-        self.figure.write_html(file_path)
-        print(f"figuur opgeslagen als HTML: {file_path}")
+        fig.write_html(file_path)
+
+    def save_figs_html(self, path: str, export_name: Optional[str] = None):
+        """Slaat alle figuren op als afzonderlijk HTML-bestanden in de opgegeven map."""
+        fig_info = [(self.figure_sv_su, "sv_su"),
+                    (self.figure_ln_ocr_ln_s, "ln_ocr_ln_s"),
+                    (self.figure_sv_su_nc, "sv_su_nc")]
+        for fig, naam in fig_info:
+            export_name = f"SHANSEP_{naam}_{self.investigation_groups[0].replace(' ', '_')}.html"
+            self.save_fig_html(fig=fig, path=path, export_name=export_name)
+        print(f"Figuren opgeslagen als HTML in : {path}")
 
     # ========== Export Methodes ==========
 
