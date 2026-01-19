@@ -27,6 +27,7 @@ from pv_tool.shansep_analysis.visualization_shansep import (
     add_5pr_ondergrens_ln_ocr_ln_s,
     add_lineair_fit_ln_ocr_ln_s,
     set_layout_sv_su,
+    set_layout_sv_su_nc,
     set_layout_ln_ocr_ln_s, add_shansep_lijn_sv_su, add_shansep_lijn_ln_ocr_ln_s,
     add_proefresultaten_sv_su_nc, add_fysische_realiseerbare_ondergrens_sv_su_nc,
     add_lineair_fit_sv_su_nc, add_shansep_lijn_sv_su_nc
@@ -707,7 +708,7 @@ class SHANSEP:
             self.sutabel_nc = self.calculate_sutabel_nc()
             add_shansep_lijn_sv_su_nc(self)
 
-        set_layout_sv_su(self)
+        set_layout_sv_su_nc(self)
 
     def set_figure_ln_ocr_ln_s(self, plot_extra_dataset: Optional[List] = None):
         """

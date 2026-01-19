@@ -8,6 +8,7 @@ from pathlib import Path
 from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 import os
 from pv_tool.sutabel_analysis.sutabel_analysis import SUTABEL
+from pv_tool.utilities.widget_functions_cphi import maak_verzamelings_lijsten, koppel_callbacks
 
 
 def maak_proef_widgets_su(pv_txt_lijst, pv_dss_lijst):
@@ -68,6 +69,35 @@ def toon_widgets_su(
     display(multi_select_verzameling_su)
 
 
+def dropdown_widgets_su(dbase):
+    dbase_df = dbase.dbase_df
+    PV_txt_lijst, PV_dss_lijst = maak_verzamelings_lijsten(dbase_df)
+
+    # Widgets aanmaken
+    (dropdown_type_proef_su, dropdown_rekpercentage_txt_su, dropdown_rekpercentage_dss_su,
+     dropdown_verzameling_su, multi_select_verzameling_su, container_rekpercentage_su,
+     output_rekpercentage_su) = maak_proef_widgets_su(PV_txt_lijst, PV_dss_lijst)
+
+    # 'gekozen_rekpercentage' als lijst zodat het binnen callbacks aanpasbaar blijft
+    gekozen_rekpercentage_su = ['eindsterkte']
+
+    # Koppel callbacks
+    koppel_callbacks(
+        dropdown_type_proef_su, dropdown_rekpercentage_txt_su, dropdown_rekpercentage_dss_su,
+        dropdown_verzameling_su, multi_select_verzameling_su, container_rekpercentage_su,
+        output_rekpercentage_su, PV_txt_lijst, PV_dss_lijst, gekozen_rekpercentage_su
+    )
+
+    # Toon alles
+    toon_widgets_su(
+        dropdown_type_proef_su, dropdown_verzameling_su, container_rekpercentage_su,
+        output_rekpercentage_su, multi_select_verzameling_su
+    )
+    return (dropdown_type_proef_su, dropdown_verzameling_su, dropdown_rekpercentage_txt_su,
+            dropdown_rekpercentage_dss_su, container_rekpercentage_su, output_rekpercentage_su,
+            multi_select_verzameling_su, gekozen_rekpercentage_su)
+
+
 def toon_grid_settings_su():
     """
     Toon een grid met de alpha.
@@ -104,7 +134,7 @@ def create_param_grid(a2, a1, vc, handmatig_init=None):
     grid[1, 0] = widgets.Label(f'Bepaling parameters uit triaxiaal- of DSS-proeven', layout=widgets.Layout(width='300px'))
     grid[1, 1] = widgets.Label(f'{a2}', layout=widgets.Layout(width='200px'))
     grid[1, 2] = widgets.Label(f'{a1}', layout=widgets.Layout(width='200px'))
-    grid[1, 3] = widgets.Label(f'{vc}', layout=widgets.Layout(width='200px'))
+    grid[1, 3] = widgets.Label(f'{vc if vc is not None else "-"}', layout=widgets.Layout(width='200px'))
 
     # Derde rij: handmatig
     a2_handmatig = widgets.FloatText(value=handmatig_init[0], step=0.01, layout=widgets.Layout(width='200px'), placeholder='-')
@@ -157,11 +187,7 @@ def run_su_analysis(
     # Grid aanmaken
     grid, handmatige_widgets = create_param_grid(a2_kar, a1_kar, cv)
     display(grid)
-
-    a2_handmatig = handmatige_widgets[0].value
-    a1_handmatig = handmatige_widgets[1].value
-    cv_handmatig = handmatige_widgets[2].value
-    return analyse, a2_handmatig, a1_handmatig, cv_handmatig
+    return analyse, handmatige_widgets
 
 
 def show_su_analysis(
@@ -194,6 +220,7 @@ def show_su_analysis(
 
     analyse.apply_settings(alpha=alpha_widget.value)
     analyse.set_manual_parameters(a1_kar=a1_handmatig, a2_kar=a2_handmatig, vc_fit_kar=cv_handmatig)
+
 
     # Toon resultaten
     output_df = analyse.get_short_results()

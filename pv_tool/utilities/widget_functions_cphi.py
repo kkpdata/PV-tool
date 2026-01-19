@@ -322,6 +322,33 @@ def toon_widgets(
     display(multi_select_verzameling)
 
 
+def dropdown_widgets(dbase):
+    # Lijsten aanmaken
+    dbase_df = dbase.dbase_df
+    PV_txt_lijst, PV_dss_lijst = maak_verzamelings_lijsten(dbase_df)
+
+    # Widgets aanmaken
+    (dropdown_type_proef, dropdown_rekpercentage_txt, dropdown_rekpercentage_dss,
+     dropdown_verzameling, multi_select_verzameling, container_rekpercentage,
+     output_rekpercentage) = maak_proef_widgets(PV_txt_lijst, PV_dss_lijst)
+
+    gekozen_rekpercentage = ['eindsterkte']
+
+    # Koppel callbacks
+    koppel_callbacks(
+        dropdown_type_proef, dropdown_rekpercentage_txt, dropdown_rekpercentage_dss,
+        dropdown_verzameling, multi_select_verzameling, container_rekpercentage, output_rekpercentage,
+        PV_txt_lijst, PV_dss_lijst, gekozen_rekpercentage)
+
+    # Toon alles
+    toon_widgets(
+        dropdown_type_proef, dropdown_verzameling, container_rekpercentage, output_rekpercentage,
+        multi_select_verzameling
+    )
+    return (dropdown_type_proef, dropdown_verzameling, dropdown_rekpercentage_txt, dropdown_rekpercentage_dss,
+            container_rekpercentage, output_rekpercentage, multi_select_verzameling, gekozen_rekpercentage)
+
+
 def toon_cphi_tabel(
         PV_A2_PHI_GEM_benadering,
         PV_A1_COH_GEM_benadering,

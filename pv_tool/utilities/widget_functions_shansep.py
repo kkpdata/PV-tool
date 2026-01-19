@@ -1,4 +1,5 @@
 import ipywidgets as widgets
+import numpy as np
 from ipyfilechooser import FileChooser
 from IPython.display import display, Markdown, clear_output
 import importlib.util
@@ -8,6 +9,7 @@ from pathlib import Path
 from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
 import os
 from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
+from pv_tool.utilities.widget_functions_cphi import maak_verzamelings_lijsten, koppel_callbacks
 
 
 def maak_proef_widgets_shansep(pv_txt_lijst, pv_dss_lijst):
@@ -69,6 +71,36 @@ def toon_widgets_shansep(
     display(multi_select_verzameling_shansep)
 
 
+def dropdown_widgets_shansep(dbase):
+    dbase_df = dbase.dbase_df
+    PV_txt_lijst, PV_dss_lijst = maak_verzamelings_lijsten(dbase_df)
+
+    # Widgets aanmaken
+    (dropdown_type_proef_shansep, dropdown_rekpercentage_txt_shansep, dropdown_rekpercentage_dss_shansep,
+     dropdown_verzameling_shansep, multi_select_verzameling_shansep, container_rekpercentage_shansep,
+     output_rekpercentage_shansep) = maak_proef_widgets_shansep(PV_txt_lijst, PV_dss_lijst)
+
+    # 'gekozen_rekpercentage' als lijst zodat het binnen callbacks aanpasbaar blijft
+    gekozen_rekpercentage_shansep = ['eindsterkte']
+
+    # Koppel callbacks
+    koppel_callbacks(
+        dropdown_type_proef_shansep, dropdown_rekpercentage_txt_shansep, dropdown_rekpercentage_dss_shansep,
+        dropdown_verzameling_shansep, multi_select_verzameling_shansep, container_rekpercentage_shansep,
+        output_rekpercentage_shansep,
+        PV_txt_lijst, PV_dss_lijst, gekozen_rekpercentage_shansep
+    )
+
+    # Toon alles
+    toon_widgets_shansep(
+        dropdown_type_proef_shansep, dropdown_verzameling_shansep, container_rekpercentage_shansep,
+        output_rekpercentage_shansep, multi_select_verzameling_shansep
+    )
+    return (dropdown_type_proef_shansep, dropdown_verzameling_shansep, dropdown_rekpercentage_txt_shansep,
+            dropdown_rekpercentage_dss_shansep, container_rekpercentage_shansep, output_rekpercentage_shansep,
+            multi_select_verzameling_shansep, gekozen_rekpercentage_shansep)
+
+
 def toon_grid_settings_shansep():
     """
     Toon een grid met de alpha.
@@ -128,8 +160,20 @@ def run_shansep_analysis(
     # Ophalen laatste resultaten
     handmatig = get_laatste_resultaten_shansep(analyse, import_dropdown, import_filechooser, export_dir_widget,
                                                export_name_widget)
+    handmatig_gem = (
+        handmatig['PV_A1_SNIJPUNT_YAS_GEM'][0],
+        handmatig['PV_A2_S_GEM'][0],
+        handmatig['PV_m_GEM'][0]
+    )
+    handmatig_kar = (
+        handmatig['PV_A1_SNIJPUNT_YAS_KAR'][0],
+        handmatig['PV_A2_S_KAR'][0],
+        handmatig['PV_m_KAR'][0]
+    )
 
-    return analyse, df_gem, df_kar, handmatig
+    widgets_kar, widgets_gem = show_grids(analyse, handmatig_gem, handmatig_kar)
+
+    return analyse, df_gem, df_kar, widgets_gem, widgets_kar
 
 
 def get_laatste_resultaten_shansep(analyse, import_dropdown, import_filechooser,
@@ -237,17 +281,21 @@ def show_grids(analyse, handmatig_gem, handmatig_kar):
     matrix_gem, matrix_kar = analyse.get_result_values_shansep()
     benadering_gem = matrix_gem.drop(matrix_gem.index[-1])
     col_order = ['snijpunt y-as [kPa]', 'Schuifsterkteratio S [-]', 'sterkte toename exponent = m [-]', 'POP [kPa]']
-    benadering_gem = [benadering_gem[col].round(2) for col in col_order]
+
+    def to_display_list(series):
+        return [('-' if (isinstance(val, float) and np.isnan(val)) else val) for val in series.round(2)]
+
+    benadering_gem = [to_display_list(benadering_gem[col]) for col in col_order]
     benadering_kar = matrix_kar.drop(matrix_kar.index[-1])
-    benadering_kar = [benadering_kar[col].round(2) for col in col_order]
+    benadering_kar = [to_display_list(benadering_kar[col]) for col in col_order]
 
     # GRID GEMIDDELDE
     grid_gem = widgets.GridspecLayout(6, 5, width='1050px')
-    grid_gem[0,0] = widgets.Label("Parameters", layout=widgets.Layout(width='300px'))
-    grid_gem[0,1] = widgets.Label("Snijpunt y-as")
-    grid_gem[0,2] = widgets.Label("Schuifsterkteratio S")
-    grid_gem[0,3] = widgets.Label("Sterkte toename exponent m")
-    grid_gem[0,4] = widgets.Label("POP")
+    grid_gem[0, 0] = widgets.Label("Parameters", layout=widgets.Layout(width='300px'))
+    grid_gem[0, 1] = widgets.Label("Snijpunt y-as")
+    grid_gem[0, 2] = widgets.Label("Schuifsterkteratio S")
+    grid_gem[0, 3] = widgets.Label("Sterkte toename exponent m")
+    grid_gem[0, 4] = widgets.Label("POP")
 
     # Benaderingswaarden vullen
     for i, row in enumerate(
@@ -264,11 +312,11 @@ def show_grids(analyse, handmatig_gem, handmatig_kar):
 
     # GRID KARAKTERISTIEK
     grid_kar = widgets.GridspecLayout(6, 5, width='1050px')
-    grid_kar[0,0] = widgets.Label("Parameters", layout=widgets.Layout(width='300px'))
-    grid_kar[0,1] = widgets.Label("Snijpunt y-as")
-    grid_kar[0,2] = widgets.Label("Schuifsterkterratio S")
-    grid_kar[0,3] = widgets.Label("Sterkte toename exponent m")
-    grid_kar[0,4] = widgets.Label("POP")
+    grid_kar[0, 0] = widgets.Label("Parameters", layout=widgets.Layout(width='300px'))
+    grid_kar[0, 1] = widgets.Label("Snijpunt y-as")
+    grid_kar[0, 2] = widgets.Label("Schuifsterkterratio S")
+    grid_kar[0, 3] = widgets.Label("Sterkte toename exponent m")
+    grid_kar[0, 4] = widgets.Label("POP")
 
     for i, row in enumerate(
             _create_grid_row(descriptions, *benadering_kar),

@@ -522,3 +522,26 @@ def set_layout_ln_ocr_ln_s(self: SHANSEP):
         legend_title=legend_title,
         margin=dict(t=100, r=50, b=100, l=50)
     )
+
+
+def set_layout_sv_su_nc(self: SHANSEP):
+    """
+    Stelt de layout van de figuur in met titel en as-labels.
+
+    De figuurgrootte is geoptimaliseerd voor zowel schermdisplay als PDF-export.
+    """
+    title = f'Bepaling S en POP uit {self.analysis_type} alleen NC-proeven'
+
+    xas_title = r"$\sigma'_{v} [kPa]$"
+    yas_title = r'$s_{u} [kPa]$'
+
+    legend_title = 'Legenda'
+    self.figure_sv_su_nc.update_layout(
+        width=1280,
+        height=720,
+        title=title if self.show_title else None,
+        xaxis_title=xas_title,
+        yaxis_title=yas_title,
+        legend_title=legend_title,
+        margin=dict(t=100, r=50, b=100, l=50)
+    )
