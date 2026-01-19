@@ -85,9 +85,12 @@ dbase.export_dbase_to_template(export_dir="pad/naar/exportlocatie")
 ```
 
 ### Stap 2: Analyse van gedraineerde parameters
-De C-Phi analyse wordt gedaan volgens methode xxx.
+In deze stap worden op basis van de opgegeven data gedraineerde parameters bepaald. De analyse vindt plaats op de 
+opgegeven verzameling(en) (investigation_groups).
 
-
+Voor de analyse wordt een rekpercentage (effective_stress) gehanteerd. Voor de analyse op de TXT-proeven is er keuze 
+tussen een analyse bij 2%, 5%, 15%, pieksterkte en eindsterkte. Voor de DSS-analyse is keuze tussen 2%, 5%, 10%, 15%, 
+20%, eindsterkte of pieksterkte.
 
 ```python
 from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
@@ -127,74 +130,63 @@ analyse.save_to_pdf(path=export_dir)
 analyse.show_figure()
 ```
 
-- C-phi Analyse (cohesie en hoek van inwendige wrijving):
-  - Analyse van triaxiaalproeven (TXT)
-  - Analyse van Direct Simple Shear proeven (DSS)
-  - Keuze van rekpercentages: 2%, 5%, 10%, 15%, 20%, eindsterkte of pieksterkte
-  - Bepaling van verwachtingswaarde, karakteristieke waarde, en rekenwaarde
-  - Visualisatie van spanningspaden en Mohr-cirkels
-  - Export naar PDF en Excel
+### Stap 3: Analyse van ongedraineerde parameters (SHANSEP)
+In deze stap worden op basis van de opgegeven data ongedraineerde parameters bepaald volgens de methode vastgelegd in 
+de schematiseringshandleiding macrostabiliteit. De analyse vindt plaats op de 
+opgegeven verzameling(en) (investigation_groups).
 
-## Functionaliteiten
+Voor de analyse wordt een rekpercentage (effective_stress) gehanteerd. Voor de analyse op de TXT-proeven is er keuze 
+tussen een analyse bij 2%, 5%, 15%, pieksterkte en eindsterkte. Voor de DSS-analyse is keuze tussen 2%, 5%, 10%, 15%, 
+20%, eindsterkte of pieksterkte.
 
-### 1. Data-import en Validatie
-- **Ondersteunde formaten:**
-  - Excel versie van de proevenverzamelingtool (vanaf versie 4.2n of hoger)
-  - Excel Uitwisselformat-database-proevenverzameling versie 4.2x
-  - Template Proevenverzamelingtool 5.0
+```python
+from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
 
-- **Validatie:**
-  - Controle op volledigheid en correctheid van ingevulde velden
-  - Onderscheid tussen 'critical errors' en 'warnings'
-  - Export van validatieresultaten naar Excel-bestanden
-  - Automatische conversie naar Template_PVtool5_0.xlsx
+# Stel de onderzoeksgroep(en) in (PV_NAAM)
+investigation_groups = ['TXT_SAFE_klei_licht_16_175']
 
-### 2. Analyse van Gedraineerde Parameters
-- **C-phi Analyse (Cohesie en hoek van inwendige wrijving):**
-  - Analyse van triaxiaalproeven (TXT)
-  - Analyse van Direct Simple Shear proeven (DSS)
-  - Keuze van rekpercentages: 2%, 5%, 10%, 15%, 20%, eindsterkte of pieksterkte
-  - Bepaling van verwachtingswaarde, karakteristieke waarde en rekenwaarde
-  - Visualisatie van spanningspaden en Mohr-cirkels
-  - Export naar PDF en Excel
+# Kies de spanningstoestand (PV_REK)
+effective_stress = '15% rek'  # Mogelijke keuzes: '2% rek', '5% rek', '10% rek', '15% rek', '20% rek', 'pieksterkte', 'eindsterkte'
 
-### 3. Analyse van Ongedraineerde Parameters
-- **SHANSEP Analyse:** Voor het bepalen van ongedraineerde schuifsterkte parameters
-- **Su-tabel Analyse:** Voor het opstellen van su-tabellen
+# Kies het analysetype
+analysis_type = 'TXT_S_POP'  # Mogelijke keuzes: 'TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH'
 
-## Workflow
+# Initialiseer de analyse
+analyse = SHANSEP(
+    dbase=dbase,
+    investigation_groups=investigation_groups,
+    effective_stress=effective_stress,
+    analysis_type=analysis_type
+)
 
-### Stap 1: Data Importeren
-1. Kies het juiste template-formaat
-2. Selecteer het Excel-bestand
-3. Voer validatie uit
-4. Controleer validatieresultaten
+# Pas de alpha-waarde aan (bijvoorbeeld 0.75 voor regionale kering en 1.0 voor primaire kering)
+analyse.apply_settings(alpha=0.75)
 
-### Stap 2: Analysekolommen Controleren
-1. Controleer voorgestelde consolidatietypen (NC/OC)
-2. Controleer grensspanningen
-3. Pas indien nodig handmatig aan
+# Pas de parameters aan om een betere fit te vinden
+analyse.set_parameters_handmatig(
+                    snijpunt_gem=0.25, s_gem=0.8, m_gem=0.9,
+                    snijpunt_kar=0.20, s_kar=0.7, m_kar=0.8
 
-### Stap 3: Proevenverzamelingen Definiëren
-1. Onderscheid verzamelingen op basis van:
-   - Grondsoort
-   - Diepte
-   - Locatie
-   - Andere kenmerken
-2. Wijs verzamelingsnamen toe in kolom `PV_NAAM`
+# get results
+analyse.get_short_results()
 
-### Stap 4: Parameters Bepalen
-#### Voor gedraineerde parameters (C-phi):
-1. Kies verzameling voor analyse
-2. Selecteer type proef (TXT of DSS)
-3. Kies rekpercentage
-4. Bekijk automatisch berekende raaklijnen
-5. Pas raaklijnen indien nodig handmatig aan
-6. Controleer resultaten in grafiek en tabel
-7. Exporteer naar PDF en Excel
+# Exporteer de resultaten van de c-phi analyse naar het template en pdf
+export_dir = 'path/to/export_location'
+analyse.add_results_to_template(path=export_dir)
+analyse.save_to_pdf(path=export_dir)
 
-#### Voor ongedraineerde parameters (SHANSEP/Su-tabel):
-Zie specifieke modules in de notebook
+# Plot de figuur van de c-phi analyse
+analyse.show_figure_sv_su()
+```
+
+### Stap 4: Analyse van ongedraineere parameters (SU-tabel)
+...
+
+
+
+
+
+
 
 
 
