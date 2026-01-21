@@ -570,7 +570,7 @@ class CPhiAnalyse:
             Naam van het HTML-bestand
         """
         if export_name is None:
-            export_name = f"c-phi_analyse_{self.investigation_groups[0].value.replace(' ', '_')}.html"
+            export_name = f"c-phi_analyse_{self.investigation_groups[0].replace(' ', '_')}.html"
         file_path = Path(path) / export_name
         self.figure.write_html(file_path)
         print(f"figuur opgeslagen als HTML: {file_path}")
@@ -631,10 +631,10 @@ class CPhiAnalyse:
             'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_"
                                f"{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
             'PV_TYPEVERZAMELING': self.alpha,
-            'PV_A1_COH_GEM': round(self.gem_a1, 3) if self.gem_a1 is not None else None,
-            'PV_A2_TAN_PHI_GEM': round(self.gem_a2, 3) if self.gem_a2 is not None else None,
-            'PV_A1_COH_KAR': round(self.kar_a1, 3) if self.kar_a1 is not None else None,
-            'PV_A2_TAN_PHI_KAR': round(self.kar_a2, 3) if self.kar_a2 is not None else None,
+            'PV_A1_COH_GEM': round(self.gem_a1, 3) if self.gem_a1 is not None else None,  # TODO: gaat deze dan wel goed?
+            'PV_A2_TAN_PHI_GEM': round(self.gem_a2, 3) if self.gem_a2 is not None else None,  # TODO: welke waarde? gem_a2 of tan_phi_gem
+            'PV_A1_COH_KAR': round(self.kar_a1, 3) if self.kar_a1 is not None else None,  # TODO: gaat deze dan wel goed?
+            'PV_A2_TAN_PHI_KAR': round(self.kar_a2, 3) if self.kar_a2 is not None else None,  # TODO: zelfde geld hier met kar_a2 of tan_phi_kar
 
             'PV_COH_GEM': (
                 round(self.c_gem, 3) if self.c_gem is not None and self.c_gem >= 0

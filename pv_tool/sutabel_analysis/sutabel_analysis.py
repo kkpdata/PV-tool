@@ -132,7 +132,8 @@ class SUTABEL:
         self.su_fit_constante_vc: Optional[DataFrame] = None
 
         # Figure voor plotly
-        self.figure: Optional[go.Figure] = None
+        self.figure_sv_su = go.Figure()
+        self.figure_ln_sv_ln_su = go.Figure()
 
     # ========= Instelling en Data Ophalen Methodes ==========
 
@@ -552,9 +553,9 @@ class SUTABEL:
 
         De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
         """
-        self.figure = go.Figure()
+        self.figure_ln_sv_ln_su = go.Figure()
         self.set_figure_ln_sv_ln_su_sutabel(plot_extra_dataset)
-        self.figure.show()
+        self.figure_ln_sv_ln_su.show()
 
     def set_figure_sv_su_sutabel(self, plot_extra_dataset: Optional[List] = None):
         """
@@ -608,11 +609,11 @@ class SUTABEL:
 
         De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
         """
-        self.figure = go.Figure()
+        self.figure_sv_su = go.Figure()
         self.set_figure_sv_su_sutabel(plot_extra_dataset)
-        self.figure.show()
+        self.figure_sv_su.show()
 
-    def save_fig_html(self, path: str, export_name: Optional[str] = None):
+    def save_fig_html(self, path: str, fig: go.Figure, export_name: Optional[str] = None):
         """
         Slaat de visualisatie van de analyseresultaten op als een HTML-bestand.
 
@@ -627,12 +628,18 @@ class SUTABEL:
             Naam van het HTML-bestand
         """
         if export_name is None:
-            export_name = f"sutabel_analyse_{self.investigation_groups[0].value.replace(' ', '_')}.html"
+            export_name = f"sutabel_analyse_{self.investigation_groups[0].replace(' ', '_')}.html"
         file_path = Path(path) / export_name
-        self.figure.write_html(file_path)
-        print(f"figuur opgeslagen als HTML: {file_path}")
+        fig.write_html(file_path)
 
-    # ========== Export Methodes ==========
+    def save_figs_html(self, path: str, export_name: Optional[str] = None):
+        """Slaat alle figuren op als afzonderlijke HTML-bestanden in de opgegeven map."""
+        fig_info = [(self.figure_sv_su, 'sv_su'),
+                    (self.figure_ln_sv_ln_su, 'ln_sv_ln_su')]
+        for fig, naam in fig_info:
+            export_name = f"SU_{naam}_{self.investigation_groups[0].replace(' ', '_')}.html"
+            self.save_fig_html(fig=fig, path=path, export_name=export_name)
+        print(f"Figuren opgeslagen als HTML in: {path}")
 
     def add_results_to_template(self, path: str, export_name: str = 'Template_PVtool5_0.xlsx'):
         """
@@ -661,8 +668,6 @@ class SUTABEL:
 
         from pv_tool.sutabel_analysis.save_and_export import add_results_to_template
         return add_results_to_template(self, path, export_name)
-
-
 
     def save_to_pdf(self, path: str, vc_fit_kar: float = None) -> str:
         """

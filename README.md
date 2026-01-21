@@ -85,6 +85,10 @@ dbase.export_dbase_to_template(export_dir="pad/naar/exportlocatie")
 ```
 
 ### Stap 2: Analyse van geotechnische parameters
+In deze stap worden op basis van de opgegeven data gedraineerde parameters bepaald. De analyse vindt plaats op de 
+opgegeven verzameling(en) (investigation_groups). Voor de analyse wordt een rekpercentage (effective_stress) gehanteerd. Voor de analyse op de TXT-proeven is er keuze 
+tussen een analyse bij 2%, 5%, 15%, pieksterkte en eindsterkte. Voor de DSS-analyse is keuze tussen 2%, 5%, 10%, 15%, 
+20%, eindsterkte of pieksterkte.
 
 #### Stap 2.1: Analyse van gedraineerde parameters (C-phi)
 De C-phi analyse bepaalt cohesie en hoek van inwendige wrijving uit triaxiaal- of DSS-proeven.
@@ -123,6 +127,13 @@ analyse.save_to_pdf(path='path/to/export_location')
 
 #### Stap 2.2: Analyse van ongedraineerde parameters (SHANSEP)
 De SHANSEP analyse bepaalt ongedraineerde schuifsterkteparameters op basis van de consolidatiegeschiedenis.
+In deze stap worden op basis van de opgegeven data ongedraineerde parameters bepaald volgens de methode vastgelegd in 
+de schematiseringshandleiding macrostabiliteit. De analyse vindt plaats op de 
+opgegeven verzameling(en) (investigation_groups).
+
+Voor de analyse wordt een rekpercentage (effective_stress) gehanteerd. Voor de analyse op de TXT-proeven is er keuze 
+tussen een analyse bij 2%, 5%, 15%, pieksterkte en eindsterkte. Voor de DSS-analyse is keuze tussen 2%, 5%, 10%, 15%, 
+20%, eindsterkte of pieksterkte.
 
 ```python
 from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
@@ -195,13 +206,6 @@ analyse.show_figure_sv_su_sutabel()
 analyse.save_to_pdf(path='path/to/export_location')
 ```
 
-- C-phi Analyse (cohesie en hoek van inwendige wrijving):
-  - Analyse van triaxiaalproeven (TXT)
-  - Analyse van Direct Simple Shear proeven (DSS)
-  - Keuze van rekpercentages: 2%, 5%, 10%, 15%, 20%, eindsterkte of pieksterkte
-  - Bepaling van verwachtingswaarde, karakteristieke waarde, en rekenwaarde
-  - Visualisatie van spanningspaden en Mohr-cirkels
-  - Export naar PDF en Excel
 
 ## Functionaliteiten
 

@@ -15,6 +15,7 @@ from pathlib import Path
 
 try:
     from PIL import Image as PILImage
+
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
@@ -24,8 +25,8 @@ if TYPE_CHECKING:
     from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
 
 
-
-def add_results_to_dbase(self: "SHANSEP", path: str, file_name: str = 'Template_PVtool5_0.xlsx'): #TODO deze wordt vervangen door add_results_to_template
+def add_results_to_dbase(self: "SHANSEP", path: str,
+                         file_name: str = 'Template_PVtool5_0.xlsx'):  # TODO deze wordt vervangen door add_results_to_template
     """
     Voegt de SHANSEP analyseresultaten toe aan de database Excel-bestand.
 
@@ -65,11 +66,13 @@ def add_results_to_dbase(self: "SHANSEP", path: str, file_name: str = 'Template_
         'PV_ANALYSE': '_'.join(self.analysis_type.split('_')[1:]),
         'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type}",
         'PV_TYPEVERZAMELING': self.alpha,
-        'PV_A1_SNIJPUNT_YAS_GEM [-]': round(self.snijpunt_gem_handmatig, 3) if self.snijpunt_gem_handmatig is not None else None,
+        'PV_A1_SNIJPUNT_YAS_GEM [-]': round(self.snijpunt_gem_handmatig,
+                                            3) if self.snijpunt_gem_handmatig is not None else None,
         'PV_A2_S_GEM [-]': round(self.s_gem_handmatig, 3) if self.s_gem_handmatig is not None else None,
         'PV_m_GEM [-]': round(self.m_gem_handmatig, 3) if self.m_gem_handmatig is not None else None,
         'PV_POP_GEM [kPa]': round(self.pop_gem_handmatig, 3) if self.pop_gem_handmatig is not None else None,
-        'PV_A1_SNIJPUNT_YAS_KAR [-]': round(self.snijpunt_kar_handmatig, 3) if self.snijpunt_kar_handmatig is not None else None,
+        'PV_A1_SNIJPUNT_YAS_KAR [-]': round(self.snijpunt_kar_handmatig,
+                                            3) if self.snijpunt_kar_handmatig is not None else None,
         'PV_A2_S_KAR [-]': round(self.s_kar_handmatig, 3) if self.s_kar_handmatig is not None else None,
         'PV_m_KAR [-]': round(self.m_kar_handmatig, 3) if self.m_kar_handmatig is not None else None,
         'PV_POP_KAR [kPa]': round(self.pop_kar_handmatig, 3) if self.pop_kar_handmatig is not None else None,
@@ -119,6 +122,7 @@ def add_results_to_dbase(self: "SHANSEP", path: str, file_name: str = 'Template_
 
     return df_updated
 
+
 def add_results_to_template(self: "SHANSEP", path, export_name=None):
     """
     Voegt de SHANSEP analyseresultaten toe aan de database Excel-bestand.
@@ -162,11 +166,13 @@ def add_results_to_template(self: "SHANSEP", path, export_name=None):
         'PV_ANALYSE': '_'.join(self.analysis_type.split('_')[1:]),
         'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type}",
         'PV_TYPEVERZAMELING': self.alpha,
-        'PV_A1_SNIJPUNT_YAS_GEM [-]': round(self.snijpunt_gem_handmatig, 3) if self.snijpunt_gem_handmatig is not None else None,
+        'PV_A1_SNIJPUNT_YAS_GEM [-]': round(self.snijpunt_gem_handmatig,
+                                            3) if self.snijpunt_gem_handmatig is not None else None,
         'PV_A2_S_GEM [-]': round(self.s_gem_handmatig, 3) if self.s_gem_handmatig is not None else None,
         'PV_m_GEM [-]': round(self.m_gem_handmatig, 3) if self.m_gem_handmatig is not None else None,
         'PV_POP_GEM [kPa]': round(self.pop_gem_handmatig, 3) if self.pop_gem_handmatig is not None else None,
-        'PV_A1_SNIJPUNT_YAS_KAR [-]': round(self.snijpunt_kar_handmatig, 3) if self.snijpunt_kar_handmatig is not None else None,
+        'PV_A1_SNIJPUNT_YAS_KAR [-]': round(self.snijpunt_kar_handmatig,
+                                            3) if self.snijpunt_kar_handmatig is not None else None,
         'PV_A2_S_KAR [-]': round(self.s_kar_handmatig, 3) if self.s_kar_handmatig is not None else None,
         'PV_m_KAR [-]': round(self.m_kar_handmatig, 3) if self.m_kar_handmatig is not None else None,
         'PV_POP_KAR [kPa]': round(self.pop_kar_handmatig, 3) if self.pop_kar_handmatig is not None else None,
@@ -219,6 +225,7 @@ def add_results_to_template(self: "SHANSEP", path, export_name=None):
 
     wb.save(file_path)
     print(f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'.")
+
 
 def save_total_to_excel(self: "SHANSEP", path: str):
     """
@@ -393,8 +400,8 @@ def _create_input_table(self: "SHANSEP") -> Table:
     # Add additional columns from shansep_data_df_nc_oc if available and data is properly sorted
     additional_columns = ['S\'v', 'Su', 'consolidatietype', 'OCR']
     if (hasattr(self, 'shansep_data_df_nc_oc_unsorted') and
-        self.shansep_data_df_nc_oc_unsorted is not None and
-        len(self.shansep_data_df_nc_oc_unsorted) == len(table_df)):
+            self.shansep_data_df_nc_oc_unsorted is not None and
+            len(self.shansep_data_df_nc_oc_unsorted) == len(table_df)):
 
         # Check which additional columns are available
         for col in additional_columns:
@@ -404,7 +411,8 @@ def _create_input_table(self: "SHANSEP") -> Table:
                     table_df[col] = self.shansep_data_df_nc_oc_unsorted[col]
 
     else:
-        print(f"WAARSCHUWING: extra kolommen {additional_columns} in invoer tabel konden niet worden toegevoegd aan invoer tabel vanwege ontbrekende of niet-overeenkomende gegevens.")
+        print(
+            f"WAARSCHUWING: extra kolommen {additional_columns} in invoer tabel konden niet worden toegevoegd aan invoer tabel vanwege ontbrekende of niet-overeenkomende gegevens.")
 
     # Hernoem kolommen voor leesbaarheid met kortere namen en line breaks
     column_mapping = {
@@ -430,16 +438,17 @@ def _create_input_table(self: "SHANSEP") -> Table:
 
     # replace column POP by new calculation to account for missing values: terreinspanning*ocr-terreinspanning
     if 'Terreinspanning\n[kPa]' in table_df.columns and 'OCR\n[-]' in table_df.columns:
-        table_df['POP\n[-]'] = table_df['Terreinspanning\n[kPa]'] * table_df['OCR\n[-]'] - table_df['Terreinspanning\n[kPa]']
+        table_df['POP\n[-]'] = table_df['Terreinspanning\n[kPa]'] * table_df['OCR\n[-]'] - table_df[
+            'Terreinspanning\n[kPa]']
 
     # Sort table_df in the same way as shansep_data_df_nc_oc
     # Check if consolidatietype column exists in the data (use original column name before renaming)
 
     if 'consolidatietype' in table_df.columns:
         table_df = table_df.sort_values(
-                by=['consolidatietype', table_df.index.name or table_df.index],
-                ascending=[False, True]
-            ).copy()
+            by=['consolidatietype', table_df.index.name or table_df.index],
+            ascending=[False, True]
+        ).copy()
     else:
         table_df = table_df.sort_index()
         print(f"WAARSCHUWING: invoer tabel kon niet worden gesorteerd op 'consolidatietype' omdat de kolom ontbreekt.")
@@ -506,7 +515,6 @@ def _create_input_table(self: "SHANSEP") -> Table:
         ('ROWBACKGROUNDS', (0, 0), (-1, 0), [colors.lightgrey]),
     ]))
     return t1
-
 
 
 def _create_parameters_table(self: "SHANSEP") -> Table:
@@ -604,6 +612,7 @@ def _create_gem_results_table(self: "SHANSEP") -> Table:
     ]))
     return t
 
+
 def _create_kar_results_table(self: "SHANSEP") -> Table:
     """
     Maakt een tabel met de SHANSEP karakteristieke resultaten (alleen voorgestelde parameters).
@@ -649,6 +658,7 @@ def _create_kar_results_table(self: "SHANSEP") -> Table:
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
     ]))
     return t
+
 
 def _create_handmatig_results_table(self: "SHANSEP") -> Table:
     """
@@ -700,6 +710,7 @@ def _create_handmatig_results_table(self: "SHANSEP") -> Table:
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
     ]))
     return t
+
 
 def save_to_pdf(self: "SHANSEP", path: str) -> str:
     """
@@ -760,13 +771,13 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
         self.show_title = False
 
         # Genereer figuur
-        self.figure = go.Figure()
+        self.figure_sv_su = go.Figure()
         self.set_figure_sv_su()
 
-        if hasattr(self, 'figure') and self.figure is not None:
+        if hasattr(self, 'figure_sv_su') and self.figure_sv_su is not None:
             fig_width = 1280
             fig_height = 720
-            self.figure.write_image(fig_path1, width=fig_width, height=fig_height, scale=4, format="png")
+            self.figure_sv_su.write_image(fig_path1, width=fig_width, height=fig_height, scale=4, format="png")
 
             # Bereken figuurgrootte voor pagina 1 (met titel en heading)
             # Ruimte voor titel (ongeveer 50 pt) + heading (ongeveer 25 pt) + spacers (ongeveer 25 pt)
@@ -798,9 +809,11 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
 
             # Voeg titel toe die aangeeft of handmatige parameters zijn gebruikt
             if has_manual_params:
-                story.append(Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie (met handmatige parameters)", styles['Heading3']))
+                story.append(
+                    Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie (met handmatige parameters)", styles['Heading3']))
             else:
-                story.append(Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie (met voorgestelde parameters)", styles['Heading3']))
+                story.append(Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie (met voorgestelde parameters)",
+                                       styles['Heading3']))
             story.append(Spacer(width=1, height=12))
             story.append(img1)
 
@@ -819,13 +832,13 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
         self.show_title = False
 
         # Genereer figuur
-        self.figure = go.Figure()
+        self.figure_ln_ocr_ln_s = go.Figure()
         self.set_figure_ln_ocr_ln_s()
 
-        if hasattr(self, 'figure') and self.figure is not None:
+        if hasattr(self, 'figure_ln_ocr_ln_s') and self.figure_ln_ocr_ln_s is not None:
             fig_width = 1280
             fig_height = 720
-            self.figure.write_image(fig_path2, width=fig_width, height=fig_height, scale=4, format="png")
+            self.figure_ln_ocr_ln_s.write_image(fig_path2, width=fig_width, height=fig_height, scale=4, format="png")
 
             # Bereken figuurgrootte voor pagina 2 (alleen met heading)
             # Ruimte voor heading (ongeveer 25 pt) + spacer (ongeveer 12 pt)
@@ -859,7 +872,8 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
             if has_manual_params:
                 story.append(Paragraph("LN(OCR) - LN(su/σ'v) Relatie (met handmatige parameters)", styles['Heading3']))
             else:
-                story.append(Paragraph("LN(OCR) - LN(su/σ'v) Relatie (met voorgestelde parameters)", styles['Heading3']))
+                story.append(
+                    Paragraph("LN(OCR) - LN(su/σ'v) Relatie (met voorgestelde parameters)", styles['Heading3']))
             story.append(Spacer(width=1, height=12))
             story.append(img2)
 
@@ -877,13 +891,13 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
         fig_path3 = f"{path}/temp_plot3.png"
         self.show_title = False
 
-        self.figure = go.Figure()
+        self.figure_sv_su_nc = go.Figure()
         self.set_figure_sv_su_nc()
 
-        if hasattr(self, 'figure') and self.figure is not None:
+        if hasattr(self, 'figure_sv_su_nc') and self.figure_sv_su is not None:
             fig_width = 1280
             fig_height = 720
-            self.figure.write_image(fig_path3, width=fig_width, height=fig_height, scale=4, format="png")
+            self.figure_sv_su_nc.write_image(fig_path3, width=fig_width, height=fig_height, scale=4, format="png")
 
             # Bereken figuurgrootte voor pagina 3 (alleen met heading)
             # Ruimte voor heading (ongeveer 25 pt) + spacer (ongeveer 12 pt)
@@ -915,9 +929,13 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
 
             # Voeg titel toe die aangeeft of handmatige parameters zijn gebruikt
             if has_manual_params:
-                story.append(Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie op alleen NC proeven (met handmatige parameters)", styles['Heading3']))
+                story.append(
+                    Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie op alleen NC proeven (met handmatige parameters)",
+                              styles['Heading3']))
             else:
-                story.append(Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie op alleen NC proeven (met voorgestelde parameters)", styles['Heading3']))
+                story.append(Paragraph(
+                    "s<sub>u</sub> - σ'<sub>v</sub> Relatie op alleen NC proeven (met voorgestelde parameters)",
+                    styles['Heading3']))
             story.append(Spacer(width=1, height=12))
             story.append(img3)
 
@@ -964,7 +982,6 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
         story.append(Paragraph("SHANSEP Handmatige parameters", styles['Heading2']))
         story.append(_create_handmatig_results_table(self))
         story.append(Spacer(1, 12))
-
 
     # Voeg Su tabel toe indien beschikbaar
     if hasattr(self, 'sutabel') and self.sutabel is not None:
