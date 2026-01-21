@@ -616,6 +616,18 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, vc_fit_kar: float = None) ->
     try:
         doc.build(story)
         print(f"Sutabel PDF export voltooid: {file_path}")
+
+        # Ruim tijdelijke plot bestanden op
+        import os
+        temp_files = [f"{path}/temp_sutabel_plot1.png", f"{path}/temp_sutabel_plot2.png"]
+        for temp_file in temp_files:
+            try:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+                    print(f"Tijdelijk plot bestand verwijderd: {temp_file}")
+            except Exception as e:
+                print(f"Waarschuwing: Kon tijdelijk plot bestand niet verwijderen {temp_file}: {e}")
+
         return file_path
     except Exception as e:
         print(f"Fout bij maken PDF: {e}")

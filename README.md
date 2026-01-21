@@ -205,10 +205,9 @@ De tool genereert verschillende output-bestanden:
   - `Template_PVtool5_0.xlsx` - Gevalideerde dataset met analysekolommen
   - `Validation_log_##_critical_errors.xlsx` - Kritieke fouten
   - `Validation_log_##_warnings.xlsx` - Waarschuwingen
-  - `c_phi_data_geforceerd.xlsx` - Tussenresultaten C-phi analyse
 
 - **PDF-bestanden:**
-  - `c_phi_pdf_export_[verzameling]_[type]_[rek].pdf` - Grafische rapportage
+  - `[type_analyse]_export_[verzameling]_[type]_[rek].pdf` - Grafische rapportage
 
 - **HTML-bestanden:**
   - Interactieve Plotly visualisaties van spanningspaden
