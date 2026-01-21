@@ -313,7 +313,6 @@ def save_to_pdf(self: "CPhiAnalyse", path: str) -> str:
     try:
         if os.path.exists(fig_path):
             os.remove(fig_path)
-            print(f"Tijdelijk plot bestand verwijderd: {fig_path}")
     except Exception as e:
         print(f"Waarschuwing: Kon tijdelijk plot bestand niet verwijderen {fig_path}: {e}")
 

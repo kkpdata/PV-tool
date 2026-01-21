@@ -624,7 +624,6 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, vc_fit_kar: float = None) ->
             try:
                 if os.path.exists(temp_file):
                     os.remove(temp_file)
-                    print(f"Tijdelijk plot bestand verwijderd: {temp_file}")
             except Exception as e:
                 print(f"Waarschuwing: Kon tijdelijk plot bestand niet verwijderen {temp_file}: {e}")
 
