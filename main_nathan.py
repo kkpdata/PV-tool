@@ -63,7 +63,7 @@ def database_import_test(source: Literal['Stowa', 'PV-tool', 'Dbase'],
                                  file_name_import: str, file_name_export: str = 'Template_PVtool5_0.xlsx', short=False, validate=False, export=False):
     """Test de database import en validatie functionaliteit."""
     repo_root = Path(get_repo_root())
-    path_to_data = repo_root / "import_files" / file_name_import
+    path_to_data = repo_root / "test_files" / file_name_import
     save_test = Path(r"c:\Users\gebraadn0645\ARCADIS\103076457 - STOWA PV Tool - 05 Project execution\Deliverables\2. validatie\Test output")
 
     # Check if input file exists
@@ -280,6 +280,8 @@ def shansep_analysis_test(dbase: Dbase, export_path: Path, export_file: str, plo
     # Pas instellingen toe
     analyse.apply_settings(alpha=0.75)
 
+    # eerst moeten de korte resultaten geplot worden en daarna de eerste plots. Dan daarna handmatige parameters
+
     # Print en exporteer resultaten
     print('\nResultaten SHANSEP analyse:')
     analyse.add_results_to_template(path=str(export_path), export_name=export_file)
@@ -370,24 +372,24 @@ if __name__ == "__main__":
     # Test verschillende analyses
     print("\nUitvoeren van verschillende test cases...")
 
-    print("\nTXT C-phi analyse test")
-    cphi_analysis_txt_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
+    # print("\nTXT C-phi analyse test")
+    # cphi_analysis_txt_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
 
-    print("\nDSS C-phi analyse test")
-    cphi_analysis_dss_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
-
-    print("\nTXT C-phi analyse (schematiseringshandleiding) test")
-    cphi_analysis_txt_sh_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
-
-    print("\nDSS C-phi analyse (schematiseringshandleiding) test")
-    cphi_analysis_dss_sh_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
-
-    plot_extra_dataset = ['TXT_SAFE_klei_zwaar']
-
+    # print("\nDSS C-phi analyse test")
+    # cphi_analysis_dss_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
+    #
+    # print("\nTXT C-phi analyse (schematiseringshandleiding) test")
+    # cphi_analysis_txt_sh_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
+    #
+    # print("\nDSS C-phi analyse (schematiseringshandleiding) test")
+    # cphi_analysis_dss_sh_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
+    #
+    # plot_extra_dataset = ['TXT_SAFE_klei_zwaar']
+    #
     print("\nTXT SHANSEP analyse test")
     shansep_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
-
-    print("\nSUTABEL analyse test")
-    sutabel_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
-
-    print("\nAlle tests zijn voltooid!")
+    #
+    # print("\nSUTABEL analyse test")
+    # sutabel_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
+    #
+    # print("\nAlle tests zijn voltooid!")

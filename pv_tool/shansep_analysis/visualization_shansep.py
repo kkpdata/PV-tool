@@ -486,8 +486,8 @@ def set_layout_sv_su(self: SHANSEP):
     """
     title = f'Bepaling S en POP uit {self.analysis_type}'
 
-    xas_title = r"$\sigma'_{v} [kPa]$"
-    yas_title = r'$s_{u} [kPa]$'
+    xas_title = "σ'ᵥ [kPa]"
+    yas_title = "sᵤ [kPa]"
 
     legend_title = 'Legenda'
     self.figure_sv_su.update_layout(
@@ -509,8 +509,8 @@ def set_layout_ln_ocr_ln_s(self: SHANSEP):
     """
     title = f'Bepaling op basis van S en m op {self.analysis_type}'
 
-    xas_title = r'$LN(OCR) [-]$'
-    yas_title = r"$LN(s_{u}/\sigma'_{v}) [-]$"
+    xas_title = "LN(OCR) [-]"
+    yas_title = "LN(sᵤ/σ'ᵥ) [-]"
 
     legend_title = 'Legenda'
     self.figure_ln_ocr_ln_s.update_layout(

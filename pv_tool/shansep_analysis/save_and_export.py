@@ -1023,4 +1023,15 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
     doc.build(story)
     print(f"SHANSEP PDF export voltooid: {file_path}")
 
+    # Ruim tijdelijke plot bestanden op
+    import os
+    temp_files = [f"{path}/temp_plot1.png", f"{path}/temp_plot2.png", f"{path}/temp_plot3.png"]
+    for temp_file in temp_files:
+        try:
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
+                print(f"Tijdelijk plot bestand verwijderd: {temp_file}")
+        except Exception as e:
+            print(f"Waarschuwing: Kon tijdelijk plot bestand niet verwijderen {temp_file}: {e}")
+
     return file_path

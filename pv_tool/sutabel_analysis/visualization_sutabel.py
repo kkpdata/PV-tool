@@ -168,6 +168,7 @@ def add_fysische_realiseerbare_ondergrens_ln_sv_ln_su_sutabel(self: "SUTABEL"):
 
     # Bereken de karakteristieke lijn: ln(su) = a1_kar + a2_kar * ln(s'v)
     x1 = self.sutabel_data_df['ln(s\'v)'].min()
+    # x1 = 0
     x2 = self.sutabel_data_df['ln(s\'v)'].max()
 
     # Gebruik handmatige parameters als deze zijn ingesteld, anders berekende waarden
@@ -201,8 +202,8 @@ def set_layout_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     """Stelt de layout van de figuur in voor sutabel analyse (ln(s'v) vs ln(su))."""
     title = f'Sutabel-m analyse: ln(s\'v) vs ln(su) - {self.analysis_type} proef'
 
-    xas_title = r"$\ln(\sigma'_{v}) [-]$"
-    yas_title = r'$\ln(s_{u}) [-]$'
+    xas_title = "ln(σ'ᵥ) [-]"
+    yas_title = "ln(sᵤ) [-]"
 
     legend_title = 'Legenda'
     self.figure_ln_sv_ln_su.update_layout(
@@ -338,8 +339,8 @@ def set_layout_sv_su_sutabel(self: "SUTABEL"):
     """Stelt de layout van de figuur in voor sutabel analyse (s'v vs su)."""
     title = f'Sutabel-m analyse: s\'v vs su - {self.analysis_type} proef'
 
-    xas_title = r"$\sigma'_{v} [kPa]$"
-    yas_title = r'$s_{u} [kPa]$'
+    xas_title = "σ'ᵥ [kPa]"
+    yas_title = "sᵤ [kPa]"
 
     legend_title = 'Legenda'
     self.figure_sv_su.update_layout(

@@ -144,8 +144,8 @@ def set_layout_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     """Stelt de layout van de figuur in voor sutabel analyse (ln(s'v) vs ln(su))."""
     title = f'Sutabel-m analyse: ln(s\'v) vs ln(su) - {self.analysis_type} proef'
 
-    xas_title = r"$\ln(\sigma'_{v}) [-]$"
-    yas_title = r'$\ln(s_{u}) [-]$'
+    xas_title = "ln(σ'ᵥ) [-]"
+    yas_title = "ln(sᵤ) [-]"
 
     legend_title = 'Legenda'
     self.figure.update_layout(
@@ -257,8 +257,8 @@ def set_layout_sv_su_sutabel(self: "SUTABEL"):
     """Stelt de layout van de figuur in voor sutabel analyse (s'v vs su)."""
     title = f'Sutabel-m analyse: s\'v vs su - {self.analysis_type} proef'
 
-    xas_title = r"$\sigma'_{v} [kPa]$"
-    yas_title = r'$s_{u} [kPa]$'
+    xas_title = "σ'ᵥ [kPa]"
+    yas_title = "sᵤ [kPa]"
 
     legend_title = 'Legenda'
     self.figure.update_layout(
