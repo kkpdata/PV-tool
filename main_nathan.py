@@ -265,26 +265,28 @@ def shansep_analysis_test(dbase: Dbase, export_path: Path, export_file: str, plo
     export_file : str
         Naam van het export database bestand
     """
-    analyse = SHANSEP(
-        dbase=dbase,
-        investigation_groups=['DSS_SAFE_veen'],
-        effective_stress='20% rek',
-        analysis_type='DSS_S_POP')
-
     # analyse = SHANSEP(
     #     dbase=dbase,
-    #     investigation_groups=['TXT_SAFE_klei_licht_16_175'],
-    #     effective_stress='15% rek',
-    #     analysis_type='TXT_S_POP')
+    #     investigation_groups=['DSS_SAFE_veen'],
+    #     effective_stress='20% rek',
+    #     analysis_type='DSS_S_POP')
+
+    analyse = SHANSEP(
+        dbase=dbase,
+        investigation_groups=['TXT_SAFE_klei_licht_16_175'],
+        effective_stress='15% rek',
+        analysis_type='TXT_S_POP')
 
     # Pas instellingen toe
     analyse.apply_settings(alpha=0.75)
 
-    # eerst moeten de korte resultaten geplot worden en daarna de eerste plots. Dan daarna handmatige parameters
+    # eerst moeten de korte resultaten berekend worden en daarna de eerste plots. Dan daarna handmatige parameters
+    df = analyse.get_short_results()
+    print(df)
+    analyse.show_figure_sv_su(plot_extra_dataset=plot_extra_dataset)
+    analyse.show_figure_ln_ocr_ln_s(plot_extra_dataset=plot_extra_dataset)
+    analyse.show_figure_sv_su_nc(plot_extra_dataset=plot_extra_dataset)
 
-    # Print en exporteer resultaten
-    print('\nResultaten SHANSEP analyse:')
-    analyse.add_results_to_template(path=str(export_path), export_name=export_file)
 
     analyse.set_parameters_handmatig(snijpunt_gem=11, s_gem=0.31, m_gem=0.9, snijpunt_kar=7, s_kar=0.28, m_kar=0.9)
 
@@ -292,6 +294,9 @@ def shansep_analysis_test(dbase: Dbase, export_path: Path, export_file: str, plo
     analyse.show_figure_sv_su(plot_extra_dataset=plot_extra_dataset)
     analyse.show_figure_ln_ocr_ln_s(plot_extra_dataset=plot_extra_dataset)
     analyse.show_figure_sv_su_nc(plot_extra_dataset=plot_extra_dataset)
+
+    # Print en exporteer resultaten
+    analyse.add_results_to_template(path=str(export_path), export_name=export_file)
     pdf_path = analyse.save_to_pdf(path=str(export_path))
     analyse.save_total_to_excel(path=str(export_path))
 

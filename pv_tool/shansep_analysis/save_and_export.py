@@ -1030,7 +1030,6 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
         try:
             if os.path.exists(temp_file):
                 os.remove(temp_file)
-                print(f"Tijdelijk plot bestand verwijderd: {temp_file}")
         except Exception as e:
             print(f"Waarschuwing: Kon tijdelijk plot bestand niet verwijderen {temp_file}: {e}")
 
