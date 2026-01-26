@@ -36,7 +36,7 @@ def add_proefresultaten_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     )
 
 
-def add_lineair_fit_ln_sv_ln_su_sutabel(self: "SUTABEL"):
+def add_linear_fit_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     """Voegt de lineaire fit toe aan de figuur voor sutabel analyse."""
     # Gebruik de min en max van ln(s'v) voor de lijn
     x1 = self.shansep_data_df_sutabel['ln(s\'v)'].min()
@@ -134,7 +134,7 @@ def add_fysische_realiseerbare_ondergrens_ln_sv_ln_su_sutabel(self: "SUTABEL"):
             x=x,
             y=y,
             mode='lines',
-            name='Fysische realiseerbare ondergrens',
+            name='Fysisch realiseerbare ondergrens',
             line=dict(color='black', width=2),
         )
     )

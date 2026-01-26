@@ -527,7 +527,7 @@ class SUTABEL:
         from pv_tool.sutabel_analysis.visualization_sutabel import (
             add_proefresultaten_ln_sv_ln_su_sutabel,
             add_extra_proefresultaten_ln_sv_ln_su_sutabel,
-            add_lineair_fit_ln_sv_ln_su_sutabel,
+            add_linear_fit_ln_sv_ln_su_sutabel,
             add_5pr_bovengrens_ln_sv_ln_su_sutabel,
             add_5pr_ondergrens_ln_sv_ln_su_sutabel,
             add_fysische_realiseerbare_ondergrens_ln_sv_ln_su_sutabel,
@@ -541,7 +541,7 @@ class SUTABEL:
         if plot_extra_dataset is not None:
             add_extra_proefresultaten_ln_sv_ln_su_sutabel(self, plot_extra_dataset)
         add_proefresultaten_ln_sv_ln_su_sutabel(self)
-        add_lineair_fit_ln_sv_ln_su_sutabel(self)
+        add_linear_fit_ln_sv_ln_su_sutabel(self)
         add_5pr_bovengrens_ln_sv_ln_su_sutabel(self)
         add_5pr_ondergrens_ln_sv_ln_su_sutabel(self)
         add_fysische_realiseerbare_ondergrens_ln_sv_ln_su_sutabel(self)

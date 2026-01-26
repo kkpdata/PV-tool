@@ -277,7 +277,7 @@ def add_fysische_realiseerbare_ondergrens_sv_su(self: SHANSEP):
             x=x,
             y=y,
             mode='lines',
-            name='Fysische realiseerbare ondergrens',
+            name='Fysisch realiseerbare ondergrens',
             line=dict(color='black', width=2),
         )
     )
@@ -299,7 +299,7 @@ def add_fysische_realiseerbare_ondergrens_sv_su_nc(self: SHANSEP):
             x=x,
             y=y,
             mode='lines',
-            name='Fysische realiseerbare ondergrens',
+            name='Fysisch realiseerbare ondergrens',
             line=dict(color='black', width=2),
         )
     )
@@ -312,7 +312,7 @@ def _get_helling_value(helling):
     return float(helling)
 
 
-def add_lineair_fit_sv_su(self: SHANSEP):
+def add_linear_fit_sv_su(self: SHANSEP):
     """Deze functie voegt de lineaire fit van de proefresultaten toe aan de figuur."""
     x1 = self.shansep_data_df_oc['S\'v'].min()
     x2 = self.shansep_data_df_oc['S\'v'].max()
@@ -339,17 +339,20 @@ def add_lineair_fit_sv_su(self: SHANSEP):
     )
 
 
-def add_lineair_fit_sv_su_nc(self: SHANSEP):
-    """Deze functie voegt de lineaire fit van de proefresultaten toe aan de figuur."""
-    x1 = self.shansep_data_df_nc['S\'v'].min()
+def add_linear_fit_sv_su_nc(self: SHANSEP):
+    """Deze functie voegt de lineaire fit van de proefresultaten toe aan de figuur door de oorsprong."""
+    x1 = 0  # Start bij oorsprong
     x2 = self.shansep_data_df_nc['S\'v'].max()
 
     x_data = self.shansep_data_df_nc['S\'v'].values
     y_data = self.shansep_data_df_nc['Su'].values
-    helling, intercept = np.polyfit(x_data, y_data, 1)
 
-    y1 = x1 * helling + intercept
-    y2 = x2 * helling + intercept
+    # Bereken helling door oorsprong (intercept = 0)
+    # Voor y = a*x (door oorsprong) is a = sum(x*y) / sum(x^2)
+    helling = np.sum(x_data * y_data) / np.sum(x_data ** 2)
+
+    y1 = x1 * helling  # = 0
+    y2 = x2 * helling
 
     x = [x1, x2]
     y = [y1, y2]
@@ -365,7 +368,7 @@ def add_lineair_fit_sv_su_nc(self: SHANSEP):
     )
 
 
-def add_lineair_fit_ln_ocr_ln_s(self: SHANSEP):
+def add_linear_fit_ln_ocr_ln_s(self: SHANSEP):
     """Deze functie voegt de lineaire fit van de proefresultaten toe aan de figuur."""
     x1 = self.shansep_data_df_nc_oc['LN(OCR)'].min()
     x2 = self.shansep_data_df_nc_oc['LN(OCR)'].max()

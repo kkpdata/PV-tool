@@ -21,16 +21,16 @@ from pv_tool.shansep_analysis.visualization_shansep import (
     add_5pr_bovengrens_sv_su,
     add_5pr_ondergrens_sv_su,
     add_fysische_realiseerbare_ondergrens_sv_su,
-    add_lineair_fit_sv_su,
+    add_linear_fit_sv_su,
     add_proefresultaten_ln_ocr_ln_s,
     add_5pr_bovengrens_ln_ocr_ln_s,
     add_5pr_ondergrens_ln_ocr_ln_s,
-    add_lineair_fit_ln_ocr_ln_s,
+    add_linear_fit_ln_ocr_ln_s,
     set_layout_sv_su,
     set_layout_sv_su_nc,
     set_layout_ln_ocr_ln_s, add_shansep_lijn_sv_su, add_shansep_lijn_ln_ocr_ln_s,
     add_proefresultaten_sv_su_nc, add_fysische_realiseerbare_ondergrens_sv_su_nc,
-    add_lineair_fit_sv_su_nc, add_shansep_lijn_sv_su_nc
+    add_linear_fit_sv_su_nc, add_shansep_lijn_sv_su_nc
 )
 
 from pv_tool.shansep_analysis.variables import (
@@ -675,7 +675,7 @@ class SHANSEP:
             add_extra_proefresultaten_sv_su(self, plot_extra_dataset)
         add_5pr_bovengrens_sv_su(self)
         add_5pr_ondergrens_sv_su(self)
-        add_lineair_fit_sv_su(self)
+        add_linear_fit_sv_su(self)
 
         if self.parameters_handmatig:
             add_fysische_realiseerbare_ondergrens_sv_su(self)
@@ -701,7 +701,7 @@ class SHANSEP:
         add_proefresultaten_sv_su_nc(self)
         if plot_extra_dataset is not None:
             add_extra_proefresultaten_sv_su_nc(self, plot_extra_dataset)
-        add_lineair_fit_sv_su_nc(self)
+        add_linear_fit_sv_su_nc(self)
 
         if self.parameters_handmatig:
             add_fysische_realiseerbare_ondergrens_sv_su_nc(self)
@@ -725,7 +725,7 @@ class SHANSEP:
             add_extra_proefresultaten_ln_ocr_ln_s(self, plot_extra_dataset)
         add_5pr_bovengrens_ln_ocr_ln_s(self)
         add_5pr_ondergrens_ln_ocr_ln_s(self)
-        add_lineair_fit_ln_ocr_ln_s(self)
+        add_linear_fit_ln_ocr_ln_s(self)
 
         if self.parameters_handmatig:
             add_shansep_lijn_ln_ocr_ln_s(self)

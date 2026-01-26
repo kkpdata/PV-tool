@@ -93,7 +93,7 @@ def add_extra_proefresultaten_ln_sv_ln_su_sutabel(self: "SUTABEL", extra_groepen
         n += 1
 
 
-def add_lineair_fit_ln_sv_ln_su_sutabel(self: "SUTABEL"):
+def add_linear_fit_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     """Voegt de lineaire fit toe aan de figuur voor sutabel analyse."""
     # Gebruik de min en max van ln(s'v) voor de lijn
     x1 = self.sutabel_data_df['ln(s\'v)'].min()
