@@ -110,7 +110,8 @@ def add_fysische_realiseerbare_ondergrens_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     from pv_tool.sutabel_analysis.variables import a2_kar_sutabel, a1_kar_sutabel
 
     # Bereken de karakteristieke lijn: ln(su) = a1_kar + a2_kar * ln(s'v)
-    x1 = self.shansep_data_df_sutabel['ln(s\'v)'].min()
+    # x1 = self.shansep_data_df_sutabel['ln(s\'v)'].min()
+    x1 = 0
     x2 = self.shansep_data_df_sutabel['ln(s\'v)'].max()
 
     # Gebruik handmatige parameters als deze zijn ingesteld, anders berekende waarden
