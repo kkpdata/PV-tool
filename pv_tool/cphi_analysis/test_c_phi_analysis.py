@@ -1,10 +1,11 @@
 import os.path
 import unittest
+from typing import Literal
+
 from pv_tool.imports.import_data import Dbase
 from pv_tool.utilities.utils import get_repo_root, make_temp_folder
 from pathlib import Path
 from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
-import shutil
 
 FILE_PATH = os.path.join(get_repo_root(), "test_files")
 repo_root = get_repo_root()
@@ -23,7 +24,8 @@ def test_cphi_analyse():
     dbase.export_dbase_to_template(export_dir=export_dir)
 
     # Initialize analysis
-    analysis_types = ['TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH']
+    analysis_types: list[Literal['TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH']] = [
+        'TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH']
     for analysis_type in analysis_types:
         analyse = CPhiAnalyse(
             dbase=dbase,
@@ -83,7 +85,7 @@ class TestImportAndValidate(unittest.TestCase):
 
             # Test save_fig_html functionaliteit
             analyse.save_fig_html(path=str(export_dir), export_name="test_cphi_figure.html")
-            # Controleer dat het HTML bestand bestaat
+            # Controleer dat het HTML-bestand bestaat
             html_file = export_dir / "test_cphi_figure.html"
             self.assertTrue(html_file.exists(), "HTML file should be created")
             html_saved = True

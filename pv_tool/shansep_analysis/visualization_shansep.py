@@ -9,6 +9,7 @@ from typing import Optional, List
 from pv_tool.shansep_analysis.globals import (TEXTUAL_NAMES, TEXTUAL_NAMES_DSS, NEW_COLUMN_NAMES)
 import numpy as np
 
+
 def add_proefresultaten_sv_su(self: SHANSEP):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
     boring_monsternummer = self.shansep_data_df_oc.index
@@ -29,6 +30,7 @@ def add_proefresultaten_sv_su(self: SHANSEP):
             hoverinfo='text'
         )
     )
+
 
 def add_proefresultaten_sv_su_nc(self: SHANSEP):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
@@ -51,6 +53,7 @@ def add_proefresultaten_sv_su_nc(self: SHANSEP):
         )
     )
 
+
 def add_proefresultaten_ln_ocr_ln_s(self: SHANSEP):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
     boring_monsternummer = self.shansep_data_df_oc.index
@@ -72,6 +75,7 @@ def add_proefresultaten_ln_ocr_ln_s(self: SHANSEP):
         )
     )
 
+
 def get_extra_data(self: SHANSEP, investigationgroups_extra: Optional[List]):
     if self.analysis_type in ['TXT_S_POP']:
         dataset_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
@@ -88,6 +92,7 @@ def get_extra_data(self: SHANSEP, investigationgroups_extra: Optional[List]):
         dataset_df = dataset_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
     dataset_df.columns = NEW_COLUMN_NAMES
     return dataset_df
+
 
 def add_extra_proefresultaten_sv_su(self: SHANSEP, extra_groepen: Optional[List]):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
@@ -112,6 +117,7 @@ def add_extra_proefresultaten_sv_su(self: SHANSEP, extra_groepen: Optional[List]
             )
         )
         n += 1
+
 
 def add_extra_proefresultaten_ln_ocr_ln_s(self: SHANSEP, extra_groepen: Optional[List]):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
@@ -147,6 +153,7 @@ def add_extra_proefresultaten_ln_ocr_ln_s(self: SHANSEP, extra_groepen: Optional
         )
         n += 1
 
+
 def add_extra_proefresultaten_sv_su_nc(self: SHANSEP, extra_groepen: Optional[List]):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
     df = get_extra_data(self, investigationgroups_extra=extra_groepen)
@@ -173,6 +180,7 @@ def add_extra_proefresultaten_sv_su_nc(self: SHANSEP, extra_groepen: Optional[Li
         )
         n += 1
 
+
 def add_5pr_bovengrens_sv_su(self: SHANSEP):
     """Deze functie voegt de 5% bovengrens toe aan de figuur."""
     x_5pr = self.shansep_data_df_oc['s\'']
@@ -191,6 +199,7 @@ def add_5pr_bovengrens_sv_su(self: SHANSEP):
             )
         )
     )
+
 
 def add_5pr_ondergrens_sv_su(self: SHANSEP):
     """Deze functie voegt de 5% bovengrens toe aan de figuur."""
@@ -211,6 +220,7 @@ def add_5pr_ondergrens_sv_su(self: SHANSEP):
         )
     )
 
+
 def add_5pr_bovengrens_ln_ocr_ln_s(self: SHANSEP):
     """Deze functie voegt de 5% bovengrens toe aan de figuur."""
     x_5pr = self.shansep_data_df_nc_oc['s\'']
@@ -230,6 +240,7 @@ def add_5pr_bovengrens_ln_ocr_ln_s(self: SHANSEP):
         )
     )
 
+
 def add_5pr_ondergrens_ln_ocr_ln_s(self: SHANSEP):
     """Deze functie voegt de 5% bovengrens toe aan de figuur."""
     x_5pr = self.shansep_data_df_nc_oc['s\'']
@@ -248,6 +259,7 @@ def add_5pr_ondergrens_ln_ocr_ln_s(self: SHANSEP):
             )
         )
     )
+
 
 def add_fysische_realiseerbare_ondergrens_sv_su(self: SHANSEP):
     """Deze functie voegt de fysische realiseerbare ondergrens toe aan de figuur."""
@@ -270,6 +282,7 @@ def add_fysische_realiseerbare_ondergrens_sv_su(self: SHANSEP):
         )
     )
 
+
 def add_fysische_realiseerbare_ondergrens_sv_su_nc(self: SHANSEP):
     """Deze functie voegt de fysische realiseerbare ondergrens toe aan de figuur."""
     raaklijn_kar_x1 = 0
@@ -291,11 +304,13 @@ def add_fysische_realiseerbare_ondergrens_sv_su_nc(self: SHANSEP):
         )
     )
 
+
 def _get_helling_value(helling):
     """Helper function om de juiste waarde uit helling te halen, ongeacht of het een float of array is."""
     if isinstance(helling, (list, np.ndarray)):
         return float(helling[0])
     return float(helling)
+
 
 def add_linear_fit_sv_su(self: SHANSEP):
     """Deze functie voegt de lineaire fit van de proefresultaten toe aan de figuur."""
@@ -322,6 +337,7 @@ def add_linear_fit_sv_su(self: SHANSEP):
             line=dict(color='green', width=2),
         )
     )
+
 
 def add_linear_fit_sv_su_nc(self: SHANSEP):
     """Deze functie voegt de lineaire fit van de proefresultaten toe aan de figuur door de oorsprong."""
@@ -351,6 +367,7 @@ def add_linear_fit_sv_su_nc(self: SHANSEP):
         )
     )
 
+
 def add_linear_fit_ln_ocr_ln_s(self: SHANSEP):
     """Deze functie voegt de lineaire fit van de proefresultaten toe aan de figuur."""
     x1 = self.shansep_data_df_nc_oc['LN(OCR)'].min()
@@ -376,6 +393,7 @@ def add_linear_fit_ln_ocr_ln_s(self: SHANSEP):
         )
     )
 
+
 def add_shansep_lijn_sv_su(self: SHANSEP):
     x = self.sutabel['S\'v [kPa]'].tolist()
     shansep_kar = self.sutabel['Su in-situ karakteristiek'].tolist()
@@ -400,6 +418,7 @@ def add_shansep_lijn_sv_su(self: SHANSEP):
             line=dict(color='purple', width=2)
         )
     )
+
 
 def add_shansep_lijn_sv_su_nc(self: SHANSEP):
     if self.sutabel_nc is None:
@@ -430,6 +449,7 @@ def add_shansep_lijn_sv_su_nc(self: SHANSEP):
         )
     )
 
+
 def add_5pr_ondergrens_sv_su_nc(self: SHANSEP):
     x = [0, self.shansep_data_df_nc['S\'v'].max()]
     s_onder = self.exp_kar_ln_su_svc_nc
@@ -445,9 +465,10 @@ def add_5pr_ondergrens_sv_su_nc(self: SHANSEP):
         )
     )
 
+
 def add_5pr_bovengrens_sv_su_nc(self: SHANSEP):
     x = [0, self.shansep_data_df_nc['S\'v'].max()]
-    s_boven = self.exp_gem_ln_su_svc_nc + (self.exp_gem_ln_su_svc_nc-self.exp_kar_ln_su_svc_nc)
+    s_boven = self.exp_gem_ln_su_svc_nc + (self.exp_gem_ln_su_svc_nc - self.exp_kar_ln_su_svc_nc)
     shansep_boven = [s_boven * xi for xi in x]
 
     self.figure_sv_su_nc.add_trace(
@@ -459,6 +480,7 @@ def add_5pr_bovengrens_sv_su_nc(self: SHANSEP):
             line=dict(color='black', width=1, dash='dash')
         )
     )
+
 
 def add_shansep_lijn_ln_ocr_ln_s(self: SHANSEP):
     s = [0, 1.01]
@@ -492,6 +514,7 @@ def add_shansep_lijn_ln_ocr_ln_s(self: SHANSEP):
         )
     )
 
+
 def set_layout_sv_su(self: SHANSEP):
     """
     Stelt de layout van de figuur in met titel en as-labels.
@@ -514,6 +537,7 @@ def set_layout_sv_su(self: SHANSEP):
         margin=dict(t=100, r=50, b=100, l=50)
     )
 
+
 def set_layout_ln_ocr_ln_s(self: SHANSEP):
     """
     Stelt de layout van de figuur in met titel en as-labels.
@@ -535,6 +559,7 @@ def set_layout_ln_ocr_ln_s(self: SHANSEP):
         legend_title=legend_title,
         margin=dict(t=100, r=50, b=100, l=50)
     )
+
 
 def set_layout_sv_su_nc(self: SHANSEP):
     """
