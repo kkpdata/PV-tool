@@ -494,8 +494,8 @@ def set_layout_sv_su(self: SHANSEP):
 
     legend_title = 'Legenda'
     self.figure_sv_su.update_layout(
-        width=1280,
-        height=720,
+        width=1152,
+        height=648,
         title=title if self.show_title else None,
         xaxis_title=xas_title,
         yaxis_title=yas_title,
@@ -517,8 +517,8 @@ def set_layout_ln_ocr_ln_s(self: SHANSEP):
 
     legend_title = 'Legenda'
     self.figure_ln_ocr_ln_s.update_layout(
-        width=1280,
-        height=720,
+        width=1152,
+        height=648,
         title=title if self.show_title else None,
         xaxis_title=xas_title,
         yaxis_title=yas_title,
@@ -540,8 +540,8 @@ def set_layout_sv_su_nc(self: SHANSEP):
 
     legend_title = 'Legenda'
     self.figure_sv_su_nc.update_layout(
-        width=1280,
-        height=720,
+        width=1152,
+        height=648,
         title=title if self.show_title else None,
         xaxis_title=xas_title,
         yaxis_title=yas_title,

@@ -149,8 +149,8 @@ def set_layout_ln_sv_ln_su_sutabel(self: "SUTABEL"):
 
     legend_title = 'Legenda'
     self.figure.update_layout(
-        width=1280,
-        height=720,
+        width=1152,
+        height=648,
         title=title if self.show_title else None,
         xaxis_title=xas_title,
         yaxis_title=yas_title,
