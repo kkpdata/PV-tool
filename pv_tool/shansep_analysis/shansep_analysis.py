@@ -20,6 +20,8 @@ from pv_tool.shansep_analysis.visualization_shansep import (
     add_extra_proefresultaten_ln_ocr_ln_s,
     add_5pr_bovengrens_sv_su,
     add_5pr_ondergrens_sv_su,
+    add_5pr_bovengrens_sv_su_nc,
+    add_5pr_ondergrens_sv_su_nc,
     add_fysische_realiseerbare_ondergrens_sv_su,
     add_linear_fit_sv_su,
     add_proefresultaten_ln_ocr_ln_s,
@@ -702,6 +704,9 @@ class SHANSEP:
         if plot_extra_dataset is not None:
             add_extra_proefresultaten_sv_su_nc(self, plot_extra_dataset)
         add_linear_fit_sv_su_nc(self)
+
+        add_5pr_ondergrens_sv_su_nc(self)
+        add_5pr_bovengrens_sv_su_nc(self)
 
         if self.parameters_handmatig:
             add_fysische_realiseerbare_ondergrens_sv_su_nc(self)

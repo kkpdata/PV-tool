@@ -423,9 +423,11 @@ def add_shansep_lijn_sv_su(self: SHANSEP):
 def add_shansep_lijn_sv_su_nc(self: SHANSEP):
     if self.sutabel_nc is None:
         self.calculate_sutabel_nc()
-    x = self.sutabel_nc['S\'v [kPa]'].tolist()
-    shansep_kar = self.sutabel_nc['Su in-situ karakteristiek'].tolist()
-    shansep_gem = self.sutabel_nc['Su in-situ gemiddeld'].tolist()
+    x = [0, self.shansep_data_df_nc['S\'v'].max()]
+    s_kar = self.s_kar_handmatig
+    s_gem = self.s_gem_handmatig
+    shansep_kar = [s_kar * xi for xi in x]
+    shansep_gem = [s_gem * xi for xi in x]
 
     self.figure_sv_su_nc.add_trace(
         go.Scatter(
@@ -444,6 +446,38 @@ def add_shansep_lijn_sv_su_nc(self: SHANSEP):
             mode='lines',
             name='SHANSEP karakteristieke lijn',
             line=dict(color='purple', width=2)
+        )
+    )
+
+
+def add_5pr_ondergrens_sv_su_nc(self: SHANSEP):
+    x = [0, self.shansep_data_df_nc['S\'v'].max()]
+    s_onder = self.exp_kar_ln_su_svc_nc
+    shansep_onder = [s_onder * xi for xi in x]
+
+    self.figure_sv_su_nc.add_trace(
+        go.Scatter(
+            x=x,
+            y=shansep_onder,
+            mode='lines',
+            name='5% ondergrens',
+            line=dict(color='black', width=1, dash='dash')
+        )
+    )
+
+
+def add_5pr_bovengrens_sv_su_nc(self: SHANSEP):
+    x = [0, self.shansep_data_df_nc['S\'v'].max()]
+    s_boven = self.exp_gem_ln_su_svc_nc + (self.exp_gem_ln_su_svc_nc - self.exp_kar_ln_su_svc_nc)
+    shansep_boven = [s_boven * xi for xi in x]
+
+    self.figure_sv_su_nc.add_trace(
+        go.Scatter(
+            x=x,
+            y=shansep_boven,
+            mode='lines',
+            name='5% bovengrens',
+            line=dict(color='black', width=1, dash='dash')
         )
     )
 

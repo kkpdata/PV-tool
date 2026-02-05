@@ -9,6 +9,7 @@ Output:
 - De aangepaste dbase met de nieuwe proevenverzameling naam voor de opgegeven boringen
 """
 
+
 # TODO: Verder uitwerken
 def edit_pv_group(boring_nummers, dbase, nieuwe_pv_naam):
     """
@@ -31,12 +32,15 @@ def edit_pv_group(boring_nummers, dbase, nieuwe_pv_naam):
             print(f"Boring nummer {boring_nummer} niet gevonden in de database.")
 
     for i in range(len(oude_pv_naam)):
-        print(f"De proevenverzameling naam van boring {boring_nummers[i]} is aangepast van {oude_pv_naam[i]} naar {nieuwe_pv_naam}.")
+        print(
+            f"De proevenverzameling naam van boring {boring_nummers[i]} is aangepast van {oude_pv_naam[i]} naar {nieuwe_pv_naam}.")
 
     oude_pv_naam_groepen = list(set(oude_pv_naam))  # Unieke oude namen
-    print(f"WAARSCHUWING: er zijn groepen veranderd waarvan een eventueel uitgevoerde analyse niet meer klopt: {oude_pv_naam_groepen}")
+    print(
+        f"WAARSCHUWING: er zijn groepen veranderd waarvan een eventueel uitgevoerde analyse niet meer klopt: {oude_pv_naam_groepen}")
 
     return dbase
+
 
 # Voorbeeld gebruik
 if __name__ == "__main__":

@@ -551,7 +551,7 @@ def _create_parameters_table(self: "SHANSEP") -> Table:
     if hasattr(self, 'calc_vgwnat_gem') and self.calc_vgwnat_gem is not None:
         parameters.append(['VGW nat gemiddeld [kN/m3]', round(self.calc_vgwnat_gem, 3)])
     if hasattr(self, 'calc_watergehalte_gem') and self.calc_watergehalte_gem is not None:
-        parameters.append(['Watergehalte gemiddeld', round(self.calc_watergehalte_gem, 3)])
+        parameters.append(['Watergehalte gemiddeld [%]', round(self.calc_watergehalte_gem, 3)])
 
     t = Table([['Parameter', 'Waarde']] + parameters, hAlign='LEFT')
     t.setStyle(TableStyle([
@@ -807,13 +807,9 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
             img1.drawHeight = img_height_pt
             img1.hAlign = 'LEFT'
 
-            # Voeg titel toe die aangeeft of handmatige parameters zijn gebruikt
-            if has_manual_params:
-                story.append(
-                    Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie (met handmatige parameters)", styles['Heading3']))
-            else:
-                story.append(Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie (met voorgestelde parameters)",
-                                       styles['Heading3']))
+            story.append(
+                Paragraph("SU-tabel (σ'<sub>v</sub> - s<sub>u</sub> relatie)", styles['Heading2']))
+
             story.append(Spacer(width=1, height=12))
             story.append(img1)
 
@@ -822,7 +818,7 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
 
     except Exception as e:
         print(f"Waarschuwing: Kon eerste figuur (Sv-Su) niet toevoegen aan PDF: {e}")
-        story.append(Paragraph("Eerste figuur: (kon niet worden gegenereerd)", styles['Heading3']))
+        story.append(Paragraph("Eerste figuur: (kon niet worden gegenereerd)", styles['Heading2']))
         story.append(Spacer(width=1, height=12))
         story.append(PageBreak())
 
@@ -868,12 +864,8 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
             img2.drawHeight = img_height_pt
             img2.hAlign = 'LEFT'
 
-            # Voeg titel toe die aangeeft of handmatige parameters zijn gebruikt
-            if has_manual_params:
-                story.append(Paragraph("LN(OCR) - LN(su/σ'v) Relatie (met handmatige parameters)", styles['Heading3']))
-            else:
-                story.append(
-                    Paragraph("LN(OCR) - LN(su/σ'v) Relatie (met voorgestelde parameters)", styles['Heading3']))
+            story.append(Paragraph("LN(OCR) - LN(s<sub>u</sub>/σ'<sub>v</sub>) relatie", styles['Heading2']))
+
             story.append(Spacer(width=1, height=12))
             story.append(img2)
 
@@ -881,8 +873,8 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
             story.append(PageBreak())
 
     except Exception as e:
-        print(f"Waarschuwing: Kon tweede figuur (ln(OCR) - ln(su/svc)) niet toevoegen aan PDF: {e}")
-        story.append(Paragraph("Tweede figuur: (kon niet worden gegenereerd)", styles['Heading3']))
+        print(f"Waarschuwing: Kon tweede figuur (ln(OCR) - ln(s<sub>u</sub>/σ'<sub>v</sub>)) niet toevoegen aan PDF: {e}")
+        story.append(Paragraph("Tweede figuur: (kon niet worden gegenereerd)", styles['Heading2']))
         story.append(Spacer(width=1, height=12))
         story.append(PageBreak())
 
@@ -927,15 +919,10 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
             img3.drawHeight = img_height_pt
             img3.hAlign = 'LEFT'
 
-            # Voeg titel toe die aangeeft of handmatige parameters zijn gebruikt
-            if has_manual_params:
-                story.append(
-                    Paragraph("s<sub>u</sub> - σ'<sub>v</sub> Relatie op alleen NC proeven (met handmatige parameters)",
-                              styles['Heading3']))
-            else:
-                story.append(Paragraph(
-                    "s<sub>u</sub> - σ'<sub>v</sub> Relatie op alleen NC proeven (met voorgestelde parameters)",
-                    styles['Heading3']))
+            story.append(
+                Paragraph("SU-tabel (σ'<sub>v</sub> - s<sub>u</sub> relatie) op alleen NC proeven",
+                          styles['Heading2']))
+
             story.append(Spacer(width=1, height=12))
             story.append(img3)
 
@@ -944,7 +931,7 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
 
     except Exception as e:
         print(f"Waarschuwing: Kon derde figuur (Sv-Su NC) niet toevoegen aan PDF: {e}")
-        story.append(Paragraph("Derde figuur: (kon niet worden gegenereerd)", styles['Heading3']))
+        story.append(Paragraph("Derde figuur: (kon niet worden gegenereerd)", styles['Heading2']))
         story.append(Spacer(width=1, height=12))
         story.append(PageBreak())
 
