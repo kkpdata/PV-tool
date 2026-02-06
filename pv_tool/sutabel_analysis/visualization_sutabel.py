@@ -76,8 +76,8 @@ def add_extra_proefresultaten_ln_sv_ln_su_sutabel(self: "SUTABEL", extra_groepen
     for naam in df['PV_NAAM'].unique():
 
         sub_df = df[df['PV_NAAM'] == naam]
-        x_extra_proefresultaten = self.sutabel_data_df['ln(s\'v)']
-        y_extra_proefresultaten = self.sutabel_data_df['ln(su)']
+        x_extra_proefresultaten = sub_df['ln(s\'v)']
+        y_extra_proefresultaten = sub_df['ln(su)']
 
         self.figure_ln_sv_ln_su.add_trace(
             go.Scatter(
@@ -248,8 +248,8 @@ def add_extra_proefresultaten_sv_su_sutabel(self: "SUTABEL", extra_groepen: Opti
     for naam in df['PV_NAAM'].unique():
 
         sub_df = df[df['PV_NAAM'] == naam]
-        x_extra_proefresultaten = self.sutabel_data_df['S\'v']
-        y_extra_proefresultaten = self.sutabel_data_df['Su']
+        x_extra_proefresultaten = sub_df['S\'v']
+        y_extra_proefresultaten = sub_df['Su']
 
         self.figure_sv_su.add_trace(
             go.Scatter(

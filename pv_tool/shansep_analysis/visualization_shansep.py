@@ -341,26 +341,30 @@ def add_linear_fit_sv_su(self: SHANSEP):
 
 def add_linear_fit_sv_su_nc(self: SHANSEP):
     """Deze functie voegt de lineaire fit van de proefresultaten toe aan de figuur door de oorsprong."""
-    x1 = 0  # Start bij oorsprong
-    x2 = self.shansep_data_df_nc['S\'v'].max()
-
-    x_data = self.shansep_data_df_nc['S\'v'].values
-    y_data = self.shansep_data_df_nc['Su'].values
-
-    # Bereken helling door oorsprong (intercept = 0)
-    # Voor y = a*x (door oorsprong) is a = sum(x*y) / sum(x^2)
-    helling = np.sum(x_data * y_data) / np.sum(x_data ** 2)
-
-    y1 = x1 * helling  # = 0
-    y2 = x2 * helling
-
-    x = [x1, x2]
-    y = [y1, y2]
+    # x1 = 0 # Start bij oorsprong
+    # x2 = self.shansep_data_df_nc['S\'v'].max()
+    #
+    # x_data = self.shansep_data_df_nc['S\'v'].values
+    # y_data = self.shansep_data_df_nc['Su'].values
+    #
+    # # Bereken helling door oorsprong (intercept = 0)
+    # # Voor y = a*x (door oorsprong) is a = sum(x*y) / sum(x^2)
+    # helling = np.sum(x_data * y_data) / np.sum(x_data ** 2)  # gelijk aan de helling van gem S
+    #
+    # y1 = x1 * helling  # = 0
+    # y2 = x2 * helling
+    #
+    # x = [x1, x2]
+    # y = [y1, y2]
+    x = [0, self.shansep_data_df_nc['S\'v'].max()]
+    # s_boven = self.exp_gem_ln_su_svc_nc + (self.exp_gem_ln_su_svc_nc - self.exp_kar_ln_su_svc_nc)
+    s_gem = self.exp_gem_ln_su_svc_nc  # TODO: checken of dit klopt
+    shansep_gem = [s_gem * xi for xi in x]
 
     self.figure_sv_su_nc.add_trace(
         go.Scatter(
             x=x,
-            y=y,
+            y=shansep_gem,
             mode='lines',
             name='Lineaire fit proefresultaten',
             line=dict(color='green', width=2),
@@ -468,7 +472,8 @@ def add_5pr_ondergrens_sv_su_nc(self: SHANSEP):
 
 def add_5pr_bovengrens_sv_su_nc(self: SHANSEP):
     x = [0, self.shansep_data_df_nc['S\'v'].max()]
-    s_boven = self.exp_gem_ln_su_svc_nc + (self.exp_gem_ln_su_svc_nc - self.exp_kar_ln_su_svc_nc)
+    # s_boven = self.exp_gem_ln_su_svc_nc + (self.exp_gem_ln_su_svc_nc - self.exp_kar_ln_su_svc_nc)
+    s_boven = self.exp_kar_ln_su_svc_nc_boven  # TODO: checken of dit klopt
     shansep_boven = [s_boven * xi for xi in x]
 
     self.figure_sv_su_nc.add_trace(

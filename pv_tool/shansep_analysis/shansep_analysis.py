@@ -36,7 +36,7 @@ from pv_tool.shansep_analysis.visualization_shansep import (
 )
 
 from pv_tool.shansep_analysis.variables import (
-    exp_gem_ln_su_svc_nc, gem_pop_oc, exp_kar_ln_su_svc_nc, kar_pop_oc,
+    exp_gem_ln_su_svc_nc, gem_pop_oc, exp_kar_ln_su_svc_nc, exp_kar_ln_su_svc_nc_boven, kar_pop_oc,
     e_a1_oc, e_a2_oc, e_a1_nc_oc, e_a2_nc_oc,
     a1_kar_oc, a2_kar_oc,
     a1_kar_nc_oc, a2_kar_nc_oc,
@@ -107,6 +107,7 @@ class SHANSEP:
         self.a1_kar_nc_oc: Optional[float] = None
         self.exp_a1_kar_nc_oc: Optional[float] = None
         self.exp_kar_ln_su_svc_nc: Optional[float] = None
+        self.exp_kar_ln_su_svc_nc_boven: Optional[float] = None
         self.pop_kar_oc: Optional[float] = None
 
         # Handmatige parameters
@@ -310,6 +311,7 @@ class SHANSEP:
         self.a1_kar_nc_oc = a1_kar_nc_oc(self)
         self.exp_a1_kar_nc_oc = math.exp(a1_kar_nc_oc(self))
         self.exp_kar_ln_su_svc_nc = exp_kar_ln_su_svc_nc(self)
+        self.exp_kar_ln_su_svc_nc_boven = exp_kar_ln_su_svc_nc_boven(self)
         self.pop_kar_oc = kar_pop_oc(self)
 
         # Only calculate standard deviations if manual parameters are set

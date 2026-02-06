@@ -120,8 +120,17 @@ def kar_ln_su_svc_nc(self: SHANSEP):
             (1 - self.alpha) + 1 / count_sv_oc(self)) ** 0.5
 
 
+def kar_ln_su_svc_nc_boven(self: SHANSEP):
+    return gem_ln_su_svc_nc(self) + std_ln_su_svc_nc(self) * t_n_2_oc(self) * (
+            (1 - self.alpha) + 1 / count_sv_oc(self)) ** 0.5
+
+
 def exp_kar_ln_su_svc_nc(self: SHANSEP):
     return math.exp(kar_ln_su_svc_nc(self))
+
+
+def exp_kar_ln_su_svc_nc_boven(self: SHANSEP):
+    return math.exp(kar_ln_su_svc_nc_boven(self))
 
 
 def gem_pop_oc(self: SHANSEP):
