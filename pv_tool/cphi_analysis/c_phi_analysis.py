@@ -356,7 +356,7 @@ class CPhiAnalyse:
             raise FileNotFoundError("Er is geen dbase aanwezig onder de naam Template_PVtool5_0.xlsx")
 
         try:
-            results_df = read_excel(file_path, sheet_name='Resultaten c-phi')
+            results_df = read_excel(file_path, sheet_name='Resultaten c-phi', skiprows=6)
         except ValueError:
             print("Er is geen tabblad 'Resultaten c-phi' aanwezig in het Excel-bestand.")
             return None

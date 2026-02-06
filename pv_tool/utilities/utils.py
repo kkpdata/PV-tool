@@ -1,10 +1,12 @@
 import os
+
 os.environ["GIT_PYTHON_REFRESH"] = "quiet"
-import git
+import git  # TODO: git gaat nu fout als je werkt met conda
 from typing import Optional
 import datetime
 
-#TODO utils wordt nu niet meegenomen in de wheel - fixen
+
+# TODO utils wordt nu niet meegenomen in de wheel - fixen
 def get_repo_root(root_search_dir: Optional[str] = None) -> str:
     """Returns the repository root by searching in the given directory and its subdirectories.
 

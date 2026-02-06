@@ -62,7 +62,7 @@ def test_shansep_analyse():
         # Test calculations and figures
         test_calculations_and_figures(analyse, analysis_type)
 
-    return True
+    assert True
 
 
 def set_manual_parameters(analyse: SHANSEP, params: dict):
