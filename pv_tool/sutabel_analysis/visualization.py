@@ -12,8 +12,6 @@ if TYPE_CHECKING:
     from pv_tool.sutabel_analysis.sutabel_analysis import SUTABEL
 
 
-# ========================== SUTABEL LN-LN PLOT ==========================
-
 def add_proefresultaten_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     """Voegt de proefresultaten toe aan de figuur voor sutabel analyse (ln(s'v) vs ln(su))."""
     boring_monsternummer = self.shansep_data_df_sutabel.index
@@ -271,4 +269,3 @@ def set_layout_sv_su_sutabel(self: "SUTABEL"):
         legend_title=legend_title,
         margin=dict(t=100, r=50, b=100, l=50)
     )
-

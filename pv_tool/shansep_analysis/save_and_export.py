@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, List
 from pandas import ExcelWriter, concat, DataFrame, read_excel
 from datetime import datetime
-from pv_tool.utilities.utils import get_repo_root, make_temp_folder
+from pv_tool.utilities.utils import get_repo_root
 from openpyxl import load_workbook
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
@@ -12,115 +12,116 @@ from pv_tool.imports.excel_utils import format_excel_sheet
 import plotly.graph_objects as go
 import numpy as np
 from pathlib import Path
+from reportlab.platypus import PageBreak, Image as RLImage
 
 try:
     from PIL import Image as PILImage
-
     PIL_AVAILABLE = True
 except ImportError:
     PIL_AVAILABLE = False
+    PILImage = None
     print("Waarschuwing: PIL (Pillow) is niet beschikbaar. Figuren kunnen niet aan PDF worden toegevoegd.")
 
 if TYPE_CHECKING:
     from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
 
 
-def add_results_to_dbase(self: "SHANSEP", path: str,
-                         file_name: str = 'Template_PVtool5_0.xlsx'):  # TODO deze wordt vervangen door add_results_to_template
-    """
-    Voegt de SHANSEP analyseresultaten toe aan de database Excel-bestand.
-
-    Parameters
-    ----------
-    self : SHANSEP
-        Instantie van de SHANSEP analyse klasse
-    path : str
-        Pad naar de map waar het Excel-bestand staat
-    file_name : str
-        Naam van het Excel-bestand
-
-    Returns
-    -------
-    DataFrame
-        Bijgewerkte DataFrame met alle resultaten
-    """
-    file_path = f"{path}/{file_name}"
-
-    # Run analysis to get results
-    df_gem, df_kar = self.get_result_values_shansep()
-
-    # Expected columns structure voor SHANSEP resultaten
-    expected_columns = [
-        'PVNAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE', 'PV_RESULTAAT_ID', 'PV_TYPEVERZAMELING',
-        'PV_A1_SNIJPUNT_YAS_GEM [-]', 'PV_A2_S_GEM [-]', 'PV_m_GEM [-]', 'PV_POP_GEM [kPa]',
-        'PV_A1_SNIJPUNT_YAS_KAR [-]', 'PV_A2_S_KAR [-]', 'PV_m_KAR [-]', 'PV_POP_KAR [kPa]',
-        'PV_S_SD_DSTAB [-]', 'PV_m_SD_DSTAB [-]', 'PV_POP_SD_DSTAB [-]',
-        'PV_VGWNAT_GEM [kN/m3]', 'PV_VGWNAT_SD [kN/m3]', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD',
-        'Timestamp'
-    ]
-
-    new_row = {
-        'PVNAAM': self.investigation_groups[0],
-        'PV_REK': self.effective_stress,
-        'PV_TYPE_PROEF': self.analysis_type.split('_')[0],
-        'PV_ANALYSE': '_'.join(self.analysis_type.split('_')[1:]),
-        'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type}",
-        'PV_TYPEVERZAMELING': self.alpha,
-        'PV_A1_SNIJPUNT_YAS_GEM [-]': round(self.snijpunt_gem_handmatig,
-                                            3) if self.snijpunt_gem_handmatig is not None else None,
-        'PV_A2_S_GEM [-]': round(self.s_gem_handmatig, 3) if self.s_gem_handmatig is not None else None,
-        'PV_m_GEM [-]': round(self.m_gem_handmatig, 3) if self.m_gem_handmatig is not None else None,
-        'PV_POP_GEM [kPa]': round(self.pop_gem_handmatig, 3) if self.pop_gem_handmatig is not None else None,
-        'PV_A1_SNIJPUNT_YAS_KAR [-]': round(self.snijpunt_kar_handmatig,
-                                            3) if self.snijpunt_kar_handmatig is not None else None,
-        'PV_A2_S_KAR [-]': round(self.s_kar_handmatig, 3) if self.s_kar_handmatig is not None else None,
-        'PV_m_KAR [-]': round(self.m_kar_handmatig, 3) if self.m_kar_handmatig is not None else None,
-        'PV_POP_KAR [kPa]': round(self.pop_kar_handmatig, 3) if self.pop_kar_handmatig is not None else None,
-        'PV_S_SD_DSTAB [-]': round(self.st_dev_s_handmatig, 3) if self.st_dev_s_handmatig is not None else None,
-        'PV_m_SD_DSTAB [-]': round(self.st_dev_m_handmatig, 3) if self.st_dev_s_handmatig is not None else None,
-        'PV_POP_SD_DSTAB [-]': round(self.st_dev_pop_handmatig, 3) if self.st_dev_pop_handmatig is not None else None,
-        'PV_VGWNAT_GEM [kN/m3]': round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
-        'PV_VGWNAT_SD [kN/m3]': round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
-        'PV_WATERGEHALTE_GEM': round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None,
-        'PV_WATERGEHALTE_SD': round(self.calc_watergehalte_sd, 3) if self.calc_watergehalte_sd is not None else None,
-        'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
-
-    workbook = load_workbook(file_path)
-
-    if 'Resultaten SHANSEP' in workbook.sheetnames:
-        print('Tabblad resultaten SHANSEP in dbase excel bestaat al en wordt aangevuld')
-        df_existing = read_excel(file_path, sheet_name='Resultaten SHANSEP')
-        # Filter out empty rows and ensure consistent types before concatenation
-        df_existing = df_existing.dropna(how='all')
-        # Ensure column headers are strings
-        df_existing.columns = df_existing.columns.astype(str)
-        new_row_df = DataFrame([new_row], columns=df_existing.columns)
-        df_updated = concat([df_existing, new_row_df], ignore_index=True)
-    else:
-        print('Tabblad resultaten SHANSEP in dbase excel bestaat nog niet en wordt aangemaakt')
-        df_updated = DataFrame([new_row], columns=expected_columns)
-
-    # Ensure all column headers are strings
-    df_updated.columns = df_updated.columns.astype(str)
-
-    # Write data to Excel
-    with ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
-        df_updated.to_excel(writer, sheet_name='Resultaten SHANSEP', index=False)
-
-    # Formatting
-    num_columns = df_updated.shape[1]
-    num_rows = df_updated.shape[0]
-    format_excel_sheet(
-        file_path=file_path,
-        sheet_name='Resultaten SHANSEP',
-        num_columns=num_columns,
-        num_rows=num_rows,
-        table_name='ResultatenSHANSEPTable',
-        index=False
-    )
-
-    return df_updated
+# def add_results_to_dbase(self: "SHANSEP", path: str,
+#                          file_name: str = 'Template_PVtool5_0.xlsx'):  # TODO deze wordt vervangen door add_results_to_template
+#     """
+#     Voegt de SHANSEP analyseresultaten toe aan de database Excel-bestand.
+#
+#     Parameters
+#     ----------
+#     self : SHANSEP
+#         Instantie van de SHANSEP analyse klasse
+#     path : str
+#         Pad naar de map waar het Excel-bestand staat
+#     file_name : str
+#         Naam van het Excel-bestand
+#
+#     Returns
+#     -------
+#     DataFrame
+#         Bijgewerkte DataFrame met alle resultaten
+#     """
+#     file_path = f"{path}/{file_name}"
+#
+#     # Run analysis to get results
+#     df_gem, df_kar = self.get_result_values_shansep()
+#
+#     # Expected columns structure voor SHANSEP resultaten
+#     expected_columns = [
+#         'PVNAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE', 'PV_RESULTAAT_ID', 'PV_TYPEVERZAMELING',
+#         'PV_A1_SNIJPUNT_YAS_GEM [-]', 'PV_A2_S_GEM [-]', 'PV_m_GEM [-]', 'PV_POP_GEM [kPa]',
+#         'PV_A1_SNIJPUNT_YAS_KAR [-]', 'PV_A2_S_KAR [-]', 'PV_m_KAR [-]', 'PV_POP_KAR [kPa]',
+#         'PV_S_SD_DSTAB [-]', 'PV_m_SD_DSTAB [-]', 'PV_POP_SD_DSTAB [-]',
+#         'PV_VGWNAT_GEM [kN/m3]', 'PV_VGWNAT_SD [kN/m3]', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD',
+#         'Timestamp'
+#     ]
+#
+#     new_row = {
+#         'PVNAAM': self.investigation_groups[0],
+#         'PV_REK': self.effective_stress,
+#         'PV_TYPE_PROEF': self.analysis_type.split('_')[0],
+#         'PV_ANALYSE': '_'.join(self.analysis_type.split('_')[1:]),
+#         'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type}",
+#         'PV_TYPEVERZAMELING': self.alpha,
+#         'PV_A1_SNIJPUNT_YAS_GEM [-]': round(self.snijpunt_gem_handmatig,
+#                                             3) if self.snijpunt_gem_handmatig is not None else None,
+#         'PV_A2_S_GEM [-]': round(self.s_gem_handmatig, 3) if self.s_gem_handmatig is not None else None,
+#         'PV_m_GEM [-]': round(self.m_gem_handmatig, 3) if self.m_gem_handmatig is not None else None,
+#         'PV_POP_GEM [kPa]': round(self.pop_gem_handmatig, 3) if self.pop_gem_handmatig is not None else None,
+#         'PV_A1_SNIJPUNT_YAS_KAR [-]': round(self.snijpunt_kar_handmatig,
+#                                             3) if self.snijpunt_kar_handmatig is not None else None,
+#         'PV_A2_S_KAR [-]': round(self.s_kar_handmatig, 3) if self.s_kar_handmatig is not None else None,
+#         'PV_m_KAR [-]': round(self.m_kar_handmatig, 3) if self.m_kar_handmatig is not None else None,
+#         'PV_POP_KAR [kPa]': round(self.pop_kar_handmatig, 3) if self.pop_kar_handmatig is not None else None,
+#         'PV_S_SD_DSTAB [-]': round(self.st_dev_s_handmatig, 3) if self.st_dev_s_handmatig is not None else None,
+#         'PV_m_SD_DSTAB [-]': round(self.st_dev_m_handmatig, 3) if self.st_dev_s_handmatig is not None else None,
+#         'PV_POP_SD_DSTAB [-]': round(self.st_dev_pop_handmatig, 3) if self.st_dev_pop_handmatig is not None else None,
+#         'PV_VGWNAT_GEM [kN/m3]': round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
+#         'PV_VGWNAT_SD [kN/m3]': round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
+#         'PV_WATERGEHALTE_GEM': round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None,
+#         'PV_WATERGEHALTE_SD': round(self.calc_watergehalte_sd, 3) if self.calc_watergehalte_sd is not None else None,
+#         'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+#     }
+#
+#     workbook = load_workbook(file_path)
+#
+#     if 'Resultaten SHANSEP' in workbook.sheetnames:
+#         print('Tabblad resultaten SHANSEP in dbase excel bestaat al en wordt aangevuld')
+#         df_existing = read_excel(file_path, sheet_name='Resultaten SHANSEP')
+#         # Filter out empty rows and ensure consistent types before concatenation
+#         df_existing = df_existing.dropna(how='all')
+#         # Ensure column headers are strings
+#         df_existing.columns = df_existing.columns.astype(str)
+#         new_row_df = DataFrame([new_row], columns=df_existing.columns)
+#         df_updated = concat([df_existing, new_row_df], ignore_index=True)
+#     else:
+#         print('Tabblad resultaten SHANSEP in dbase excel bestaat nog niet en wordt aangemaakt')
+#         df_updated = DataFrame([new_row], columns=expected_columns)
+#
+#     # Ensure all column headers are strings
+#     df_updated.columns = df_updated.columns.astype(str)
+#
+#     # Write data to Excel
+#     with ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+#         df_updated.to_excel(writer, sheet_name='Resultaten SHANSEP', index=False)
+#
+#     # Formatting
+#     num_columns = df_updated.shape[1]
+#     num_rows = df_updated.shape[0]
+#     format_excel_sheet(
+#         file_path=file_path,
+#         sheet_name='Resultaten SHANSEP',
+#         num_columns=num_columns,
+#         num_rows=num_rows,
+#         table_name='ResultatenSHANSEPTable',
+#         index=False
+#     )
+#
+#     return df_updated
 
 
 def add_results_to_template(self: "SHANSEP", path, export_name=None):
@@ -129,7 +130,7 @@ def add_results_to_template(self: "SHANSEP", path, export_name=None):
 
     Parameters
     ----------
-    self : SHANSEP
+    self: SHANSEP
         Instantie van de SHANSEP analyse klasse
     path
         Pad naar de map waar het Excel-bestand staat
@@ -147,7 +148,7 @@ def add_results_to_template(self: "SHANSEP", path, export_name=None):
     sheet_name = 'Resultaten SHANSEP'
 
     # Run analysis to get results
-    df_gem, df_kar = self.get_result_values_shansep()
+    _, _ = self.get_result_values_shansep()
 
     # Expected columns structure voor SHANSEP resultaten
     expected_columns = [
@@ -236,9 +237,9 @@ def save_total_to_excel(self: "SHANSEP", path: str):
 
     Parameters
     ----------
-    path : str
+    path: str
         Map locatie waar het Excel-bestand moet worden opgeslagen
-    self : SHANSEP
+    self: SHANSEP
         Instantie van de SHANSEP klasse
     """
 
@@ -349,19 +350,19 @@ def save_total_to_excel(self: "SHANSEP", path: str):
 
 def _df_to_table_with_index(df, index_name='Index'):
     """
-    Zet een DataFrame om naar een lijst voor gebruik in een PDF tabel.
+    Zet een DataFrame om naar een lijst voor gebruik in een PDF-tabel.
 
     Parameters
     ----------
-    df : DataFrame
+    df: DataFrame
         De DataFrame die moet worden omgezet
-    index_name : str, optioneel
+    index_name: str, optioneel
         Naam voor de index kolom (default='Index')
 
     Returns
     -------
     list
-        Lijst met header en data rijen voor een PDF tabel
+        Lijst met header en data rijen voor een PDF-tabel
     """
     header = [df.index.name or index_name] + df.columns.tolist()
     data = [[idx] + row.tolist() for idx, row in df.iterrows()]
@@ -389,7 +390,7 @@ def _create_input_table(self: "SHANSEP") -> Table:
     else:
         columns_extra = ['DSS_VOLUMEGEWICHT_NAT', 'DSS_VOLUMEGEWICHT_DRG', 'DSS_WATERGEHALTE_VOOR']
 
-    # Check welke kolommen bestaan in de dataframe
+    # Check welke kolommen bestaan in het dataframe
     available_columns = [col for col in columns_base + columns_extra if col in self.total_shansep_data_df.columns]
 
     if not available_columns:
@@ -412,7 +413,8 @@ def _create_input_table(self: "SHANSEP") -> Table:
 
     else:
         print(
-            f"WAARSCHUWING: extra kolommen {additional_columns} in invoer tabel konden niet worden toegevoegd aan invoer tabel vanwege ontbrekende of niet-overeenkomende gegevens.")
+            f"WAARSCHUWING: extra kolommen {additional_columns} in invoer tabel konden niet worden toegevoegd aan "
+            f"invoer tabel vanwege ontbrekende of niet-overeenkomende gegevens.")
 
     # Hernoem kolommen voor leesbaarheid met kortere namen en line breaks
     column_mapping = {
@@ -477,8 +479,7 @@ def _create_input_table(self: "SHANSEP") -> Table:
     header_style.alignment = 0  # Left align
 
     # Create header row with Paragraph objects for ALL headers (consistent formatting)
-    header_row = []
-    header_row.append(Paragraph('Monster ID', header_style))  # Make Monster ID a Paragraph too
+    header_row = [Paragraph('Monster ID', header_style)]
 
     for col in table_df.columns:
         if '\n' in col:
@@ -725,7 +726,9 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
 
     Parameters
     ----------
-    path : str
+    self: SHANSEP
+        Instantie van de SHANSEP klasse
+    path: str
         Map locatie waar het PDF-bestand moet worden opgeslagen
 
     Returns
@@ -735,13 +738,14 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
     """
     # Maak titel en bestandsnaam
     title = f"SHANSEP analyse met {self.effective_stress} op {self.investigation_groups[0]}"
-    file_name = f"shansep_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf"
+    file_name = (f"shansep_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_"
+                 f"{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf")
     file_path = f"{path}/{file_name}"
 
     # Ensure analysis is run
     self._run_shansep()
 
-    # Maak het PDF document
+    # Maak het PDF-document
     doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
     styles = getSampleStyleSheet()
 
@@ -752,18 +756,13 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
         styles.add(ParagraphStyle(name='TitleLeft', parent=styles['Title'], alignment=TA_LEFT))
     if 'Heading3' not in styles:
         styles.add(ParagraphStyle(name='Heading3', parent=styles['Heading2'], alignment=TA_LEFT))
-    story = []
 
     # Voeg titel toe
-    story.append(Paragraph(title, styles['TitleLeft']))
-    story.append(Spacer(width=1, height=12))
+    story = [Paragraph(title, styles['TitleLeft']), Spacer(width=1, height=12)]
 
     # Probeer figuren te genereren en toe te voegen
-    # Controleer of handmatige parameters zijn ingesteld
-    has_manual_params = hasattr(self, 'parameters_handmatig') and self.parameters_handmatig
-
-    from reportlab.platypus import PageBreak, Image as RLImage
-    from PIL import Image as PILImage
+    # # Controleer of handmatige parameters zijn ingesteld
+    # has_manual_params = hasattr(self, 'parameters_handmatig') and self.parameters_handmatig
 
     # Eerste figuur: sv-su plot
     try:
@@ -873,7 +872,8 @@ def save_to_pdf(self: "SHANSEP", path: str) -> str:
             story.append(PageBreak())
 
     except Exception as e:
-        print(f"Waarschuwing: Kon tweede figuur (ln(OCR) - ln(s<sub>u</sub>/σ'<sub>v</sub>)) niet toevoegen aan PDF: {e}")
+        print(f"Waarschuwing: Kon tweede figuur (ln(OCR) - ln(s<sub>u</sub>/σ'<sub>v</sub>)) "
+              f"niet toevoegen aan PDF: {e}")
         story.append(Paragraph("Tweede figuur: (kon niet worden gegenereerd)", styles['Heading2']))
         story.append(Spacer(width=1, height=12))
         story.append(PageBreak())

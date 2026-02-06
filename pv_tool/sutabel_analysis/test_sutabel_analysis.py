@@ -4,7 +4,7 @@ from pv_tool.imports.import_data import Dbase
 from pv_tool.utilities.utils import get_repo_root, make_temp_folder
 from pathlib import Path
 from pv_tool.sutabel_analysis.sutabel_analysis import SUTABEL
-import shutil
+from typing import Literal
 
 FILE_PATH = os.path.join(get_repo_root(), "test_files")
 repo_root = get_repo_root()
@@ -26,24 +26,22 @@ def test_sutabel_analyse():
     dbase.export_dbase_to_template(export_dir=export_dir)
 
     # Initialize analysis types voor SUTABEL
-    analysis_types = ['TXT_su_tabel', 'DSS_su_tabel']
+    analysis_types: list[Literal['TXT_su_tabel', 'DSS_su_tabel']] = ['TXT_su_tabel', 'DSS_su_tabel']
     effective_stresses = ['2% rek', '5% rek', '10% rek', '15% rek', '20% rek', 'pieksterkte', 'eindsterkte']
 
     for analysis_type in analysis_types:
         if analysis_type == 'DSS_su_tabel':
             ig = ['DSS_SAFE_veen']
             es = '20% rek'
-            at = 'DSS_su_tabel'
         else:
             ig = ['TXT_SAFE_klei_licht_16_175']
             es = '15% rek'
-            at = 'TXT_su_tabel'
 
         analyse = SUTABEL(
             dbase=dbase,
             investigation_groups=ig,
             effective_stress=es,
-            analysis_type=at
+            analysis_type=analysis_type
         )
 
         # Apply settings
@@ -63,7 +61,8 @@ def test_sutabel_analyse():
         # Test show figures
         try:
             analyse.show_figure_ln_sv_ln_su_sutabel()
-            analyse.save_fig_html(path=str(export_dir), export_name=f"sutabel_ln_figure_{analysis_type}.html")
+            fig_ln = analyse.get_figure_ln_sv_ln_su_sutabel()
+            analyse.save_fig_html(fig=fig_ln, path=str(export_dir), export_name=f"sutabel_ln_figure_{analysis_type}.html")
             analyse.show_figure_sv_su_sutabel()
             analyse.save_fig_html(path=str(export_dir), export_name=f"sutabel_sv_figure_{analysis_type}.html")
         except Exception:

@@ -43,15 +43,18 @@ from pv_tool.shansep_analysis.variables import (
     st_dev_s_handmatig, st_dev_pop_handmatig, st_dev_m_handmatig
 )
 
-from pv_tool.shansep_analysis.expand_analysis import (calculate_ln_ocr, calculate_pop,
-                                                          calculate_chi_2_nc_oc, calculate_sv_tt_oc, calculate_sv_spop,
-                                                          calculate_chi_2_oc, calculate_ln_sv_spop, calculate_sv_ty_oc,
-                                                          calculate_chi_2_ondergrens_nc_oc, calculate_sv_tt_ondergrens_nc_oc,
-                                                          calculate_chi_2_ondergrens_oc, calculate_sv_tt_nc_oc,
-                                                          calculate_sv_ty_ondergrens_nc_oc, calculate_sv_ty_ondergrens_oc,
-                                                          calculate_5pr_ondergrens_nc_oc, calculate_5pr_ondergrens_oc,
-                                                          calculate_sv_ty_nc_oc, calculate_sv_tt_ondergrens_oc, calculate_sv_eff_oc,
-                                                          calculate_sv_eff_nc_oc, calculate_5pr_bovengrens_oc, calculate_5pr_bovengrens_nc_oc)
+from pv_tool.shansep_analysis.expand_analysis import (calculate_ln_ocr, calculate_pop, calculate_chi_2_nc_oc,
+                                                      calculate_sv_tt_oc, calculate_sv_spop, calculate_chi_2_oc,
+                                                      calculate_ln_sv_spop, calculate_sv_ty_oc,
+                                                      calculate_chi_2_ondergrens_nc_oc,
+                                                      calculate_sv_tt_ondergrens_nc_oc,
+                                                      calculate_chi_2_ondergrens_oc, calculate_sv_tt_nc_oc,
+                                                      calculate_sv_ty_ondergrens_nc_oc, calculate_sv_ty_ondergrens_oc,
+                                                      calculate_5pr_ondergrens_nc_oc, calculate_5pr_ondergrens_oc,
+                                                      calculate_sv_ty_nc_oc, calculate_sv_tt_ondergrens_oc,
+                                                      calculate_sv_eff_oc,
+                                                      calculate_sv_eff_nc_oc, calculate_5pr_bovengrens_oc,
+                                                      calculate_5pr_bovengrens_nc_oc)
 
 from pv_tool.shansep_analysis.save_and_export import (
     add_results_to_template as _add_results_to_template,
@@ -60,24 +63,21 @@ from pv_tool.shansep_analysis.save_and_export import (
 )
 
 
-#-------------------------- SHANSEP Analysis Class ---------------------------------------#
-
-
 class SHANSEP:
 
     def __init__(self, dbase: Dbase,
                  analysis_type: Literal['TXT_S_POP', 'DSS_S_POP'],
                  investigation_groups: List,
-                 effective_stress: Literal['2% rek', '5% rek', '10% rek', '15% rek', '20% rek',
-                                            'pieksterkte', 'eindsterkte']):
-        
+                 effective_stress: Literal[
+                     '2% rek', '5% rek', '10% rek', '15% rek', '20% rek', 'pieksterkte', 'eindsterkte']):
+
         # Validate effective_stress based on analysis_type
         if analysis_type in ['TXT_S_POP'] and effective_stress in ['10% rek', '20% rek']:
             raise ValueError(
                 f"De waardes '10% rek' and '20% rek' kunnen alleen gebruikt worden bij de DSS analyse. "
                 f"De gekozen analyse is: '{analysis_type}', en de sterkte is: '{effective_stress}'"
             )
-        
+
         # Data
         self.dbase_df = dbase.dbase_df
         self.analysis_type = analysis_type
@@ -86,7 +86,7 @@ class SHANSEP:
 
         # Settings
         self.alpha: Optional[float] = 0.75
-        
+
         # Parameters
         self.calc_watergehalte_gem: Optional[float] = None
         self.calc_watergehalte_sd: Optional[float] = None
@@ -108,7 +108,6 @@ class SHANSEP:
         self.exp_a1_kar_nc_oc: Optional[float] = None
         self.exp_kar_ln_su_svc_nc: Optional[float] = None
         self.pop_kar_oc: Optional[float] = None
-
 
         # Handmatige parameters
         self.parameters_handmatig: Optional[bool] = False
@@ -177,7 +176,7 @@ class SHANSEP:
         if self.analysis_type in ['TXT_S_POP']:
             self.shansep_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']].copy()
             self.shansep_data_df = self.shansep_data_df[self.shansep_data_df['PV_NAAM'].isin(
-                    self.investigation_groups)].copy()
+                self.investigation_groups)].copy()
             self.calc_watergehalte_gem = calc_watergehalte_gem_txt(self.shansep_data_df)
             self.calc_watergehalte_sd = calc_watergehalte_sd_txt(self.shansep_data_df)
             self.calc_vgwnat_gem = calc_vgwnat_gem_txt(self.shansep_data_df)
@@ -188,7 +187,7 @@ class SHANSEP:
         elif self.analysis_type in ['DSS_S_POP']:
             self.shansep_data_df = self.dbase_df[self.dbase_df['ALG__DSS']].copy()
             self.shansep_data_df = self.shansep_data_df[self.shansep_data_df['PV_NAAM'].isin(
-                    self.investigation_groups)].copy()
+                self.investigation_groups)].copy()
             self.calc_watergehalte_gem = calc_watergehalte_gem_dss(self.shansep_data_df)
             self.calc_watergehalte_sd = calc_watergehalte_sd_dss(self.shansep_data_df)
             self.calc_vgwnat_gem = calc_vgwnat_gem_dss(self.shansep_data_df)
@@ -237,7 +236,7 @@ class SHANSEP:
             (results_df['PV_RESULTAAT_ID'].str.contains(self.investigation_groups[0])) &
             (results_df['PV_RESULTAAT_ID'].str.contains(self.effective_stress)) &
             (results_df['PV_RESULTAAT_ID'].str.contains(self.analysis_type))
-        ]
+            ]
 
         if filtered_df.empty:
             print("Er zijn geen eerdere resultaten gevonden voor de opgegeven parameters.")
@@ -415,9 +414,9 @@ class SHANSEP:
         Returns
         -------
         dict
-            Dictionary met geschatte NC parameters voor gemiddelde en karakteristieke waarden
+            Dictionary met geschatte NC-parameters voor gemiddelde en karakteristieke waarden
         """
-        # Zorg dat NC resultaten zijn berekend
+        # Zorg dat NC-resultaten zijn berekend
         self.get_result_values_nc()
 
         estimated_params_nc = {
@@ -455,25 +454,33 @@ class SHANSEP:
         self._run_shansep()
         self.df_results_shansep_gem = DataFrame(
             index=['bepaling S en POP uit triaxiaal- of DSS proeven', 'bepaling S en m uit triaxiaal- of DSS proeven',
-                    'o.b.v. opgegeven POP bij triaxiaal- of DSS proeven',
+                   'o.b.v. opgegeven POP bij triaxiaal- of DSS proeven',
                    'bepaling S uit triaxiaal- of DSS proeven OCR=1',
                    'gemiddelde handmatige keuze snijput, S en m'])
-        self.df_results_shansep_gem['snijpunt y-as [kPa]'] = [self.e_a1_oc, None, None, None, self.snijpunt_gem_handmatig]
-        self.df_results_shansep_gem['Schuifsterkteratio S [-]'] = [self.e_a2_oc, self.exp_e_a1_nc_oc, None, self.exp_gem_ln_su_svc_nc, self.s_gem_handmatig]
-        self.df_results_shansep_gem['sterkte toename exponent = m [-]'] = [None, self.e_a2_nc_oc, None, None, self.m_gem_handmatig]
-        pop_bepaald = self.e_a1_oc/self.e_a2_oc/self.e_a2_nc_oc
-        self.df_results_shansep_gem['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_gem_oc, None, self.pop_gem_handmatig]
+        self.df_results_shansep_gem['snijpunt y-as [kPa]'] = [self.e_a1_oc, None, None, None,
+                                                              self.snijpunt_gem_handmatig]
+        self.df_results_shansep_gem['Schuifsterkteratio S [-]'] = [self.e_a2_oc, self.exp_e_a1_nc_oc, None,
+                                                                   self.exp_gem_ln_su_svc_nc, self.s_gem_handmatig]
+        self.df_results_shansep_gem['sterkte toename exponent = m [-]'] = [None, self.e_a2_nc_oc, None, None,
+                                                                           self.m_gem_handmatig]
+        pop_bepaald = self.e_a1_oc / self.e_a2_oc / self.e_a2_nc_oc
+        self.df_results_shansep_gem['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_gem_oc, None,
+                                                    self.pop_gem_handmatig]
 
         self.df_results_shansep_kar = DataFrame(
             index=['bepaling S en POP uit triaxiaal- of DSS proeven', 'bepaling S en m uit triaxiaal- of DSS proeven',
                    'o.b.v. opgegeven POP bij triaxiaal- of DSS proeven',
                    'bepaling S uit triaxiaal- of DSS proeven OCR=1',
                    'karakteristieke handmatige keuze snijput, S en m'])
-        self.df_results_shansep_kar['snijpunt y-as [kPa]'] = [self.a1_kar_oc, None, None, None, self.snijpunt_kar_handmatig]
-        self.df_results_shansep_kar['Schuifsterkteratio S [-]'] = [self.a2_kar_oc, self.exp_a1_kar_nc_oc, None, self.exp_kar_ln_su_svc_nc, self.s_kar_handmatig]
-        self.df_results_shansep_kar['sterkte toename exponent = m [-]'] = [None, self.a2_kar_nc_oc, None, None, self.m_kar_handmatig]
-        pop_bepaald = self.a1_kar_oc/self.a2_kar_oc/self.a2_kar_nc_oc
-        self.df_results_shansep_kar['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_kar_oc, None, self.pop_kar_handmatig]
+        self.df_results_shansep_kar['snijpunt y-as [kPa]'] = [self.a1_kar_oc, None, None, None,
+                                                              self.snijpunt_kar_handmatig]
+        self.df_results_shansep_kar['Schuifsterkteratio S [-]'] = [self.a2_kar_oc, self.exp_a1_kar_nc_oc, None,
+                                                                   self.exp_kar_ln_su_svc_nc, self.s_kar_handmatig]
+        self.df_results_shansep_kar['sterkte toename exponent = m [-]'] = [None, self.a2_kar_nc_oc, None, None,
+                                                                           self.m_kar_handmatig]
+        pop_bepaald = self.a1_kar_oc / self.a2_kar_oc / self.a2_kar_nc_oc
+        self.df_results_shansep_kar['POP [kPa]'] = [pop_bepaald, pop_bepaald, self.pop_kar_oc, None,
+                                                    self.pop_kar_handmatig]
 
         self.inschatting_snijpunt_gem = self.e_a1_oc
         self.inschatting_s_gem = self.e_a2_oc
@@ -488,11 +495,14 @@ class SHANSEP:
         # write a warning that if any of the values of m are larger than 1, the user should change this
         for m_value in [self.m_gem_handmatig, self.m_kar_handmatig]:
             if m_value is not None and m_value > 1:
-                print("Waarschuwing: De handmatige waarde van m is groter dan 1. Dit is fysiek niet mogelijk. Overweeg om deze waarde aan te passen.")
+                print(
+                    "Waarschuwing: De handmatige waarde van m is groter dan 1. Dit is fysiek niet mogelijk. "
+                    "Overweeg om deze waarde aan te passen.")
         for m_value in [self.e_a2_nc_oc, self.a2_kar_nc_oc]:
             if m_value is not None and m_value > 1:
-                print("Waarschuwing: De inschatting van de waarde van m is groter dan 1. Dit is fysiek niet mogelijk. Overweeg om deze waarde aan te passen.")
-
+                print(
+                    "Waarschuwing: De inschatting van de waarde van m is groter dan 1. Dit is fysiek niet mogelijk. "
+                    "Overweeg om deze waarde aan te passen.")
 
         # write these dataframes to excel
         return self.df_results_shansep_gem, self.df_results_shansep_kar
@@ -500,25 +510,27 @@ class SHANSEP:
     def get_result_values_nc(self):
         """
         Berekent de resultaten voor NC (Normal Consolidated) analyse waarbij snijpunt, m en pop waarden op 0 staan.
-        Dit is bedoeld voor visualisatie van alleen NC data zonder overconsolidatie effecten.
+        Dit is bedoeld voor visualisatie van alleen NC-data zonder overconsolidatie effecten.
 
         Returns
         -------
         tuple[DataFrame, DataFrame]
-            Gemiddelde en karakteristieke resultaten voor NC analyse
+            Gemiddelde en karakteristieke resultaten voor NC-analyse
         """
         self._run_shansep()
 
-        # Maak kopie van bestaande resultaten maar zet specifieke waarden op 0 voor NC analyse
+        # Maak kopie van bestaande resultaten, maar zet specifieke waarden op 0 voor NC-analyse
         df_results_nc_gem = DataFrame(
             index=['bepaling S en POP uit triaxiaal- of DSS proeven', 'bepaling S en m uit triaxiaal- of DSS proeven',
-                    'o.b.v. opgegeven POP bij triaxiaal- of DSS proeven',
+                   'o.b.v. opgegeven POP bij triaxiaal- of DSS proeven',
                    'bepaling S uit triaxiaal- of DSS proeven OCR=1',
                    'gemiddelde handmatige keuze snijput, S en m'])
 
         # Voor NC analyse: snijpunt = 0, m = 0, POP = 0
         df_results_nc_gem['snijpunt y-as [kPa]'] = [0, None, None, None, 0]
-        df_results_nc_gem['Schuifsterkteratio S [-]'] = [self.e_a2_oc, self.exp_e_a1_nc_oc, None, self.exp_gem_ln_su_svc_nc, self.s_gem_handmatig if self.s_gem_handmatig else 0]
+        df_results_nc_gem['Schuifsterkteratio S [-]'] = [self.e_a2_oc, self.exp_e_a1_nc_oc, None,
+                                                         self.exp_gem_ln_su_svc_nc,
+                                                         self.s_gem_handmatig if self.s_gem_handmatig else 0]
         df_results_nc_gem['sterkte toename exponent = m [-]'] = [None, 0, None, None, 0]
         df_results_nc_gem['POP [kPa]'] = [0, 0, 0, None, 0]
 
@@ -530,7 +542,9 @@ class SHANSEP:
 
         # Voor NC analyse: snijpunt = 0, m = 0, POP = 0
         df_results_nc_kar['snijpunt y-as [kPa]'] = [0, None, None, None, 0]
-        df_results_nc_kar['Schuifsterkteratio S [-]'] = [self.a2_kar_oc, self.exp_a1_kar_nc_oc, None, self.exp_kar_ln_su_svc_nc, self.s_kar_handmatig if self.s_kar_handmatig else 0]
+        df_results_nc_kar['Schuifsterkteratio S [-]'] = [self.a2_kar_oc, self.exp_a1_kar_nc_oc, None,
+                                                         self.exp_kar_ln_su_svc_nc,
+                                                         self.s_kar_handmatig if self.s_kar_handmatig else 0]
         df_results_nc_kar['sterkte toename exponent = m [-]'] = [None, 0, None, None, 0]
         df_results_nc_kar['POP [kPa]'] = [0, 0, 0, None, 0]
 
@@ -547,7 +561,7 @@ class SHANSEP:
         return df_results_nc_gem, df_results_nc_kar
 
     def calculate_sutabel(self):
-        """print de blauwe tabel in de excel naar excel
+        """Print de blauwe tabel in de excel naar excel
         wordt ook weggeschreven naar pdf bij save_to_pdf
         wordt nu bij visualisation ook aangeroepen all
         """
@@ -562,7 +576,7 @@ class SHANSEP:
         return self.sutabel
 
     def calculate_sutabel_nc(self):
-        """print de blauwe tabel in de excel naar excel
+        """Print de blauwe tabel in de excel naar excel
         wordt ook weggeschreven naar pdf bij save_to_pdf
         wordt nu bij visualisation ook aangeroepen all
         """
@@ -623,7 +637,8 @@ class SHANSEP:
 
     def set_parameters_handmatig(self, snijpunt_gem, s_gem, m_gem, snijpunt_kar, s_kar, m_kar):
         """
-        Stelt de handmatige parameters in voor de analyse. De invoer moet handmatig worden gedaan door de gebruiker op basis van de resultaten tabel
+        Stelt de handmatige parameters in voor de analyse. De invoer moet handmatig worden gedaan door de gebruiker op
+        basis van de resultaten tabel
         """
         self._run_shansep()
         self.parameters_handmatig = True
@@ -697,7 +712,8 @@ class SHANSEP:
         """
         self._run_shansep()
 
-        self.shansep_data_df_nc = self.shansep_data_df_nc_oc[self.shansep_data_df_nc_oc['consolidatietype'] == 'NC'].copy() if hasattr(
+        self.shansep_data_df_nc = self.shansep_data_df_nc_oc[
+            self.shansep_data_df_nc_oc['consolidatietype'] == 'NC'].copy() if hasattr(
             self, 'shansep_data_df_nc_oc') and self.shansep_data_df_nc_oc is not None else None
 
         add_proefresultaten_sv_su_nc(self)
@@ -788,9 +804,9 @@ class SHANSEP:
 
         Parameters
         ----------
-        path: str
+        path : str
             Pad naar de map waar het bestand opgeslagen moet worden
-        fig: plotly.graph_objs.Figure
+        fig : plotly.graph_objs.Figure
             De Plotly figuur om op te slaan
         export_name : str, optioneel
             Naam van het HTML-bestand
@@ -806,15 +822,14 @@ class SHANSEP:
                     (self.figure_ln_ocr_ln_s, "ln_ocr_ln_s"),
                     (self.figure_sv_su_nc, "sv_su_nc")]
         for fig, naam in fig_info:
-            export_name = f"SHANSEP_{naam}_{self.investigation_groups[0].replace(' ', '_')}.html"
-            self.save_fig_html(fig=fig, path=path, export_name=export_name)
+            file_name = export_name if export_name \
+                else f"SHANSEP_{naam}_{self.investigation_groups[0].replace(' ', '_')}.html"
+            self.save_fig_html(fig=fig, path=path, export_name=file_name)
         print(f"Figuren opgeslagen als HTML in : {path}")
-
-    # ========== Export Methodes ==========
 
     def add_results_to_template(self, path: str, export_name: str = 'Template_PVtool5_0.xlsx'):
         """
-        Voegt de SHANSEP analyseresultaten toe aan het template Excel-bestand.
+        Voegt de SHANSEP analyseresultaten toe aan het templateExcel-bestand.
 
         Parameters
         ----------

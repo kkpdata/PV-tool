@@ -13,8 +13,6 @@ if TYPE_CHECKING:
     from pv_tool.sutabel_analysis.sutabel_analysis import SUTABEL
 
 
-# -------------------------- sutabel-m methode ---------------------------------------
-
 def count_ln_sv_sutabel(self: "SUTABEL"):
     """Telt het aantal ln(s'v) waarden in de sutabel dataframe."""
     return self.sutabel_data_df['ln(s\'v)'].count()
@@ -62,13 +60,17 @@ def var_a2_sutabel(self: "SUTABEL"):
 
 def var_a1_sutabel(self: "SUTABEL"):
     """Berekent de variantie van a1 voor sutabel analyse."""
-    return 1 / count_ln_sv_sutabel(self) * (1 + sum_ln_sv_sutabel(self) ** 2 / (count_ln_sv_sutabel(self) * sum_sv_tt_sutabel(self))) * sum_chi_2_sutabel(self) / (
-                count_ln_sv_sutabel(self) - 2)
+    return (1 / count_ln_sv_sutabel(self) *
+            (1 + sum_ln_sv_sutabel(self) ** 2 /
+             (count_ln_sv_sutabel(self) * sum_sv_tt_sutabel(self))) * sum_chi_2_sutabel(self) /
+            (count_ln_sv_sutabel(self) - 2))
 
 
 def cov_a1_a2_sutabel(self: "SUTABEL"):
     """Berekent de covariantie tussen a1 en a2 voor sutabel analyse."""
-    return -(sum_ln_sv_sutabel(self) / (count_ln_sv_sutabel(self) * sum_sv_tt_sutabel(self))) * sum_chi_2_sutabel(self) / (count_ln_sv_sutabel(self) - 2)
+    return (-(sum_ln_sv_sutabel(self) /
+              (count_ln_sv_sutabel(self) * sum_sv_tt_sutabel(self))) * sum_chi_2_sutabel(self) /
+            (count_ln_sv_sutabel(self) - 2))
 
 
 def rho_a1_a2_sutabel(self: "SUTABEL"):
@@ -125,7 +127,8 @@ def a2_kar_sutabel(self: "SUTABEL"):
 
 def a1_kar_sutabel(self: "SUTABEL"):
     """Berekent het karakteristieke snijpunt (a1) voor sutabel analyse."""
-    return (sum_5_pr_ondergrens_sutabel(self) - a2_kar_sutabel(self) * sum_s_eff_sutabel(self)) / count_s_eff_sutabel(self)
+    return (sum_5_pr_ondergrens_sutabel(self) - a2_kar_sutabel(self) * sum_s_eff_sutabel(self)) / count_s_eff_sutabel(
+        self)
 
 
 def steyx_sutabel(self: "SUTABEL"):
@@ -138,4 +141,3 @@ def steyx_sutabel(self: "SUTABEL"):
     steyx = np.sqrt(sum_squared_residuals / (n - 2))
 
     return steyx
-

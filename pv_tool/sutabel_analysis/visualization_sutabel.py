@@ -15,7 +15,6 @@ if TYPE_CHECKING:
 from typing import List, Optional
 from pv_tool.shansep_analysis.globals import TEXTUAL_NAMES, TEXTUAL_NAMES_DSS, NEW_COLUMN_NAMES
 
-# ========================== SUTABEL LN-LN PLOT ==========================
 
 def add_proefresultaten_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     """Voegt de proefresultaten toe aan de figuur voor sutabel analyse (ln(s'v) vs ln(su))."""

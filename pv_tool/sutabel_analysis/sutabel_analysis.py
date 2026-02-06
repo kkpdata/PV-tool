@@ -20,6 +20,7 @@ from pv_tool.shansep_analysis.calc_parameters import (
     calc_vgwnat_sd_txt, calc_vgwnat_sd_dss
 )
 from pandas import read_excel
+from scipy.stats import lognorm
 
 
 class SUTABEL:
@@ -31,15 +32,15 @@ class SUTABEL:
 
     Attributes
     ----------
-    dbase : Dbase
+    dbase: Dbase
         Database object met proefgegevens
-    analysis_type : str
+    analysis_type: str
         Type analyse ('TXT_su_tabel' of 'DSS_su_tabel')
-    investigation_groups : List[str]
+    investigation_groups: List[str]
         Lijst met te analyseren proevenverzamelingen
-    effective_stress : str
+    effective_stress: str
         Effectieve spanning niveau (bijv. '15% rek')
-    alpha : float
+    alpha: float
         Type verzameling (1.0 = lokaal, 0.75 = regionaal)
 
     Parameters (berekend)
@@ -86,8 +87,6 @@ class SUTABEL:
             Lijst met te analyseren proevenverzamelingen
         effective_stress : str
             Effectieve spanning niveau (bijv. '15% rek')
-        alpha : float, optional
-            Type verzameling (1.0 = lokaal, 0.75 = regionaal), default 0.75
         """
         self.dbase = dbase
         self.dbase_df = dbase.dbase_df
@@ -112,9 +111,9 @@ class SUTABEL:
 
         # Sutabel afgeleide parameters voor grafieken
         self.svgm_gem_sutabel: Optional[float] = None  # exp(e_a1)
-        self.m_gem_sutabel: Optional[float] = None     # 1 - e_a2
+        self.m_gem_sutabel: Optional[float] = None  # 1 - e_a2
         self.svgm_kar_sutabel: Optional[float] = None  # exp(a1_kar)
-        self.m_kar_sutabel: Optional[float] = None     # 1 - a2_kar
+        self.m_kar_sutabel: Optional[float] = None  # 1 - a2_kar
         self.vc_fit_kar_sutabel: Optional[float] = None  # User input
         self.STDEV_logn_vc_sutabel: Optional[float] = None  # sqrt(LN(1 + vc^2))
 
@@ -155,7 +154,7 @@ class SUTABEL:
         if self.analysis_type in ['TXT_su_tabel']:
             self.sutabel_data_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']].copy()
             self.sutabel_data_df = self.sutabel_data_df[self.sutabel_data_df['PV_NAAM'].isin(
-                    self.investigation_groups)].copy()
+                self.investigation_groups)].copy()
             self.calc_watergehalte_gem = calc_watergehalte_gem_txt(self.sutabel_data_df)
             self.calc_watergehalte_sd = calc_watergehalte_sd_txt(self.sutabel_data_df)
             self.calc_vgwnat_gem = calc_vgwnat_gem_txt(self.sutabel_data_df)
@@ -166,7 +165,7 @@ class SUTABEL:
         elif self.analysis_type in ['DSS_su_tabel']:
             self.sutabel_data_df = self.dbase_df[self.dbase_df['ALG__DSS']].copy()
             self.sutabel_data_df = self.sutabel_data_df[self.sutabel_data_df['PV_NAAM'].isin(
-                    self.investigation_groups)].copy()
+                self.investigation_groups)].copy()
             self.calc_watergehalte_gem = calc_watergehalte_gem_dss(self.sutabel_data_df)
             self.calc_watergehalte_sd = calc_watergehalte_sd_dss(self.sutabel_data_df)
             self.calc_vgwnat_gem = calc_vgwnat_gem_dss(self.sutabel_data_df)
@@ -211,7 +210,7 @@ class SUTABEL:
             (results_df['PV_RESULTAAT_ID'].str.contains(self.investigation_groups[0])) &
             (results_df['PV_RESULTAAT_ID'].str.contains(self.effective_stress)) &
             (results_df['PV_RESULTAAT_ID'].str.contains(self.analysis_type))
-        ]
+            ]
 
         if filtered_df.empty:
             print("Er zijn geen eerdere resultaten gevonden voor de opgegeven parameters.")
@@ -244,7 +243,7 @@ class SUTABEL:
         # Filter op alleen OC proeven
         self.sutabel_filtered_data_df = self.sutabel_data_df[
             self.sutabel_data_df['consolidatietype'] == 'OC'
-        ].copy()
+            ].copy()
 
         # Update sutabel_data_df to work with the OC-filtered data
         self.sutabel_data_df = self.sutabel_filtered_data_df.copy()
@@ -307,8 +306,6 @@ class SUTABEL:
             self.vc_fit_kar_sutabel = None
             self.STDEV_logn_vc_sutabel = None
 
-
-
     def calculate_sutabel_grafiek(self):
         """
         Berekent de dataframes voor sutabel grafiek lijnen.
@@ -317,9 +314,6 @@ class SUTABEL:
         - sutabel_grafiek: bevat su_gem en su_kar lijnen
         - su_fit_constante_vc: bevat su_kar fit met constante vc lijn
         """
-        import numpy as np
-        from scipy.stats import lognorm
-
         # Bepaal s'v waarden voor de grafiek
         max_sv = self.sutabel_data_df['S\'v'].max()
         sv_values = [1, 5, 10, 20, 30, 40, max_sv]
@@ -365,9 +359,9 @@ class SUTABEL:
     # ========== Handmatige Parameters en wegschrijven ==========
 
     def set_manual_parameters(self,
-                             a1_kar: Optional[float] = None,
-                             a2_kar: Optional[float] = None,
-                             vc_fit_kar: Optional[float] = None):
+                              a1_kar: Optional[float] = None,
+                              a2_kar: Optional[float] = None,
+                              vc_fit_kar: Optional[float] = None):
         """
         Stelt handmatige parameters in voor de sutabel analyse.
 
@@ -389,11 +383,11 @@ class SUTABEL:
         Examples
         --------
         >>> sutabel = SUTABEL(...)
-        >>> sutabel.show_figure_sv_su_sutabel()  # Automatisch analyse
+        >>> sutabel.show_figure_sv_su_sutabel()
         >>>
         >>> # Pas parameters aan en analyseer opnieuw
         >>> sutabel.set_manual_parameters(a1_kar=0.85, a2_kar=0.70, vc_fit_kar=0.25)
-        >>> sutabel.show_figure_sv_su_sutabel()  # Gebruikt nu handmatige parameters
+        >>> sutabel.show_figure_sv_su_sutabel()
         """
         # Zorg dat analyse is uitgevoerd voordat handmatige parameters worden ingesteld
         if self.sutabel_data_df is None:
@@ -517,7 +511,7 @@ class SUTABEL:
         Maakt een visualisatie van de sutabel analyseresultaten voor ln(s'v) vs ln(su).
 
         Deze plot toont:
-        - Proefresultaten (OC data)
+        - Proefresultaten (OC-data)
         - Lineaire fit
         - 5% boven- en ondergrens
         - Fysische realiseerbare ondergrens (gebaseerd op a1_kar en a2_kar)
@@ -562,7 +556,7 @@ class SUTABEL:
         Maakt een visualisatie van de sutabel analyseresultaten voor s'v vs su.
 
         Deze plot toont:
-        - Proefresultaten (OC data)
+        - Proefresultaten (OC-data)
         - Sutabel_gem lijn
         - Sutabel_kar lijn
         - Su_kar fit met constante VC (als vc_fit_kar is opgegeven)
@@ -617,13 +611,15 @@ class SUTABEL:
         """
         Slaat de visualisatie van de analyseresultaten op als een HTML-bestand.
 
-        NB: als de figuur leeg is, roep dan eerst show_figure_...() aan om de figuur te genereren.
+        N.B. als de figuur leeg is, roep dan eerst show_figure_...() aan om de figuur te genereren.
         Kies uit show_figure_ln_sv_ln_su_sutabel() of show_figure_sv_su_sutabel().
 
         Parameters
         ----------
         path: str
             Pad naar de map waar het bestand opgeslagen moet worden
+        fig: go.Figure
+            De Plotly-figuur die moet worden opgeslagen
         export_name : str, optioneel
             Naam van het HTML-bestand
         """
@@ -637,21 +633,22 @@ class SUTABEL:
         fig_info = [(self.figure_sv_su, 'sv_su'),
                     (self.figure_ln_sv_ln_su, 'ln_sv_ln_su')]
         for fig, naam in fig_info:
-            export_name = f"SU_{naam}_{self.investigation_groups[0].replace(' ', '_')}.html"
-            self.save_fig_html(fig=fig, path=path, export_name=export_name)
+            file_name = f"{export_name}_{naam}.html" if export_name \
+                else f"SU_{naam}_{self.investigation_groups[0].replace(' ', '_')}.html"
+            self.save_fig_html(fig=fig, path=path, export_name=file_name)
         print(f"Figuren opgeslagen als HTML in: {path}")
 
     def add_results_to_template(self, path: str, export_name: str = 'Template_PVtool5_0.xlsx'):
         """
-        Voegt de sutabel-m analyseresultaten toe aan het template Excel-bestand.
+        Voegt de sutabel-m analyseresultaten toe aan het templateExcel-bestand.
 
         De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
 
         Parameters
         ----------
-        path : str
+        path: str
             Pad naar de map waar het Excel-bestand staat
-        export_name : str
+        export_name: str
             Naam van het Excel-bestand
 
         Returns
@@ -677,7 +674,7 @@ class SUTABEL:
 
         Parameters
         ----------
-        path : str
+        path: str
             Map locatie waar het PDF-bestand moet worden opgeslagen
         vc_fit_kar : float, optioneel
             Coefficient of Variation voor de fit
@@ -696,4 +693,3 @@ class SUTABEL:
 
         from pv_tool.sutabel_analysis.save_and_export import save_sutabel_to_pdf
         return save_sutabel_to_pdf(self, path, vc_fit_kar)
-

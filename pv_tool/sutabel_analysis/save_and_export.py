@@ -2,13 +2,13 @@
 Save and Export functies voor Sutabel-m analyse.
 
 Deze module bevat functies voor het opslaan en exporteren van sutabel-m analyseresultaten
-naar Excel en PDF formaat.
+naar Excel en PDF-formaat.
 """
 
 from typing import TYPE_CHECKING, List
 from pandas import ExcelWriter, concat, DataFrame, read_excel
 from datetime import datetime
-from pv_tool.utilities.utils import get_repo_root, make_temp_folder
+from pv_tool.utilities.utils import get_repo_root
 from openpyxl import load_workbook
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
@@ -22,24 +22,28 @@ from pathlib import Path
 try:
     from reportlab.platypus import Image as RLImage
     from PIL import Image as PILImage
+
     PIL_AVAILABLE = True
 except ImportError:
+    RLImage = None
     PIL_AVAILABLE = False
+    PILImage = None
     print("Waarschuwing: PIL (Pillow) is niet beschikbaar. Figuren kunnen niet aan PDF worden toegevoegd.")
 
 if TYPE_CHECKING:
     from pv_tool.sutabel_analysis.sutabel_analysis import SUTABEL
 
 
-def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = 'Template_PVtool5_0.xlsx'): #TODO wordt vervangen door add_results_to_template
+def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = 'Template_PVtool5_0.xlsx'):
+    # TODO wordt vervangen door add_results_to_template
     """
     Voegt de sutabel-m analyseresultaten toe aan de database Excel-bestand.
 
     Parameters
     ----------
-    self : sutabel
+    self: sutabel
         Instantie van de sutabel analyse klasse
-    path : str
+    path: str
         Pad naar de map waar het Excel-bestand staat
     file_name : str
         Naam van het Excel-bestand
@@ -83,7 +87,8 @@ def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = 'T
         'PV_svgm_KAR [kPa]': round(self.svgm_kar_sutabel, 6) if self.svgm_kar_sutabel is not None else None,
         'PV_m_KAR [-]': round(self.m_kar_sutabel, 6) if self.m_kar_sutabel is not None else None,
         'PV_vc_FIT_KAR [-]': round(self.vc_fit_kar_sutabel, 6) if self.vc_fit_kar_sutabel is not None else None,
-        'PV_STDEV_LOGN_vc [-]': round(self.STDEV_logn_vc_sutabel, 6) if self.STDEV_logn_vc_sutabel is not None else None,
+        'PV_STDEV_LOGN_vc [-]': round(self.STDEV_logn_vc_sutabel,
+                                      6) if self.STDEV_logn_vc_sutabel is not None else None,
         'PV_STEYX [-]': round(self.steyx_sutabel, 6) if self.steyx_sutabel is not None else None,
         'PV_VGWNAT_GEM [kN/m3]': round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
         'PV_VGWNAT_SD [kN/m3]': round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
@@ -125,15 +130,16 @@ def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = 'T
     print(f"Sutabel resultaten toegevoegd aan database: {file_path}")
     return df_updated
 
+
 def add_results_to_template(self: "SUTABEL", path, export_name=None):
     """
     Voegt de sutabel-m analyseresultaten toe aan de database Excel-bestand.
 
     Parameters
     ----------
-    self : sutabel
+    self: sutabel
         Instantie van de sutabel analyse klasse
-    path : str
+    path: str
         Pad naar de map waar het Excel-bestand staat
     export_name
         Naam van het Excel-bestand
@@ -185,34 +191,56 @@ def add_results_to_template(self: "SUTABEL", path, export_name=None):
         'PV_svgm_KAR [kPa]': round(self.svgm_kar_sutabel, 3) if self.svgm_kar_sutabel is not None else None,
         'PV_m_KAR [-]': round(self.m_kar_sutabel, 3) if self.m_kar_sutabel is not None else None,
         'PV_vc_FIT_KAR [-]': round(self.vc_fit_kar_sutabel, 3) if self.vc_fit_kar_sutabel is not None else None,
-        'PV_STDEV_LOGN_vc [-]': round(self.STDEV_logn_vc_sutabel, 3) if self.STDEV_logn_vc_sutabel is not None else None,
+        'PV_STDEV_LOGN_vc [-]': round(self.STDEV_logn_vc_sutabel,
+                                      3) if self.STDEV_logn_vc_sutabel is not None else None,
         'PV_STEYX [-]': round(self.steyx_sutabel, 3) if self.steyx_sutabel is not None else None,
         'PV_VGWNAT_GEM [kN/m3]': round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
         'PV_VGWNAT_SD [kN/m3]': round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
         'PV_WATERGEHALTE_GEM': round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None,
         'PV_WATERGEHALTE_SD': round(self.calc_watergehalte_sd, 3) if self.calc_watergehalte_sd is not None else None,
         'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        'SU-tabel s\'v 1 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[0], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel s\'v 2 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[1], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel s\'v 3 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[2], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel s\'v 4 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[3], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel s\'v 5 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[4], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel s\'v 6 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[5], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel s\'v 7 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[6], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_gem 1 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[0], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_gem 2 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[1], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_gem 3 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[2], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_gem 4 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[3], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_gem 5 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[4], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_gem 6 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[5], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_gem 7 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[6], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_kar 1 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[0], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_kar 2 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[1], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_kar 3 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[2], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_kar 4 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[3], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_kar 5 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[4], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_kar 6 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[5], 3) if self.sutabel_grafiek is not None else None,
-        'SU-tabel su_kar 7 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[6], 3) if self.sutabel_grafiek is not None else None
+        'SU-tabel s\'v 1 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[0],
+                                       3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel s\'v 2 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[1],
+                                       3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel s\'v 3 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[2],
+                                       3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel s\'v 4 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[3],
+                                       3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel s\'v 5 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[4],
+                                       3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel s\'v 6 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[5],
+                                       3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel s\'v 7 [kPa]': round(self.sutabel_grafiek['s\'v [kPa]'].iloc[6],
+                                       3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_gem 1 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[0],
+                                         3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_gem 2 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[1],
+                                         3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_gem 3 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[2],
+                                         3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_gem 4 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[3],
+                                         3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_gem 5 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[4],
+                                         3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_gem 6 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[5],
+                                         3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_gem 7 [kPa]': round(self.sutabel_grafiek['su_gem [kPa]'].iloc[6],
+                                         3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_kar 1 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[0],
+                                         3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_kar 2 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[1],
+                                         3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_kar 3 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[2],
+                                         3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_kar 4 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[3],
+                                         3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_kar 5 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[4],
+                                         3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_kar 6 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[5],
+                                         3) if self.sutabel_grafiek is not None else None,
+        'SU-tabel su_kar 7 [kPa]': round(self.sutabel_grafiek['su_kar [kPa]'].iloc[6],
+                                         3) if self.sutabel_grafiek is not None else None
     }
 
     workbook = load_workbook(file_path)
@@ -253,6 +281,7 @@ def add_results_to_template(self: "SUTABEL", path, export_name=None):
     wb.save(file_path)
     print(f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'.")
     return df_updated
+
 
 def _create_sutabel_input_table(self: "SUTABEL") -> Table:
     """
@@ -320,8 +349,7 @@ def _create_sutabel_input_table(self: "SUTABEL") -> Table:
     header_style.alignment = 0  # Left align
 
     # Create header row with index column
-    header_paragraphs = []
-    header_paragraphs.append(Paragraph('Monster ID', header_style))
+    header_paragraphs = [Paragraph('Monster ID', header_style)]
 
     for col in table_df.columns:
         col_display = col.replace('_', '_<br/>')
@@ -483,9 +511,11 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, vc_fit_kar: float = None) ->
 
     Parameters
     ----------
-    path : str
+    self: SUTABEL
+        Instantie van de SUTABEL klasse met de analyse uitvoert
+    path: str
         Map locatie waar het PDF-bestand moet worden opgeslagen
-    vc_fit_kar : float, optioneel
+    vc_fit_kar: float, optioneel
         Coefficient of Variation voor de fit
 
     Returns
@@ -494,7 +524,8 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, vc_fit_kar: float = None) ->
         Het absolute bestandspad van het aangemaakte PDF-bestand
     """
     title = f"Sutabel-m analyse met {self.effective_stress} op {self.investigation_groups[0]}"
-    file_name = f"sutabel_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf"
+    file_name = (f"sutabel_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_"
+                 f"{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf")
     file_path = f"{path}/{file_name}"
 
     self._run_sutabel()
@@ -518,13 +549,11 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, vc_fit_kar: float = None) ->
     if 'Heading3' not in styles:
         styles.add(ParagraphStyle(name='Heading3', parent=styles['Heading2'], alignment=TA_LEFT))
 
-    story = []
-
-    story.append(Paragraph(title, styles['TitleLeft']))
-    story.append(Spacer(width=1, height=12))
+    story = [Paragraph(title, styles['TitleLeft']), Spacer(width=1, height=12)]
 
     if not PIL_AVAILABLE:
-        story.append(Paragraph("Figuren kunnen niet worden toegevoegd: PIL (Pillow) niet beschikbaar", styles['Normal']))
+        story.append(
+            Paragraph("Figuren kunnen niet worden toegevoegd: PIL (Pillow) niet beschikbaar", styles['Normal']))
         story.append(Spacer(width=1, height=12))
     else:
         try:
@@ -582,7 +611,8 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, vc_fit_kar: float = None) ->
             if self.figure_ln_sv_ln_su is not None and len(self.figure_ln_sv_ln_su.data) > 0:
                 fig_width = 1280
                 fig_height = 720
-                self.figure_ln_sv_ln_su.write_image(fig_path2, width=fig_width, height=fig_height, scale=4, format="png")
+                self.figure_ln_sv_ln_su.write_image(fig_path2, width=fig_width, height=fig_height, scale=4,
+                                                    format="png")
 
                 with PILImage.open(fig_path2) as im:
                     img_width_px, img_height_px = im.size
@@ -657,4 +687,3 @@ def save_sutabel_to_pdf(self: "SUTABEL", path: str, vc_fit_kar: float = None) ->
     except Exception as e:
         print(f"Fout bij maken PDF: {e}")
         raise
-

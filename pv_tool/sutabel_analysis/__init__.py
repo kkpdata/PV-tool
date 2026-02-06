@@ -12,4 +12,3 @@ Hoofdklasse:
 from pv_tool.sutabel_analysis.sutabel_analysis import SUTABEL
 
 __all__ = ['SUTABEL']
-
