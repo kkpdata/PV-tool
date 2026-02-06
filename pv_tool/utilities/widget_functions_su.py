@@ -1,4 +1,5 @@
 import ipywidgets as widgets
+from ipywidgets import HTML
 from ipyfilechooser import FileChooser
 from IPython.display import display, Markdown, clear_output
 import importlib.util
@@ -126,12 +127,12 @@ def create_param_grid(a2, a1, vc, handmatig_init=None):
 
     # Eerste rij: Titels
     grid[0, 0] = widgets.Label(f'Parameters', layout=widgets.Layout(width='200px'))
-    grid[0, 1] = widgets.Label(f'a2_kar', layout=widgets.Layout(width='200px'))
-    grid[0, 2] = widgets.Label(f'a1_kar', layout=widgets.Layout(width='200px'))
-    grid[0, 3] = widgets.Label(f'VC_fit', layout=widgets.Layout(width='200px'))
+    grid[0, 1] = HTML(value=f'a2<sub>kar</sub> helling ln(&sigma;&#x27;<sub>v</sub>)/ln(su)', layout=widgets.Layout(width='200px'))
+    grid[0, 2] = HTML(value=f'a1<sub>kar</sub> snijpunt y-as ln(S<sub>u</sub>) [-]', layout=widgets.Layout(width='200px'))
+    grid[0, 3] = widgets.Label(f'Bepaal variatiecoëfficiënt [-]', layout=widgets.Layout(width='200px'))
 
     # Tweede rij: benaderingswaarden
-    grid[1, 0] = widgets.Label(f'Bepaling parameters uit triaxiaal- of DSS-proeven', layout=widgets.Layout(width='300px'))
+    grid[1, 0] = widgets.Label(f'Benadering', layout=widgets.Layout(width='300px'))
     grid[1, 1] = widgets.Label(f'{a2}', layout=widgets.Layout(width='200px'))
     grid[1, 2] = widgets.Label(f'{a1}', layout=widgets.Layout(width='200px'))
     grid[1, 3] = widgets.Label(f'{vc if vc is not None else "-"}', layout=widgets.Layout(width='200px'))
@@ -146,6 +147,7 @@ def create_param_grid(a2, a1, vc, handmatig_init=None):
     else:
         vc_handmatig = widgets.FloatText(value=handmatig_init[2], step=0.01, layout=widgets.Layout(width='200px'),
                                          placeholder='-')
+
 
     grid[2, 0] = widgets.Label(f'Handmatige invoer', layout=widgets.Layout(width='300px'))
     grid[2, 1] = a2_handmatig
@@ -186,6 +188,7 @@ def run_su_analysis(
 
     # Grid aanmaken
     grid, handmatige_widgets = create_param_grid(a2_kar, a1_kar, cv)
+    display(Markdown("**Opgegeven karakteristieke waarden (fit):**"))
     display(grid)
     return analyse, handmatige_widgets
 

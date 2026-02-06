@@ -201,7 +201,7 @@ class SUTABEL:
             raise FileNotFoundError(f"Er is geen dbase aanwezig op de locatie {file_path}.")
 
         try:
-            results_df = read_excel(file_path, sheet_name='Resultaten SU-tabel-m', header=6)
+            results_df = read_excel(file_path, sheet_name='Resultaten SU-tabel-m', skiprows=6)
         except ValueError:
             print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
             return None
