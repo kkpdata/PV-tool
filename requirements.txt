@@ -19,6 +19,7 @@ ipython
 pillow
 setuptools
 
+
 # packages required for notebook
 ipywidgets
 ipython

@@ -131,7 +131,7 @@ def test_shansep_analyse():
         except Exception as e:
             print(f"Berekening sutabel met handmatige parameters mislukt: {e}")
 
-        # Test figu generatie
+        # Test figure generatie
         analyse.set_figure_sv_su()
         analyse.set_figure_sv_su_nc()
         analyse.set_figure_ln_ocr_ln_s()

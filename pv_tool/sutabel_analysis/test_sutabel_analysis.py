@@ -27,7 +27,6 @@ def test_sutabel_analyse():
 
     # Initialize analysis types voor SUTABEL
     analysis_types: list[Literal['TXT_su_tabel', 'DSS_su_tabel']] = ['TXT_su_tabel', 'DSS_su_tabel']
-    effective_stresses = ['2% rek', '5% rek', '10% rek', '15% rek', '20% rek', 'pieksterkte', 'eindsterkte']
 
     for analysis_type in analysis_types:
         if analysis_type == 'DSS_su_tabel':
@@ -55,18 +54,21 @@ def test_sutabel_analyse():
         try:
             analyse.set_figure_ln_sv_ln_su_sutabel()
             analyse.set_figure_sv_su_sutabel()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Error during figure generation before manual parameters for {analysis_type}: {e}")
 
         # Test show figures
         try:
             analyse.show_figure_ln_sv_ln_su_sutabel()
-            fig_ln = analyse.get_figure_ln_sv_ln_su_sutabel()
-            analyse.save_fig_html(fig=fig_ln, path=str(export_dir), export_name=f"sutabel_ln_figure_{analysis_type}.html")
+            fig_ln = analyse.figure_ln_sv_ln_su
+            analyse.save_fig_html(fig=fig_ln, path=str(export_dir),
+                                  export_name=f"sutabel_ln_figure_{analysis_type}.html")
             analyse.show_figure_sv_su_sutabel()
-            analyse.save_fig_html(path=str(export_dir), export_name=f"sutabel_sv_figure_{analysis_type}.html")
-        except Exception:
-            pass
+            fig_sv_su = analyse.figure_sv_su
+            analyse.save_fig_html(fig=fig_sv_su, path=str(export_dir),
+                                  export_name=f"sutabel_sv_figure_{analysis_type}.html")
+        except Exception as e:
+            print(f"Error during show figures before manual parameters for {analysis_type}: {e}")
 
         # Test manual parameters (met voorbeeldwaardes die bij TXT SAFE klei licht 15% een goede fit geven)
         if analysis_type == 'DSS_su_tabel':
@@ -78,30 +80,34 @@ def test_sutabel_analyse():
         try:
             analyse.set_figure_ln_sv_ln_su_sutabel()
             analyse.set_figure_sv_su_sutabel()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Error during figure generation after manual parameters for {analysis_type}: {e}")
 
         # Test show figures en html export
         try:
             analyse.show_figure_ln_sv_ln_su_sutabel()
-            analyse.save_fig_html(path=str(export_dir), export_name=f"sutabel_ln_figure_{analysis_type}_manual.html")
+            fig_ln_sv_ln_su = analyse.figure_ln_sv_ln_su
+            analyse.save_fig_html(fig=fig_ln_sv_ln_su, path=str(export_dir),
+                                  export_name=f"sutabel_ln_figure_{analysis_type}_manual.html")
             analyse.show_figure_sv_su_sutabel()
-            analyse.save_fig_html(path=str(export_dir), export_name=f"sutabel_sv_figure_{analysis_type}_manual.html")
-        except Exception:
-            pass
+            fig_sv_su_sutabel = analyse.figure_sv_su
+            analyse.save_fig_html(fig=fig_sv_su_sutabel, path=str(export_dir),
+                                  export_name=f"sutabel_sv_figure_{analysis_type}_manual.html")
+        except Exception as e:
+            print(f"Error during show figures and exporting to html for {analysis_type}: {e}")
 
         # Test exports
         try:
             analyse.write_analysis_to_excel(str(export_dir / f"sutabel_analysis_{analysis_type}.xlsx"))
             analyse.save_to_pdf(path=str(export_dir))
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Error during exports for {analysis_type}: {e}")
 
         # Test results to template
         try:
             analyse.add_results_to_template(path=str(export_dir), export_name=export_name)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Error during adding results to template for {analysis_type}: {e}")
 
     # Remove temp_folder (optioneel uitcommentariëren voor debugging)
     # shutil.rmtree(export_dir)
@@ -114,6 +120,7 @@ class TestSutabelAnalyse(unittest.TestCase):
     def test_sutabel_analyse(self):
         """Test de volledige SUTABEL analyse workflow."""
         self.assertTrue(test_sutabel_analyse())
+
 
 if __name__ == '__main__':
     unittest.main()

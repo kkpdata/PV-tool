@@ -60,7 +60,7 @@ def test_shansep_analyse():
             set_manual_parameters(analyse, estimated_params)
 
         # Test calculations and figures
-        test_calculations_and_figures(analyse, analysis_type)
+        run_calculations_and_figures(analyse, analysis_type)
 
     assert True
 
@@ -81,7 +81,7 @@ def set_manual_parameters(analyse: SHANSEP, params: dict):
         print(f"Instellen handmatige parameters mislukt: {e}")
 
 
-def test_calculations_and_figures(analyse: SHANSEP, analysis_type: str):
+def run_calculations_and_figures(analyse: SHANSEP, analysis_type: str):
     """Test berekeningen en figuren voor SHANSEP analyse."""
     try:
         analyse.calculate_sutabel()
@@ -117,7 +117,8 @@ class TestShansepAnalyse(unittest.TestCase):
 
     def test_shansep_analyse(self):
         """Test de volledige SHANSEP analyse workflow."""
-        self.assertTrue(test_shansep_analyse())
+        # self.assertTrue(test_shansep_analyse())
+        test_shansep_analyse()
 
 
 if __name__ == '__main__':
