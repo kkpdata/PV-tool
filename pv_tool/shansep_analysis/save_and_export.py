@@ -550,9 +550,9 @@ def _create_parameters_table(self: "SHANSEP") -> Table:
     parameters.append(['Type verzameling: lokaal = 1.0; regionaal = 0.75', self.alpha])
 
     if hasattr(self, 'calc_vgwnat_gem') and self.calc_vgwnat_gem is not None:
-        parameters.append(['VGW nat gemiddeld [kN/m3]', round(self.calc_vgwnat_gem, 3)])
+        parameters.append(['VGW nat gemiddeld [kN/m3]', round(self.calc_vgwnat_gem, 2)])
     if hasattr(self, 'calc_watergehalte_gem') and self.calc_watergehalte_gem is not None:
-        parameters.append(['Watergehalte gemiddeld [%]', round(self.calc_watergehalte_gem, 3)])
+        parameters.append(['Watergehalte gemiddeld [%]', round(self.calc_watergehalte_gem, 2)])
 
     t = Table([['Parameter', 'Waarde']] + parameters, hAlign='LEFT')
     t.setStyle(TableStyle([

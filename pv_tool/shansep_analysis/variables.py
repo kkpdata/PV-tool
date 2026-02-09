@@ -142,7 +142,7 @@ def std_pop_oc(self: SHANSEP):
 
 
 def kar_pop_oc(self: SHANSEP):
-    return gem_pop_oc(self) + std_pop_oc(self) * t_n_2_oc(self) * ((1 - self.alpha) + 1 / count_sv_oc(self)) ** 0.5
+    return gem_pop_oc(self) - std_pop_oc(self) * t_n_2_oc(self) * ((1 - self.alpha) + 1 / count_sv_oc(self)) ** 0.5
 
 
 def count_ln_ocr_nc_oc(self: SHANSEP):

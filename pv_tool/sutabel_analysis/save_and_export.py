@@ -415,9 +415,9 @@ def _create_sutabel_parameters_table(self: "SUTABEL") -> Table:
     parameters.append(['Type verzameling: lokaal = 1.0; regionaal = 0.75', f"{self.alpha:.2f}"])
 
     if hasattr(self, 'calc_vgwnat_gem') and self.calc_vgwnat_gem is not None:
-        parameters.append(['VGW nat gemiddeld [kN/m3]', f"{self.calc_vgwnat_gem:.3f}"])
+        parameters.append(['VGW nat gemiddeld [kN/m3]', f"{self.calc_vgwnat_gem:.2f}"])
     if hasattr(self, 'calc_watergehalte_gem') and self.calc_watergehalte_gem is not None:
-        parameters.append(['Watergehalte gemiddeld [%]', f"{self.calc_watergehalte_gem:.3f}"])
+        parameters.append(['Watergehalte gemiddeld [%]', f"{self.calc_watergehalte_gem:.2f}"])
 
     t = Table([['Parameter', 'Waarde']] + parameters, hAlign='LEFT')
     t.setStyle(TableStyle([
