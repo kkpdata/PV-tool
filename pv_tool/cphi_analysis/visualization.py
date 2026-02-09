@@ -319,7 +319,8 @@ def add_stress_paths(self: CPhiAnalyse, sample_stress_paths: dict) -> None:
                 text=[f"{sample_name} - {state}<br>S\':{s:.1f}, T:{t:.1f}"
                       for state, s, t in zip(stress_df['stress_state'], stress_df['S\''], stress_df['T'])],
                 hoverinfo='text',
-                showlegend=first_sample
+                showlegend=first_sample,
+                legendgroup='spanningspaden'  # Groepeer alle spanningspad traces
             )
         )
 
@@ -338,7 +339,8 @@ def add_stress_paths(self: CPhiAnalyse, sample_stress_paths: dict) -> None:
                 text=f"""{sample_name} - {stress_df['stress_state'].iloc[0]}<br>S':{stress_df["S'"].iloc[0]:.1f}, 
                 T:{stress_df['T'].iloc[0]:.1f}""",
                 hoverinfo='text',
-                showlegend=first_sample
+                showlegend=first_sample,
+                legendgroup='spanningspaden'  # Zelfde groep als de lijnen
             )
         )
 

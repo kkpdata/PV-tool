@@ -372,13 +372,13 @@ if __name__ == "__main__":
     # Uiteindelijk moeten deze mapjes verwijderd worden van de github repo
 
     plot_extra_dataset = None
-    plot_spanningspaden = False
+    plot_spanningspaden = True
 
     # Test verschillende analyses
     print("\nUitvoeren van verschillende test cases...")
 
-    # print("\nTXT C-phi analyse test")
-    # cphi_analysis_txt_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
+    print("\nTXT C-phi analyse test")
+    cphi_analysis_txt_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
 
     # print("\nDSS C-phi analyse test")
     # cphi_analysis_dss_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
@@ -394,7 +394,7 @@ if __name__ == "__main__":
     # print("\nTXT SHANSEP analyse test")
     # shansep_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
     # #
-    print("\nSUTABEL analyse test")
-    sutabel_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
+    # print("\nSUTABEL analyse test")
+    # sutabel_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
     #
     # print("\nAlle tests zijn voltooid!")

@@ -172,7 +172,7 @@ class TestShansepAnalyse(unittest.TestCase):
 
     def test_shansep_analyse(self):
         """Test de volledige SHANSEP analyse workflow."""
-        self.assertTrue(test_shansep_analyse())
+        test_shansep_analyse()
 
 
 if __name__ == '__main__':

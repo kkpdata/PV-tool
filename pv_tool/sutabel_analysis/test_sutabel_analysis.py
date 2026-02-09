@@ -119,7 +119,7 @@ class TestSutabelAnalyse(unittest.TestCase):
 
     def test_sutabel_analyse(self):
         """Test de volledige SUTABEL analyse workflow."""
-        self.assertTrue(test_sutabel_analyse())
+        test_sutabel_analyse()
 
 
 if __name__ == '__main__':

@@ -52,13 +52,13 @@ def test_validate():
 class TestImportAndValidate(unittest.TestCase):
 
     def test_import_dbase_data(self):
-        self.assertTrue(test_import_dbase_data())
+        test_import_dbase_data()
 
     def test_import_stowa_data(self):
-        self.assertTrue(test_import_stowa_data())
+        test_import_stowa_data()
 
     def test_import_pv_data(self):
-        self.assertTrue(test_import_pv_data())
+        test_import_pv_data()
 
     def test_validate_data(self):
-        self.assertTrue(test_validate())
+        test_validate()

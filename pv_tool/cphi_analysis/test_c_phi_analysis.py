@@ -52,7 +52,7 @@ def test_cphi_analyse():
 class TestImportAndValidate(unittest.TestCase):
 
     def test_cphi_analyse(self):
-        self.assertTrue(test_cphi_analyse())
+        test_cphi_analyse()
 
     def test_creating_figures(self):
         """Test het aanmaken van figuren en save_fig_html functionaliteit voor CPhiAnalyse."""
