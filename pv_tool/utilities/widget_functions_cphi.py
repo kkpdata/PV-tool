@@ -357,9 +357,6 @@ def toon_cphi_tabel(
         PV_A1_COH_GEM_handmatig_ref,
         PV_A2_PHI_KAR_handmatig_ref,
         PV_A1_COH_KAR_handmatig_ref,
-        PV_PARTPHI_ref,
-        PV_PARTCOH_ref,
-        PV_TYPEVERZAMELING_ref,
         dropdown_verzameling_txt,
         gekozen_rekpercentage
 ):
@@ -367,7 +364,7 @@ def toon_cphi_tabel(
     Toont een interactieve tabel voor C-phi invoer.
     """
 
-    grid = widgets.GridspecLayout(8, 3)
+    grid = widgets.GridspecLayout(5, 3)
     grid[0, 0] = widgets.Label('Beschrijving')
     grid[0, 1] = widgets.Label('Benadering')
     grid[0, 2] = widgets.Label('Invoer')
@@ -377,9 +374,6 @@ def toon_cphi_tabel(
         'a1gem =snijpunt y-as (cohesie gemiddeld)',
         'a2kar (phi karakteristiek)',
         'a1kar =snijpunt y-as (cohesie karakteristiek)',
-        'partiele materiaalfactor tan phi [-]',
-        'partiele materiaalfactor cohesie [-]',
-        'type verzameling: lokaal = 1,0; regionaal = 0,75',
     ]
 
     benadering_values = [
@@ -387,7 +381,6 @@ def toon_cphi_tabel(
         PV_A1_COH_GEM_benadering,
         PV_A2_PHI_KAR_benadering,
         PV_A1_COH_KAR_benadering,
-        '-', '-', '-',
     ]
 
     # De referenties naar de lijstjes voor live bijwerken
@@ -396,17 +389,14 @@ def toon_cphi_tabel(
         PV_A1_COH_GEM_handmatig_ref,
         PV_A2_PHI_KAR_handmatig_ref,
         PV_A1_COH_KAR_handmatig_ref,
-        PV_PARTPHI_ref,
-        PV_PARTCOH_ref,
-        PV_TYPEVERZAMELING_ref,
     ]
 
     def on_value_change(change, ref):  # TODO: ref geeft een waarschuwing. De code werkt, maar oplossen
         if ref is not None:
             try:
                 ref[0] = float(change['new'])
-            except Exception:
-                pass  # eventueel kun je hier validatie toevoegen
+            except Exception as e:
+                print(f"Fout bij het bijwerken van de waarde: {e}")
 
     for i, (desc, benadering, ref) in enumerate(zip(descriptions, benadering_values, invoer_refs)):
         grid[i + 1, 0] = widgets.Label(desc)
@@ -486,16 +476,10 @@ def voer_cphi_analyse_uit(
             PV_A1_COH_GEM_handmatig = [laatste_resultaten['PV_A1_COH_GEM']]
             PV_A2_PHI_KAR_handmatig = [laatste_resultaten['PV_A2_TAN_PHI_KAR']]
             PV_A1_COH_KAR_handmatig = [laatste_resultaten['PV_A1_COH_KAR']]
-            PV_PARTPHI = [partphi_widget.value]
-            PV_PARTCOH = [partcoh_widget.value]
-            PV_TYPEVERZAMELING = [alpha_widget.value]
         else:
             PV_A1_COH_GEM_handmatig = [PV_A1_COH_GEM_benadering]
             PV_A2_PHI_KAR_handmatig = [PV_A2_PHI_KAR_benadering]
             PV_A1_COH_KAR_handmatig = [PV_A1_COH_KAR_benadering]
-            PV_PARTPHI = [partphi_widget.value]
-            PV_PARTCOH = [partcoh_widget.value]
-            PV_TYPEVERZAMELING = [alpha_widget.value]
 
     # Toelichting tonen
         display(Markdown("**Stel de raaklijnen voor de gemiddelde en karakteristieke waarden van de cohesie en hoek van inwendige wrijving vast:**"))
@@ -513,18 +497,15 @@ def voer_cphi_analyse_uit(
             PV_A1_COH_GEM_handmatig,
             PV_A2_PHI_KAR_handmatig,
             PV_A1_COH_KAR_handmatig,
-            PV_PARTPHI,
-            PV_PARTCOH,
-            PV_TYPEVERZAMELING,
             dropdown_verzameling,
             gekozen_rekpercentage
         )
-        return analyse, PV_A1_COH_GEM_handmatig, PV_A2_PHI_KAR_handmatig, PV_A1_COH_KAR_handmatig, PV_PARTPHI, PV_PARTCOH, PV_TYPEVERZAMELING
+        return analyse, PV_A1_COH_GEM_handmatig, PV_A2_PHI_KAR_handmatig, PV_A1_COH_KAR_handmatig
     elif dropdown_type_proef.value in ['TXT_SH', 'DSS_SH']:
         analyse._run_sh()
         display(Markdown("Geen extra invoer nodig voor de SH-proeven."))
         print()
-        return analyse, None, None, None, None, None, None
+        return analyse, None, None, None
 
 
 def show_cphi_analysis(
