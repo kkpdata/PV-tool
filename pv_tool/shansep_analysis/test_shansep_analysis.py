@@ -164,7 +164,7 @@ def test_shansep_analyse():
 
     # Remove temp_folder (optioneel uitcommentariëren voor debugging)
     # shutil.rmtree(export_dir)
-    return True
+    assert True
 
 
 class TestShansepAnalyse(unittest.TestCase):

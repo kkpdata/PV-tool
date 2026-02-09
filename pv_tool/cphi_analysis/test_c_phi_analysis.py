@@ -46,7 +46,7 @@ def test_cphi_analyse():
         analyse.show_figure()
     # remove temp_folder
     # shutil.rmtree(export_dir)
-    return True
+    assert True
 
 
 class TestImportAndValidate(unittest.TestCase):

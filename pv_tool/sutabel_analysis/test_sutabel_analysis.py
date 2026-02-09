@@ -111,7 +111,7 @@ def test_sutabel_analyse():
 
     # Remove temp_folder (optioneel uitcommentariëren voor debugging)
     # shutil.rmtree(export_dir)
-    return True
+    assert True
 
 
 class TestSutabelAnalyse(unittest.TestCase):
