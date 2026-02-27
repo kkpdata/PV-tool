@@ -377,8 +377,8 @@ if __name__ == "__main__":
     # Test verschillende analyses
     print("\nUitvoeren van verschillende test cases...")
 
-    print("\nTXT C-phi analyse test")
-    cphi_analysis_txt_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
+    # print("\nTXT C-phi analyse test")
+    # cphi_analysis_txt_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
 
     # print("\nDSS C-phi analyse test")
     # cphi_analysis_dss_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset, plot_spanningspaden=plot_spanningspaden)
@@ -391,10 +391,10 @@ if __name__ == "__main__":
     #
     # plot_extra_dataset = ['TXT_SAFE_klei_zwaar']
     #
-    # print("\nTXT SHANSEP analyse test")
-    # shansep_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
+    print("\nTXT SHANSEP analyse test")
+    shansep_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
     # #
     # print("\nSUTABEL analyse test")
     # sutabel_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
-    #
+
     # print("\nAlle tests zijn voltooid!")

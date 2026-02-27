@@ -266,6 +266,7 @@ def set_layout_sv_su_sutabel(self: "SUTABEL"):
         title=title if self.show_title else None,
         xaxis_title=xas_title,
         yaxis_title=yas_title,
+        yaxis=dict(rangemode='tozero'),
         legend_title=legend_title,
         margin=dict(t=100, r=50, b=100, l=50)
     )

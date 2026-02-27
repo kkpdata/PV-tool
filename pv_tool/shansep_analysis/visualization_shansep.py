@@ -341,24 +341,8 @@ def add_linear_fit_sv_su(self: SHANSEP):
 
 def add_linear_fit_sv_su_nc(self: SHANSEP):
     """Deze functie voegt de lineaire fit van de proefresultaten toe aan de figuur door de oorsprong."""
-    # x1 = 0 # Start bij oorsprong
-    # x2 = self.shansep_data_df_nc['S\'v'].max()
-    #
-    # x_data = self.shansep_data_df_nc['S\'v'].values
-    # y_data = self.shansep_data_df_nc['Su'].values
-    #
-    # # Bereken helling door oorsprong (intercept = 0)
-    # # Voor y = a*x (door oorsprong) is a = sum(x*y) / sum(x^2)
-    # helling = np.sum(x_data * y_data) / np.sum(x_data ** 2)  # gelijk aan de helling van gem S
-    #
-    # y1 = x1 * helling  # = 0
-    # y2 = x2 * helling
-    #
-    # x = [x1, x2]
-    # y = [y1, y2]
     x = [0, self.shansep_data_df_nc['S\'v'].max()]
-    # s_boven = self.exp_gem_ln_su_svc_nc + (self.exp_gem_ln_su_svc_nc - self.exp_kar_ln_su_svc_nc)
-    s_gem = self.exp_gem_ln_su_svc_nc  # TODO: checken of dit klopt
+    s_gem = self.exp_gem_ln_su_svc_nc
     shansep_gem = [s_gem * xi for xi in x]
 
     self.figure_sv_su_nc.add_trace(
@@ -538,6 +522,7 @@ def set_layout_sv_su(self: SHANSEP):
         title=title if self.show_title else None,
         xaxis_title=xas_title,
         yaxis_title=yas_title,
+        yaxis=dict(rangemode='tozero'),
         legend_title=legend_title,
         margin=dict(t=100, r=50, b=100, l=50)
     )
