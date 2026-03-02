@@ -296,9 +296,9 @@ def add_stress_paths(self: CPhiAnalyse, sample_stress_paths: dict) -> None:
 
     Parameters
     ----------
-    self : CPhiAnalyse
+    self: CPhiAnalyse
         De CPhi-class wordt gebruikt als imput voor deze functie.
-    sample_stress_paths : dict
+    sample_stress_paths: dict
         Dictionary met als key de monsternaam en als value een DataFrame met kolommen
         'S\'', 'T' en 'stress_state' voor de spanningswaarden
     """
