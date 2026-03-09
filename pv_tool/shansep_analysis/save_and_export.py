@@ -190,7 +190,6 @@ def add_results_to_template(self: "SHANSEP", path, export_name=None):
     workbook = load_workbook(file_path)
 
     if 'Resultaten SHANSEP' in workbook.sheetnames:
-        print('Tabblad resultaten SHANSEP in dbase excel bestaat al en wordt aangevuld')
         df_existing = read_excel(file_path, sheet_name='Resultaten SHANSEP')
         # Filter out empty rows and ensure consistent types before concatenation
         df_existing = df_existing.dropna(how='all')
@@ -199,7 +198,6 @@ def add_results_to_template(self: "SHANSEP", path, export_name=None):
         new_row_df = DataFrame([new_row], columns=df_existing.columns)
         df_updated = concat([df_existing, new_row_df], ignore_index=True)
     else:
-        print('Tabblad resultaten SHANSEP in dbase excel bestaat nog niet en wordt aangemaakt')
         df_updated = DataFrame([new_row], columns=expected_columns)
 
     # Ensure all column headers are strings

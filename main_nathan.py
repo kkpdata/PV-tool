@@ -314,12 +314,12 @@ def sutabel_analysis_test(dbase: Dbase, export_path: Path, export_file: str, plo
     export_file : str
         Naam van het export database bestand
     """
-    sutabel = SUTABEL(
-        dbase=dbase,
-        analysis_type='DSS_su_tabel',
-        investigation_groups=['DSS_SAFE_veen'],
-        effective_stress='20% rek'
-    )
+    # sutabel = SUTABEL(
+    #     dbase=dbase,
+    #     analysis_type='DSS_su_tabel',
+    #     investigation_groups=['DSS_SAFE_veen'],
+    #     effective_stress='20% rek'
+    # )
 
     # sutabel = SUTABEL(
     #     dbase=dbase,
@@ -327,6 +327,13 @@ def sutabel_analysis_test(dbase: Dbase, export_path: Path, export_file: str, plo
     #     investigation_groups=['TXT_SAFE_klei_licht_16_175'],
     #     effective_stress='15% rek'
     # )
+
+    sutabel = SUTABEL(
+        dbase=dbase,
+        analysis_type='TXT_su_tabel',
+        investigation_groups=['TXT_SAFE_klei_zwaar'],
+        effective_stress='15% rek'
+    )
 
     sutabel.apply_settings(alpha=0.75)
 
@@ -339,6 +346,7 @@ def sutabel_analysis_test(dbase: Dbase, export_path: Path, export_file: str, plo
     # Export (analysis runs automatically if needed)
     sutabel.add_results_to_template(str(export_path), export_file)
     sutabel.save_to_pdf(str(export_path))
+
 
 
 if __name__ == "__main__":
@@ -369,9 +377,11 @@ if __name__ == "__main__":
         print("ERROR: Database import gefaald!")
         exit(1)
 
+    print(dbase.dbase_df['PV_NAAM'].unique())
+
     # Uiteindelijk moeten deze mapjes verwijderd worden van de github repo
 
-    plot_extra_dataset = None
+    plot_extra_dataset = ['TXT_SAFE_klei_licht_outlier', 'TXT_SAFE_klei_zwaar']
     plot_spanningspaden = True
 
     # Test verschillende analyses
@@ -391,10 +401,10 @@ if __name__ == "__main__":
     #
     # plot_extra_dataset = ['TXT_SAFE_klei_zwaar']
     #
-    print("\nTXT SHANSEP analyse test")
-    shansep_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
-    # #
-    # print("\nSUTABEL analyse test")
-    # sutabel_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
+    # print("\nTXT SHANSEP analyse test")
+    # shansep_analysis_test(dbase, export_dir, export_name, plot_extra_dataset=plot_extra_dataset)
+    # # #
+    print("\nSUTABEL analyse test")
+    sutabel_analysis_test(dbase, export_dir, export_name+'xlsx', plot_extra_dataset=plot_extra_dataset)
 
     # print("\nAlle tests zijn voltooid!")

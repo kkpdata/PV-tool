@@ -15,6 +15,18 @@ if TYPE_CHECKING:
 from typing import List, Optional
 from pv_tool.shansep_analysis.globals import TEXTUAL_NAMES, TEXTUAL_NAMES_DSS, NEW_COLUMN_NAMES
 
+# Kleuren voor extra onderzoeksgroepen — blauw is gereserveerd voor de hoofdgroep
+EXTRA_GROEPEN_KLEUREN = [
+    '#E6610A',  # oranje
+    '#2CA02C',  # groen
+    '#9467BD',  # paars
+    '#8C564B',  # bruin
+    '#E377C2',  # roze
+    '#7F7F7F',  # grijs
+    '#BCBD22',  # geelgroen
+    '#17BECF',  # cyaan
+]
+
 
 def add_proefresultaten_ln_sv_ln_su_sutabel(self: "SUTABEL"):
     """Voegt de proefresultaten toe aan de figuur voor sutabel analyse (ln(s'v) vs ln(su))."""
@@ -78,12 +90,14 @@ def add_extra_proefresultaten_ln_sv_ln_su_sutabel(self: "SUTABEL", extra_groepen
         sub_df = df[df['PV_NAAM'] == naam]
         x_extra_proefresultaten = sub_df['ln(s\'v)']
         y_extra_proefresultaten = sub_df['ln(su)']
+        kleur = EXTRA_GROEPEN_KLEUREN[n % len(EXTRA_GROEPEN_KLEUREN)]
 
         self.figure_ln_sv_ln_su.add_trace(
             go.Scatter(
                 x=x_extra_proefresultaten,
                 y=y_extra_proefresultaten,
                 mode='markers',
+                marker=dict(color=kleur),
                 name=f'Extra: {extra_groepen[n]}',
                 text=boring_monsternummer,
                 hoverinfo='text'
@@ -250,12 +264,14 @@ def add_extra_proefresultaten_sv_su_sutabel(self: "SUTABEL", extra_groepen: Opti
         sub_df = df[df['PV_NAAM'] == naam]
         x_extra_proefresultaten = sub_df['S\'v']
         y_extra_proefresultaten = sub_df['Su']
+        kleur = EXTRA_GROEPEN_KLEUREN[n % len(EXTRA_GROEPEN_KLEUREN)]
 
         self.figure_sv_su.add_trace(
             go.Scatter(
                 x=x_extra_proefresultaten,
                 y=y_extra_proefresultaten,
                 mode='markers',
+                marker=dict(color=kleur),
                 name=f'Extra: {extra_groepen[n]}',
                 text=boring_monsternummer,
                 hoverinfo='text'
@@ -348,6 +364,7 @@ def set_layout_sv_su_sutabel(self: "SUTABEL"):
         title=title if self.show_title else None,
         xaxis_title=xas_title,
         yaxis_title=yas_title,
+        yaxis=dict(rangemode='tozero'),
         legend_title=legend_title,
         margin=dict(t=100, r=50, b=100, l=50)
     )

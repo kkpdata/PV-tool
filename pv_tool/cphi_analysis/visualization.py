@@ -10,6 +10,18 @@ from pv_tool.cphi_analysis.globals import (TEXTUAL_NAMES, TEXTUAL_NAMES_DSS, NEW
 from pandas import DataFrame
 import numpy as np
 
+# Kleuren voor extra onderzoeksgroepen — blauw is gereserveerd voor de hoofdgroep
+EXTRA_GROEPEN_KLEUREN = [
+    '#E6610A',  # oranje
+    '#2CA02C',  # groen
+    '#9467BD',  # paars
+    '#8C564B',  # bruin
+    '#E377C2',  # roze
+    '#7F7F7F',  # grijs
+    '#BCBD22',  # geelgroen
+    '#17BECF',  # cyaan
+]
+
 
 def add_proefresultaten(self: CPhiAnalyse):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
@@ -61,12 +73,14 @@ def add_extra_proefresultaten(self: CPhiAnalyse, extra_groepen: Optional[List]):
         sub_df = df[df['PV_NAAM'] == naam]
         x_extra_proefresultaten = sub_df['S\'']
         y_extra_proefresultaten = sub_df['T']
+        kleur = EXTRA_GROEPEN_KLEUREN[n % len(EXTRA_GROEPEN_KLEUREN)]
 
         self.figure.add_trace(
             go.Scatter(
                 x=x_extra_proefresultaten,
                 y=y_extra_proefresultaten,
                 mode='markers',
+                marker=dict(color=kleur),
                 name=f'Extra: {extra_groepen[n]}',
                 text=boring_monsternummer,
                 hoverinfo='text'

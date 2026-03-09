@@ -21,6 +21,21 @@ from pv_tool.shansep_analysis.calc_parameters import (
 )
 from pandas import read_excel
 from scipy.stats import lognorm
+from pv_tool.sutabel_analysis.visualization_sutabel import (
+    add_proefresultaten_ln_sv_ln_su_sutabel,
+    add_extra_proefresultaten_ln_sv_ln_su_sutabel,
+    add_linear_fit_ln_sv_ln_su_sutabel,
+    add_5pr_bovengrens_ln_sv_ln_su_sutabel,
+    add_5pr_ondergrens_ln_sv_ln_su_sutabel,
+    add_fysische_realiseerbare_ondergrens_ln_sv_ln_su_sutabel,
+    set_layout_ln_sv_ln_su_sutabel,
+    add_proefresultaten_sv_su_sutabel,
+    add_extra_proefresultaten_sv_su_sutabel,
+    add_sutabel_gem_line,
+    add_sutabel_kar_line,
+    add_su_kar_fit_constante_vc,
+    set_layout_sv_su_sutabel
+)
 
 
 class SUTABEL:
@@ -518,15 +533,6 @@ class SUTABEL:
 
         De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
         """
-        from pv_tool.sutabel_analysis.visualization_sutabel import (
-            add_proefresultaten_ln_sv_ln_su_sutabel,
-            add_extra_proefresultaten_ln_sv_ln_su_sutabel,
-            add_linear_fit_ln_sv_ln_su_sutabel,
-            add_5pr_bovengrens_ln_sv_ln_su_sutabel,
-            add_5pr_ondergrens_ln_sv_ln_su_sutabel,
-            add_fysische_realiseerbare_ondergrens_ln_sv_ln_su_sutabel,
-            set_layout_ln_sv_ln_su_sutabel
-        )
 
         # Voer analyse uit als nog niet gedaan
         if self.sutabel_data_df is None:
@@ -564,14 +570,6 @@ class SUTABEL:
         Als handmatige parameters zijn ingesteld, worden deze gebruikt voor de visualisatie.
         De analyse wordt automatisch uitgevoerd als deze nog niet is gedaan.
         """
-        from pv_tool.sutabel_analysis.visualization_sutabel import (
-            add_proefresultaten_sv_su_sutabel,
-            add_extra_proefresultaten_sv_su_sutabel,
-            add_sutabel_gem_line,
-            add_sutabel_kar_line,
-            add_su_kar_fit_constante_vc,
-            set_layout_sv_su_sutabel
-        )
 
         # Voer analyse uit als nog niet gedaan
         if self.sutabel_data_df is None:

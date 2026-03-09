@@ -100,14 +100,12 @@ def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = 'T
     workbook = load_workbook(file_path)
 
     if 'Resultaten SU-tabel - m' in workbook.sheetnames:
-        print('Tabblad Resultaten SU-tabel - m in dbase excel bestaat al en wordt aangevuld')
         df_existing = read_excel(file_path, sheet_name='Resultaten SU-tabel - m')
         df_existing = df_existing.dropna(how='all')
         df_existing.columns = df_existing.columns.astype(str)
         new_row_df = DataFrame([new_row], columns=df_existing.columns)
         df_updated = concat([df_existing, new_row_df], ignore_index=True)
     else:
-        print('Tabblad Resultaten SU-tabel - m in dbase excel bestaat nog niet en wordt aangemaakt')
         df_updated = DataFrame([new_row], columns=expected_columns)
 
     # Ensure all column headers are strings
@@ -246,14 +244,12 @@ def add_results_to_template(self: "SUTABEL", path, export_name=None):
     workbook = load_workbook(file_path)
 
     if 'Resultaten SU-tabel - m' in workbook.sheetnames:
-        print('Tabblad Resultaten SU-tabel - m in dbase excel bestaat al en wordt aangevuld')
         df_existing = read_excel(file_path, sheet_name='Resultaten SU-tabel - m')
         df_existing = df_existing.dropna(how='all')
         df_existing.columns = df_existing.columns.astype(str)
         new_row_df = DataFrame([new_row], columns=df_existing.columns)
         df_updated = concat([df_existing, new_row_df], ignore_index=True)
     else:
-        print('Tabblad Resultaten SU-tabel - m in dbase excel bestaat nog niet en wordt aangemaakt')
         df_updated = DataFrame([new_row], columns=expected_columns)
 
     # Ensure all column headers are strings
@@ -338,8 +334,25 @@ def _create_sutabel_input_table(self: "SUTABEL") -> Table:
 
     table_df = table_df.rename(columns={k: v for k, v in column_mapping.items() if k in table_df.columns})
 
+    # Kolom-specifieke afronding; niet-numerieke waarden worden ongemoeid gelaten
+    vgw_col = 'VGW nat\n[kN/m3]'
+    water_col = 'Water\n[%]'
+
+    def round_mixed(series, decimals: int):
+        """Rondt numerieke waarden af; niet-numerieke waarden blijven ongewijzigd."""
+        def _round(val):
+            try:
+                return round(float(val), decimals)
+            except (TypeError, ValueError):
+                return val
+        return series.apply(_round)
+
     for col in table_df.columns:
-        if table_df[col].dtype in ['float64', 'float32']:
+        if col == vgw_col:
+            table_df[col] = round_mixed(table_df[col], 2)
+        elif col == water_col:
+            table_df[col] = round_mixed(table_df[col], 1)
+        elif table_df[col].dtype in ['float64', 'float32']:
             table_df[col] = table_df[col].round(3)
 
     from reportlab.platypus import Paragraph
