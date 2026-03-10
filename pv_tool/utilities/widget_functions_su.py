@@ -157,7 +157,149 @@ def create_param_grid(a2, a1, vc, handmatig_init=None):
     return grid, (a2_handmatig, a1_handmatig, vc_handmatig)
 
 
+def get_laatste_resultaten_sutabel(
+        analyse,
+        import_dropdown,
+        import_filechooser,
+        export_dir_widget=None,
+        export_name_widget=None
+):
+    """
+    Haalt de laatste analyseresultaten op uit een eerder opgeslagen Excel-bestand.
+
+    Als eerdere resultaten gevonden worden voor de huidige verzameling, rekpercentage en
+    analysetype, worden deze teruggegeven als initiële waarden voor het parametersgrid.
+    Anders worden de berekende benaderingswaarden teruggegeven.
+
+    Parameters
+    ----------
+    analyse : SUTABEL
+        Instantie van de SUTABEL analyse klasse
+    import_dropdown : widgets.Dropdown
+        Widget met het geselecteerde importtype
+    import_filechooser : FileChooser
+        Widget met het geselecteerde bestandspad
+    export_dir_widget : FileChooser of str, optional
+        Widget of pad naar de exportmap
+    export_name_widget : widgets.Text of str, optional
+        Widget of naam voor het exportbestand
+
+    Returns
+    -------
+    tuple
+        Tuple (a2_kar, a1_kar, vc_kar) met initiële waarden voor het parametersgrid
+    """
+    # Benaderingswaarden ophalen als fallback
+    a2_kar_benadering, a1_kar_benadering, vc_benadering = get_benaderingswaarden(analyse)
+
+    # Ophalen van directory en bestandsnaam uit widgets
+    if import_dropdown.value == 'Proevenverzamelingtool 5.0':
+        import_path = Path(import_filechooser.selected)
+        export_dir = str(import_path.parent)
+        export_name = import_path.name
+    else:
+        export_dir = export_dir_widget.selected_path if hasattr(export_dir_widget,
+                                                                "selected_path") else export_dir_widget
+        export_name = export_name_widget.value if hasattr(export_name_widget, "value") else export_name_widget
+        if not export_name.lower().endswith('.xlsx'):
+            export_name += '.xlsx'
+
+    try:
+        laatste_resultaten = analyse.get_previous_results(path=export_dir, file_name=export_name)
+    except FileNotFoundError:
+        laatste_resultaten = None
+
+    if (laatste_resultaten is not None and
+            not laatste_resultaten.empty and
+            'PV_a2_KAR [-]' in laatste_resultaten):
+        a2_kar = round(laatste_resultaten['PV_a2_KAR [-]'], 2)
+        a1_kar = round(laatste_resultaten['PV_a1_KAR [-]'], 2)
+        vc_kar = (round(laatste_resultaten['PV_vc_FIT_KAR [-]'], 2)
+                  if laatste_resultaten['PV_vc_FIT_KAR [-]'] is not None
+                  else vc_benadering)
+    else:
+        a2_kar = a2_kar_benadering
+        a1_kar = a1_kar_benadering
+        vc_kar = vc_benadering
+
+    return a2_kar, a1_kar, vc_kar
+
+
 def run_su_analysis(
+        dbase,
+        dropdown_verzameling_su,
+        alpha_widget,
+        import_dropdown,
+        import_filechooser,
+        dropdown_rekpercentage_txt_su,
+        dropdown_rekpercentage_dss_su,
+        dropdown_type_proef_su,
+        export_dir_widget=None,
+        export_name_widget=None
+):
+    """
+    Voert de SU-tabel analyse uit en toont het parametersgrid met eerder opgeslagen
+    of berekende benaderingswaarden als initiële invulling.
+
+    Verschil met ``run_su_analysis``: deze functie roept ``get_laatste_resultaten_sutabel``
+    aan om het grid te vullen met eerder opgeslagen resultaten indien aanwezig.
+
+    Parameters
+    ----------
+    dbase : Dbase
+        Database object met proefgegevens
+    dropdown_verzameling_su : widgets.Dropdown
+        Widget met de geselecteerde verzameling
+    alpha_widget : widgets.FloatText
+        Widget met de alpha-waarde
+    import_dropdown : widgets.Dropdown
+        Widget met het geselecteerde importtype
+    import_filechooser : FileChooser
+        Widget met het geselecteerde bestandspad
+    dropdown_rekpercentage_txt_su : widgets.Dropdown
+        Widget met het rekpercentage voor TXT-proeven
+    dropdown_rekpercentage_dss_su : widgets.Dropdown
+        Widget met het rekpercentage voor DSS-proeven
+    dropdown_type_proef_su : widgets.Dropdown
+        Widget met het type proef
+    export_dir_widget : FileChooser of str, optional
+        Widget of pad naar de exportmap
+    export_name_widget : widgets.Text of str, optional
+        Widget of naam voor het exportbestand
+
+    Returns
+    -------
+    tuple
+        Tuple (analyse, handmatige_widgets) waarbij analyse een SUTABEL instantie is en
+        handmatige_widgets een tuple van (a2_handmatig, a1_handmatig, vc_handmatig) widgets
+    """
+    verzameling = dropdown_verzameling_su.value
+    rekpercentage = dropdown_rekpercentage_txt_su.value if dropdown_type_proef_su.value.startswith(
+        'TXT') else dropdown_rekpercentage_dss_su.value
+
+    analyse = SUTABEL(
+        dbase=dbase,
+        investigation_groups=[verzameling],
+        effective_stress=rekpercentage,
+        analysis_type=dropdown_type_proef_su.value
+    )
+
+    analyse.apply_settings(alpha=alpha_widget.value)
+    analyse._run_sutabel()
+
+    # Ophalen laatste of berekende initiële parameterwaarden
+    a2_kar, a1_kar, vc = get_laatste_resultaten_sutabel(
+        analyse, import_dropdown, import_filechooser, export_dir_widget, export_name_widget
+    )
+
+    # Grid aanmaken met gevonden initiële waarden
+    grid, handmatige_widgets = create_param_grid(a2_kar, a1_kar, vc, handmatig_init=(a2_kar, a1_kar, vc))
+    display(Markdown("**Opgegeven karakteristieke waarden (fit):**"))
+    display(grid)
+    return analyse, handmatige_widgets
+
+
+def run_su_analysis_oud(
         dbase,
         dropdown_verzameling_su,
         alpha_widget,
