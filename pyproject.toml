@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "pv_tool_logic"
-version = "0.1.4"
+version = "0.1.5"
 description = "Proevenverzamelingtool voor het opstellen van lokale of regionale proevenverzamelingen voor het bepalen van geotechnische parameters."
 authors = [
     "Tjalda Deenekamp <tjalda.deenekamp@arcadis.nl>",
