@@ -52,7 +52,7 @@ van Python.
 De Notebook is te vinden onder:
 
 ```bash
-jupyter notebook PV_tool0.4.ipynb
+jupyter notebook PV_tool1.0.ipynb
 ```
 
 Daarnaast is het ook mogelijk om de tool direct te gebruiken met de ontwikkelde python code. Hieronder worden in 

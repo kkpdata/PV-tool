@@ -1,0 +1,23 @@
+
+[tool.poetry]
+name = "pv_tool"
+version = "1.0.0"
+description = "Proevenverzamelingtool voor het opstellen van lokale of regionale proevenverzamelingen voor het bepalen van geotechnische parameters."
+authors = [
+    "Tjalda Deenekamp <tjalda.deenekamp@arcadis.nl>",
+    "Nathan Gebraad <nathan.gebraad@arcadis.com>",
+    "Leo Kwakman <leo.kwakman@arcadis.com>"
+]
+license = "GPL-3.0-or-later"
+readme = "README.md"
+repository = "https://github.com/PVorganization/PV-tool"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
