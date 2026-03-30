@@ -16,46 +16,56 @@ def maak_proef_widgets_su(pv_txt_lijst, pv_dss_lijst):
     """Maakt de widgets voor de proefkeuze, rekpercentage en verzamelingen"""
     # Dropdowns
     dropdown_type_proef_su = widgets.Dropdown(
-        options=['TXT_su_tabel', 'DSS_su_tabel'],
-        value='TXT_su_tabel',
-        description='Type proef:',
-        layout=widgets.Layout(width='400px')
+        options=["TXT_su_tabel", "DSS_su_tabel"],
+        value="TXT_su_tabel",
+        description="Type proef:",
+        layout=widgets.Layout(width="400px"),
     )
     dropdown_rekpercentage_txt_su = widgets.Dropdown(
-        options=['2% rek', '5% rek', '15% rek', 'eindsterkte', 'pieksterkte'],
-        value='eindsterkte',
-        description='Rekpercentage TXT:',
-        layout=widgets.Layout(width='400px')
+        options=["2% rek", "5% rek", "15% rek", "eindsterkte", "pieksterkte"],
+        value="eindsterkte",
+        description="Rekpercentage TXT:",
+        layout=widgets.Layout(width="400px"),
     )
     dropdown_rekpercentage_dss_su = widgets.Dropdown(
-        options=['2% rek', '5% rek', '10% rek', '15% rek', '20% rek', 'eindsterkte', 'pieksterkte'],
-        value='eindsterkte',
-        description='Rekpercentage DSS:',
-        layout=widgets.Layout(width='400px')
+        options=["2% rek", "5% rek", "10% rek", "15% rek", "20% rek", "eindsterkte", "pieksterkte"],
+        value="eindsterkte",
+        description="Rekpercentage DSS:",
+        layout=widgets.Layout(width="400px"),
     )
     dropdown_verzameling_su = widgets.Dropdown(
         options=pv_txt_lijst,
         value=pv_txt_lijst[0] if pv_txt_lijst else None,
-        description='Verzameling:',
-        layout=widgets.Layout(width='400px')
+        description="Verzameling:",
+        layout=widgets.Layout(width="400px"),
     )
     multi_select_verzameling_su = widgets.SelectMultiple(
         options=pv_txt_lijst,
         value=[pv_txt_lijst[0]] if pv_txt_lijst else [],
-        description='Vergelijk met:',
-        layout=widgets.Layout(width='400px', height='150px')
+        description="Vergelijk met:",
+        layout=widgets.Layout(width="400px", height="150px"),
     )
     # Outputs
     container_rekpercentage_su = widgets.Output()
     output_rekpercentage_su = widgets.Output()
 
-    return (dropdown_type_proef_su, dropdown_rekpercentage_txt_su, dropdown_rekpercentage_dss_su,
-            dropdown_verzameling_su, multi_select_verzameling_su, container_rekpercentage_su, output_rekpercentage_su)
+    return (
+        dropdown_type_proef_su,
+        dropdown_rekpercentage_txt_su,
+        dropdown_rekpercentage_dss_su,
+        dropdown_verzameling_su,
+        multi_select_verzameling_su,
+        container_rekpercentage_su,
+        output_rekpercentage_su,
+    )
 
 
 def toon_widgets_su(
-        dropdown_type_proef_su, dropdown_verzameling_su, container_rekpercentage_su, output_rekpercentage_su,
-        multi_select_verzameling_su
+    dropdown_type_proef_su,
+    dropdown_verzameling_su,
+    container_rekpercentage_su,
+    output_rekpercentage_su,
+    multi_select_verzameling_su,
 ):
     """Toont alle widgets netjes onder elkaar."""
     display(Markdown("**Kies type proef:**"))
@@ -65,8 +75,11 @@ def toon_widgets_su(
     display(Markdown("**Kies rekpercentage Su:**"))
     display(container_rekpercentage_su)
     display(output_rekpercentage_su)
-    display(Markdown(
-        "**Kies één of meerdere verzamelingen om naast de gekozen verzameling voor de statistische analyse te tonen:**"))
+    display(
+        Markdown(
+            "**Kies één of meerdere verzamelingen om naast de gekozen verzameling voor de statistische analyse te tonen:**"
+        )
+    )
     display(multi_select_verzameling_su)
 
 
@@ -75,28 +88,51 @@ def dropdown_widgets_su(dbase):
     PV_txt_lijst, PV_dss_lijst = maak_verzamelings_lijsten(dbase_df)
 
     # Widgets aanmaken
-    (dropdown_type_proef_su, dropdown_rekpercentage_txt_su, dropdown_rekpercentage_dss_su,
-     dropdown_verzameling_su, multi_select_verzameling_su, container_rekpercentage_su,
-     output_rekpercentage_su) = maak_proef_widgets_su(PV_txt_lijst, PV_dss_lijst)
+    (
+        dropdown_type_proef_su,
+        dropdown_rekpercentage_txt_su,
+        dropdown_rekpercentage_dss_su,
+        dropdown_verzameling_su,
+        multi_select_verzameling_su,
+        container_rekpercentage_su,
+        output_rekpercentage_su,
+    ) = maak_proef_widgets_su(PV_txt_lijst, PV_dss_lijst)
 
     # 'gekozen_rekpercentage' als lijst zodat het binnen callbacks aanpasbaar blijft
-    gekozen_rekpercentage_su = ['eindsterkte']
+    gekozen_rekpercentage_su = ["eindsterkte"]
 
     # Koppel callbacks
     koppel_callbacks(
-        dropdown_type_proef_su, dropdown_rekpercentage_txt_su, dropdown_rekpercentage_dss_su,
-        dropdown_verzameling_su, multi_select_verzameling_su, container_rekpercentage_su,
-        output_rekpercentage_su, PV_txt_lijst, PV_dss_lijst, gekozen_rekpercentage_su
+        dropdown_type_proef_su,
+        dropdown_rekpercentage_txt_su,
+        dropdown_rekpercentage_dss_su,
+        dropdown_verzameling_su,
+        multi_select_verzameling_su,
+        container_rekpercentage_su,
+        output_rekpercentage_su,
+        PV_txt_lijst,
+        PV_dss_lijst,
+        gekozen_rekpercentage_su,
     )
 
     # Toon alles
     toon_widgets_su(
-        dropdown_type_proef_su, dropdown_verzameling_su, container_rekpercentage_su,
-        output_rekpercentage_su, multi_select_verzameling_su
+        dropdown_type_proef_su,
+        dropdown_verzameling_su,
+        container_rekpercentage_su,
+        output_rekpercentage_su,
+        multi_select_verzameling_su,
     )
-    return (dropdown_type_proef_su, dropdown_verzameling_su, dropdown_rekpercentage_txt_su,
-            dropdown_rekpercentage_dss_su, container_rekpercentage_su, output_rekpercentage_su,
-            multi_select_verzameling_su, gekozen_rekpercentage_su)
+    return (
+        dropdown_type_proef_su,
+        dropdown_verzameling_su,
+        dropdown_rekpercentage_txt_su,
+        dropdown_rekpercentage_dss_su,
+        container_rekpercentage_su,
+        output_rekpercentage_su,
+        multi_select_verzameling_su,
+        gekozen_rekpercentage_su,
+    )
 
 
 def toon_grid_settings_su():
@@ -104,11 +140,7 @@ def toon_grid_settings_su():
     Toon een grid met de alpha.
     """
     display(Markdown("**Pas alpha aan (lokaal = 1,0, regionaal = 0,75):**"))
-    alpha_widget = widgets.FloatText(
-        value=0.75,
-        description='Alpha:',
-        step=0.01
-    )
+    alpha_widget = widgets.FloatText(value=0.75, description="Alpha:", step=0.01)
     display(widgets.VBox([alpha_widget]))
     return alpha_widget
 
@@ -123,33 +155,40 @@ def get_benaderingswaarden(analyse):
 def create_param_grid(a2, a1, vc, handmatig_init=None):
     if handmatig_init is None:
         handmatig_init = (a2, a1, vc)
-    grid = widgets.GridspecLayout(3,4, width='1050px')
+    grid = widgets.GridspecLayout(3, 4, width="1050px")
 
     # Eerste rij: Titels
-    grid[0, 0] = widgets.Label(f'Parameters', layout=widgets.Layout(width='200px'))
-    grid[0, 1] = HTML(value=f'a2<sub>kar</sub> helling ln(&sigma;&#x27;<sub>v</sub>)/ln(su)', layout=widgets.Layout(width='200px'))
-    grid[0, 2] = HTML(value=f'a1<sub>kar</sub> snijpunt y-as ln(S<sub>u</sub>) [-]', layout=widgets.Layout(width='200px'))
-    grid[0, 3] = widgets.Label(f'Bepaal variatiecoëfficiënt [-]', layout=widgets.Layout(width='200px'))
+    grid[0, 0] = widgets.Label(f"Parameters", layout=widgets.Layout(width="200px"))
+    grid[0, 1] = HTML(
+        value=f"a2<sub>kar</sub> helling ln(&sigma;&#x27;<sub>v</sub>)/ln(su)", layout=widgets.Layout(width="200px")
+    )
+    grid[0, 2] = HTML(
+        value=f"a1<sub>kar</sub> snijpunt y-as ln(S<sub>u</sub>) [-]", layout=widgets.Layout(width="200px")
+    )
+    grid[0, 3] = widgets.Label(f"Bepaal variatiecoëfficiënt [-]", layout=widgets.Layout(width="200px"))
 
     # Tweede rij: benaderingswaarden
-    grid[1, 0] = widgets.Label(f'Benadering', layout=widgets.Layout(width='300px'))
-    grid[1, 1] = widgets.Label(f'{a2}', layout=widgets.Layout(width='200px'))
-    grid[1, 2] = widgets.Label(f'{a1}', layout=widgets.Layout(width='200px'))
-    grid[1, 3] = widgets.Label(f'{vc if vc is not None else "-"}', layout=widgets.Layout(width='200px'))
+    grid[1, 0] = widgets.Label(f"Benadering", layout=widgets.Layout(width="300px"))
+    grid[1, 1] = widgets.Label(f"{a2}", layout=widgets.Layout(width="200px"))
+    grid[1, 2] = widgets.Label(f"{a1}", layout=widgets.Layout(width="200px"))
+    grid[1, 3] = widgets.Label(f'{vc if vc is not None else "-"}', layout=widgets.Layout(width="200px"))
 
     # Derde rij: handmatig
-    a2_handmatig = widgets.FloatText(value=handmatig_init[0], step=0.01, layout=widgets.Layout(width='200px'), placeholder='-')
-    a1_handmatig = widgets.FloatText(value=handmatig_init[1], step=0.01, layout=widgets.Layout(width='200px'), placeholder='-')
+    a2_handmatig = widgets.FloatText(
+        value=handmatig_init[0], step=0.01, layout=widgets.Layout(width="200px"), placeholder="-"
+    )
+    a1_handmatig = widgets.FloatText(
+        value=handmatig_init[1], step=0.01, layout=widgets.Layout(width="200px"), placeholder="-"
+    )
 
     if handmatig_init[2] is None:
-        vc_handmatig = widgets.FloatText(value=None, step=0.01, layout=widgets.Layout(width='200px'),
-                                         placeholder='-')
+        vc_handmatig = widgets.FloatText(value=None, step=0.01, layout=widgets.Layout(width="200px"), placeholder="-")
     else:
-        vc_handmatig = widgets.FloatText(value=handmatig_init[2], step=0.01, layout=widgets.Layout(width='200px'),
-                                         placeholder='-')
+        vc_handmatig = widgets.FloatText(
+            value=handmatig_init[2], step=0.01, layout=widgets.Layout(width="200px"), placeholder="-"
+        )
 
-
-    grid[2, 0] = widgets.Label(f'Handmatige invoer', layout=widgets.Layout(width='300px'))
+    grid[2, 0] = widgets.Label(f"Handmatige invoer", layout=widgets.Layout(width="300px"))
     grid[2, 1] = a2_handmatig
     grid[2, 2] = a1_handmatig
     grid[2, 3] = vc_handmatig
@@ -158,11 +197,7 @@ def create_param_grid(a2, a1, vc, handmatig_init=None):
 
 
 def get_laatste_resultaten_sutabel(
-        analyse,
-        import_dropdown,
-        import_filechooser,
-        export_dir_widget=None,
-        export_name_widget=None
+    analyse, import_dropdown, import_filechooser, export_dir_widget=None, export_name_widget=None
 ):
     """
     Haalt de laatste analyseresultaten op uit een eerder opgeslagen Excel-bestand.
@@ -193,30 +228,31 @@ def get_laatste_resultaten_sutabel(
     a2_kar_benadering, a1_kar_benadering, vc_benadering = get_benaderingswaarden(analyse)
 
     # Ophalen van directory en bestandsnaam uit widgets
-    if import_dropdown.value == 'Proevenverzamelingtool 5.0':
+    if import_dropdown.value == "Proevenverzamelingtool 5.0":
         import_path = Path(import_filechooser.selected)
         export_dir = str(import_path.parent)
         export_name = import_path.name
     else:
-        export_dir = export_dir_widget.selected_path if hasattr(export_dir_widget,
-                                                                "selected_path") else export_dir_widget
+        export_dir = (
+            export_dir_widget.selected_path if hasattr(export_dir_widget, "selected_path") else export_dir_widget
+        )
         export_name = export_name_widget.value if hasattr(export_name_widget, "value") else export_name_widget
-        if not export_name.lower().endswith('.xlsx'):
-            export_name += '.xlsx'
+        if not export_name.lower().endswith(".xlsx"):
+            export_name += ".xlsx"
 
     try:
         laatste_resultaten = analyse.get_previous_results(path=export_dir, file_name=export_name)
     except FileNotFoundError:
         laatste_resultaten = None
 
-    if (laatste_resultaten is not None and
-            not laatste_resultaten.empty and
-            'PV_a2_KAR [-]' in laatste_resultaten):
-        a2_kar = round(laatste_resultaten['PV_a2_KAR [-]'], 2)
-        a1_kar = round(laatste_resultaten['PV_a1_KAR [-]'], 2)
-        vc_kar = (round(laatste_resultaten['PV_vc_FIT_KAR [-]'], 2)
-                  if laatste_resultaten['PV_vc_FIT_KAR [-]'] is not None
-                  else vc_benadering)
+    if laatste_resultaten is not None and not laatste_resultaten.empty and "PV_a2_KAR [-]" in laatste_resultaten:
+        a2_kar = round(laatste_resultaten["PV_a2_KAR [-]"], 2)
+        a1_kar = round(laatste_resultaten["PV_a1_KAR [-]"], 2)
+        vc_kar = (
+            round(laatste_resultaten["PV_vc_FIT_KAR [-]"], 2)
+            if laatste_resultaten["PV_vc_FIT_KAR [-]"] is not None
+            else vc_benadering
+        )
     else:
         a2_kar = a2_kar_benadering
         a1_kar = a1_kar_benadering
@@ -226,16 +262,16 @@ def get_laatste_resultaten_sutabel(
 
 
 def run_su_analysis(
-        dbase,
-        dropdown_verzameling_su,
-        alpha_widget,
-        import_dropdown,
-        import_filechooser,
-        dropdown_rekpercentage_txt_su,
-        dropdown_rekpercentage_dss_su,
-        dropdown_type_proef_su,
-        export_dir_widget=None,
-        export_name_widget=None
+    dbase,
+    dropdown_verzameling_su,
+    alpha_widget,
+    import_dropdown,
+    import_filechooser,
+    dropdown_rekpercentage_txt_su,
+    dropdown_rekpercentage_dss_su,
+    dropdown_type_proef_su,
+    export_dir_widget=None,
+    export_name_widget=None,
 ):
     """
     Voert de SU-tabel analyse uit en toont het parametersgrid met eerder opgeslagen
@@ -274,14 +310,17 @@ def run_su_analysis(
         handmatige_widgets een tuple van (a2_handmatig, a1_handmatig, vc_handmatig) widgets
     """
     verzameling = dropdown_verzameling_su.value
-    rekpercentage = dropdown_rekpercentage_txt_su.value if dropdown_type_proef_su.value.startswith(
-        'TXT') else dropdown_rekpercentage_dss_su.value
+    rekpercentage = (
+        dropdown_rekpercentage_txt_su.value
+        if dropdown_type_proef_su.value.startswith("TXT")
+        else dropdown_rekpercentage_dss_su.value
+    )
 
     analyse = SUTABEL(
         dbase=dbase,
         investigation_groups=[verzameling],
         effective_stress=rekpercentage,
-        analysis_type=dropdown_type_proef_su.value
+        analysis_type=dropdown_type_proef_su.value,
     )
 
     analyse.apply_settings(alpha=alpha_widget.value)
@@ -300,26 +339,29 @@ def run_su_analysis(
 
 
 def run_su_analysis_oud(
-        dbase,
-        dropdown_verzameling_su,
-        alpha_widget,
-        import_dropdown,
-        import_filechooser,
-        dropdown_rekpercentage_txt_su,
-        dropdown_rekpercentage_dss_su,
-        dropdown_type_proef_su,
-        export_dir_widget=None,
-        export_name_widget=None
+    dbase,
+    dropdown_verzameling_su,
+    alpha_widget,
+    import_dropdown,
+    import_filechooser,
+    dropdown_rekpercentage_txt_su,
+    dropdown_rekpercentage_dss_su,
+    dropdown_type_proef_su,
+    export_dir_widget=None,
+    export_name_widget=None,
 ):
     verzameling = dropdown_verzameling_su.value
-    rekpercentage = dropdown_rekpercentage_txt_su.value if dropdown_type_proef_su.value.startswith(
-        'TXT') else dropdown_rekpercentage_dss_su.value
+    rekpercentage = (
+        dropdown_rekpercentage_txt_su.value
+        if dropdown_type_proef_su.value.startswith("TXT")
+        else dropdown_rekpercentage_dss_su.value
+    )
 
     analyse = SUTABEL(
         dbase=dbase,
         investigation_groups=[verzameling],
         effective_stress=rekpercentage,
-        analysis_type=dropdown_type_proef_su.value
+        analysis_type=dropdown_type_proef_su.value,
     )
 
     analyse.apply_settings(alpha=alpha_widget.value)
@@ -336,21 +378,21 @@ def run_su_analysis_oud(
 
 
 def show_su_analysis(
-        dbase,
-        dropdown_verzameling_su,
-        dropdown_type_proef_su,
-        dropdown_rekpercentage_txt_su,
-        dropdown_rekpercentage_dss_su,
-        a2_handmatig,
-        a1_handmatig,
-        cv_handmatig,
-        multi_select_verzameling_su,
-        alpha_widget,
-        import_dropdown,
-        import_filechooser,
+    dbase,
+    dropdown_verzameling_su,
+    dropdown_type_proef_su,
+    dropdown_rekpercentage_txt_su,
+    dropdown_rekpercentage_dss_su,
+    a2_handmatig,
+    a1_handmatig,
+    cv_handmatig,
+    multi_select_verzameling_su,
+    alpha_widget,
+    import_dropdown,
+    import_filechooser,
 ):
     # Kies rekpercentage afhankelijk van type proef
-    if dropdown_type_proef_su.value.startswith('TXT'):
+    if dropdown_type_proef_su.value.startswith("TXT"):
         rekpercentage = dropdown_rekpercentage_txt_su.value
     else:
         rekpercentage = dropdown_rekpercentage_dss_su.value
@@ -360,12 +402,11 @@ def show_su_analysis(
         dbase=dbase,
         analysis_type=dropdown_type_proef_su.value,
         investigation_groups=[dropdown_verzameling_su.value],
-        effective_stress=rekpercentage
+        effective_stress=rekpercentage,
     )
 
     analyse.apply_settings(alpha=alpha_widget.value)
     analyse.set_manual_parameters(a1_kar=a1_handmatig, a2_kar=a2_handmatig, vc_fit_kar=cv_handmatig)
-
 
     # Toon resultaten
     output_df = analyse.get_short_results()
@@ -379,26 +420,27 @@ def show_su_analysis(
 
 
 def export_su_results(
-        analyse,
-        dropdown_verzameling_su,
-        dropdown_type_proef_su,
-        import_dropdown,
-        import_filechooser,
-        export_dir_widget,
-        export_name_widget
+    analyse,
+    dropdown_verzameling_su,
+    dropdown_type_proef_su,
+    import_dropdown,
+    import_filechooser,
+    export_dir_widget,
+    export_name_widget,
 ):
     """Exporteert de resultaten."""
     # Ophalen van directory en bestandsnaam uit widgets
-    if import_dropdown.value == 'Proevenverzamelingtool 5.0':
+    if import_dropdown.value == "Proevenverzamelingtool 5.0":
         import_path = Path(import_filechooser.selected)
         export_dir = str(import_path.parent)
         export_name = import_path.name
     else:
-        export_dir = export_dir_widget.selected_path if hasattr(export_dir_widget,
-                                                                "selected_path") else export_dir_widget
+        export_dir = (
+            export_dir_widget.selected_path if hasattr(export_dir_widget, "selected_path") else export_dir_widget
+        )
         export_name = export_name_widget.value if hasattr(export_name_widget, "value") else export_name_widget
-        if not export_name.lower().endswith('.xlsx'):
-            export_name += '.xlsx'
+        if not export_name.lower().endswith(".xlsx"):
+            export_name += ".xlsx"
 
     # Resultaten toevoegen aan template
     analyse.add_results_to_template(path=export_dir, export_name=export_name)

@@ -6,7 +6,13 @@ from typing import Optional, Literal
 from pathlib import Path
 import os.path
 
-from pv_tool_logic.imports.create_dbase import add_missing_columns, select_columns, alg_columns, add_ana_columns, add_pv_naam
+from pv_tool_logic.imports.create_dbase import (
+    add_missing_columns,
+    select_columns,
+    alg_columns,
+    add_ana_columns,
+    add_pv_naam,
+)
 from pv_tool_logic.imports.import_options import import_dbase, import_pv_tool, import_stowa
 from pv_tool_logic.imports.validation import Validation
 from pv_tool_logic.imports.globals import PV_TOOL_DBASE_COLUMNS, ANA_COLUMNS
@@ -21,39 +27,39 @@ class Dbase:
         self.dbase_df: Optional[DataFrame] = None
         self.validation = Validation(dbase=self)
 
-    def _create_dbase(self, source: Literal['Stowa', 'PV-tool', 'Dbase']):
+    def _create_dbase(self, source: Literal["Stowa", "PV-tool", "Dbase"]):
         """Maakt de dbase-dataframe"""
-        if source == 'Stowa':
+        if source == "Stowa":
             add_missing_columns(self)
             alg_columns(self)
             add_ana_columns(self)
             add_pv_naam(self)
-        elif source == 'PV-tool':
+        elif source == "PV-tool":
             select_columns(self)
             alg_columns(self)
             add_ana_columns(self)
             add_pv_naam(self)
-        elif source == 'Dbase':
+        elif source == "Dbase":
             add_ana_columns(self)
             add_pv_naam(self)
 
-    def import_dbase_short(self, source: Literal['Stowa', 'PV-tool', 'Dbase'], source_dir: Path):
+    def import_dbase_short(self, source: Literal["Stowa", "PV-tool", "Dbase"], source_dir: Path):
         """Importeert data uit de Stowa-database, de oude pv-tool of de Dbase (template) en voegt kolommen toe"""
-        if source == 'Dbase':
+        if source == "Dbase":
             import_dbase(self, dbase_dir=source_dir)
             return self.dbase_df
         else:
             return f"Short import only available for 'Dbase' source, not for '{source}'"
 
-    def import_data(self, source: Literal['Stowa', 'PV-tool', 'Dbase'], source_dir: Path):
+    def import_data(self, source: Literal["Stowa", "PV-tool", "Dbase"], source_dir: Path):
         """Importeert data uit de Stowa-database, de oude pv-tool of de Dbase (template) en voegt kolommen toe"""
-        if source == 'Stowa':
+        if source == "Stowa":
             import_stowa(self, stowa_dir=source_dir)
             self.dbase_df = self.stowa_df
-        elif source == 'PV-tool':
+        elif source == "PV-tool":
             import_pv_tool(self, pv_dir=source_dir)
             self.dbase_df = self.pv_tool
-        elif source == 'Dbase':
+        elif source == "Dbase":
             import_dbase(self, dbase_dir=source_dir)
         self._create_dbase(source=source)
         return self.dbase_df
@@ -82,11 +88,11 @@ class Dbase:
     def export_dbase_to_template(self, export_dir, export_name="Template_PVtool5_0.xlsx"):
         """Exporteert het dbase-dataframe naar de excel-template"""
 
-        sheet_name = 'Dbase5_0'
+        sheet_name = "Dbase5_0"
         start_row = 7  # Excel: rij 8
         start_col = 1  # Excel: kolom A
 
-        with importlib.resources.path('pv_tool_logic.templates', "Template_PVtool5_0.xlsx") as template_path:
+        with importlib.resources.path("pv_tool_logic.templates", "Template_PVtool5_0.xlsx") as template_path:
             wb = load_workbook(template_path)
 
         # wb = load_workbook(template_path)

@@ -28,24 +28,24 @@ def save_total_to_excel(self: "CPhiAnalyse", path: str):
         Instantie van de CPhiAnalyse klasse
     """
     # pas de effective stress naam aan zodat het weggeschreven kan worden in de bestandsnaam
-    effective_stress = str(self.effective_stress).replace('%', 'procent_')
-    effective_stress = str(effective_stress).replace(' ', '')
+    effective_stress = str(self.effective_stress).replace("%", "procent_")
+    effective_stress = str(effective_stress).replace(" ", "")
 
     # exporteer onder de juiste naam
     file_name = f"c_phi_export_test_{self.investigation_groups[0]}_{self.analysis_type}_{effective_stress}.xlsx"
     file_path = f"{path}/{file_name}"
 
     # Hernoem de kolommen voor een ander analyse type
-    if self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
-        self.cphi_analyses_data_df = self.cphi_analyses_data_df.rename(columns={'S\'': '\u03C3 \'', 'T': '\u03C4'})
+    if self.analysis_type in ["DSS_CPhi", "DSS_SH"]:
+        self.cphi_analyses_data_df = self.cphi_analyses_data_df.rename(columns={"S'": "\u03c3 '", "T": "\u03c4"})
 
     # schrijf het totaal weg
     df_totaal = self.cphi_analyses_data_df
-    with ExcelWriter(file_path, engine='openpyxl') as writer:
+    with ExcelWriter(file_path, engine="openpyxl") as writer:
         df_totaal.to_excel(writer)
 
 
-def _df_to_table_with_index(df, index_name='Index'):
+def _df_to_table_with_index(df, index_name="Index"):
     """
     Zet een DataFrame om naar een lijst voor gebruik in een PDF-tabel. Gebruikt in save_to_pdf.
 
@@ -75,33 +75,41 @@ def _create_input_table(self: "CPhiAnalyse") -> Table:
     Table
         ReportLab tabel object met de invoerselectie informatie
     """
-    columns_base = [
-        'PV_NAAM', 'BORING_POSITIE', 'MONSTER_NIVEAU_NAP_VANAF', 'MONSTER_NIVEAU_NAP_TOT'
-    ]
-    if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
-        columns_extra = ['TXT_SS_VOLUMEGEWICHT_NAT', 'TXT_SS_VOLUMEGEWICHT_DRG', 'TXT_SS_WATERGEHALTE_VOOR']
+    columns_base = ["PV_NAAM", "BORING_POSITIE", "MONSTER_NIVEAU_NAP_VANAF", "MONSTER_NIVEAU_NAP_TOT"]
+    if self.analysis_type in ["TXT_CPhi", "TXT_SH"]:
+        columns_extra = ["TXT_SS_VOLUMEGEWICHT_NAT", "TXT_SS_VOLUMEGEWICHT_DRG", "TXT_SS_WATERGEHALTE_VOOR"]
     else:
-        columns_extra = ['DSS_VOLUMEGEWICHT_NAT', 'DSS_VOLUMEGEWICHT_DRG', 'DSS_WATERGEHALTE_VOOR']
+        columns_extra = ["DSS_VOLUMEGEWICHT_NAT", "DSS_VOLUMEGEWICHT_DRG", "DSS_WATERGEHALTE_VOOR"]
 
     columns_data = self.cphi_analyses_data_df.iloc[:, 1:3].copy()
     table1_cols = columns_base + columns_extra
     table1_df = self.total_cphi_analyses_data_df[table1_cols].copy()
-    table1_df.columns = ['Groep', 'Positie', 'NAP Vanaf [m]', 'NAP Tot [m]', 'VGW nat', 'VGW droog',
-                         'Watergehalte voor']
+    table1_df.columns = [
+        "Groep",
+        "Positie",
+        "NAP Vanaf [m]",
+        "NAP Tot [m]",
+        "VGW nat",
+        "VGW droog",
+        "Watergehalte voor",
+    ]
     table1_df = concat([table1_df, columns_data], axis=1)
     table1_df = table1_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
 
     t1_data = _df_to_table_with_index(table1_df, index_name="alg_boring_monsternummer_id")
-    t1 = LongTable(t1_data, repeatRows=1, hAlign='LEFT')
-    t1.setStyle(TableStyle([
-
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 9),
-        ('FONTSIZE', (0, 1), (-1, -1), 8),
-    ]))
+    t1 = LongTable(t1_data, repeatRows=1, hAlign="LEFT")
+    t1.setStyle(
+        TableStyle(
+            [
+                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, 0), 9),
+                ("FONTSIZE", (0, 1), (-1, -1), 8),
+            ]
+        )
+    )
     return t1
 
 
@@ -114,45 +122,49 @@ def _create_initial_values_table(self: "CPhiAnalyse") -> Table:
     Table
         ReportLab tabel object met de initiële waarden
     """
-    name_phi_kar_onder = 'a2 kar onder = tan(phi) karakteristiek ondergrens'
-    name_phi_kar_boven = 'a2 kar boven = tan(phi) karakteristiek bovengrens'
+    name_phi_kar_onder = "a2 kar onder = tan(phi) karakteristiek ondergrens"
+    name_phi_kar_boven = "a2 kar boven = tan(phi) karakteristiek bovengrens"
 
     initial_values: List[list] = []
 
     if self.cohesie_gem_handmatig is not None:
-        initial_values.append(['a1 gem = cohesie gemiddeld (handmatig)', round(self.cohesie_gem_handmatig, 3)])
+        initial_values.append(["a1 gem = cohesie gemiddeld (handmatig)", round(self.cohesie_gem_handmatig, 3)])
     elif self.gem_a1 is not None:
-        initial_values.append(['a1 gem = snijpunt y-as (cohesie gemiddeld)', round(self.gem_a1, 3)])
+        initial_values.append(["a1 gem = snijpunt y-as (cohesie gemiddeld)", round(self.gem_a1, 3)])
 
     if self.gem_a2 is not None:
-        initial_values.append(['a2 gem = tan(phi) gemiddeld', round(self.gem_a2, 3)])
+        initial_values.append(["a2 gem = tan(phi) gemiddeld", round(self.gem_a2, 3)])
 
     if self.cohesie_kar_handmatig is not None:
-        initial_values.append(['a1 kar = cohesie karakteristiek (handmatig)', round(self.cohesie_kar_handmatig, 3)])
+        initial_values.append(["a1 kar = cohesie karakteristiek (handmatig)", round(self.cohesie_kar_handmatig, 3)])
     elif self.kar_a1 is not None:
-        initial_values.append(['a1 kar = snijpunt y-as (cohesie karakteristiek)', round(self.kar_a1, 3)])
+        initial_values.append(["a1 kar = snijpunt y-as (cohesie karakteristiek)", round(self.kar_a1, 3)])
 
     if self.phi_kar_handmatig is not None:
-        initial_values.append(['a2 kar = tan(phi) karakteristiek (handmatig)', round(self.phi_kar_handmatig, 3)])
+        initial_values.append(["a2 kar = tan(phi) karakteristiek (handmatig)", round(self.phi_kar_handmatig, 3)])
     elif self.kar_a2 is not None:
-        initial_values.append(['a2 kar = tan(phi) karakteristiek', round(self.kar_a2, 3)])
+        initial_values.append(["a2 kar = tan(phi) karakteristiek", round(self.kar_a2, 3)])
 
-    if hasattr(self, 'a2_phi_kar_onder') and self.a2_phi_kar_onder is not None:
+    if hasattr(self, "a2_phi_kar_onder") and self.a2_phi_kar_onder is not None:
         initial_values.append([name_phi_kar_onder, round(self.a2_phi_kar_onder, 3)])
-    if hasattr(self, 'a2_phi_kar_boven') and self.a2_phi_kar_boven is not None:
+    if hasattr(self, "a2_phi_kar_boven") and self.a2_phi_kar_boven is not None:
         initial_values.append([name_phi_kar_boven, round(self.a2_phi_kar_boven, 3)])
 
-    initial_values.append(['Type verzameling: lokaal = 1.0; regionaal = 0.75', self.alpha])
-    initial_values.append(['Partiële materiaalfactor cohesie [-]', self.material_cohesie])
-    initial_values.append(['Partiële materiaalfactor tan phi [-]', self.material_tan_phi])
+    initial_values.append(["Type verzameling: lokaal = 1.0; regionaal = 0.75", self.alpha])
+    initial_values.append(["Partiële materiaalfactor cohesie [-]", self.material_cohesie])
+    initial_values.append(["Partiële materiaalfactor tan phi [-]", self.material_tan_phi])
 
-    t3 = Table([['Parameter', 'Waarde']] + initial_values, hAlign='LEFT')
-    t3.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-    ]))
+    t3 = Table([["Parameter", "Waarde"]] + initial_values, hAlign="LEFT")
+    t3.setStyle(
+        TableStyle(
+            [
+                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ]
+        )
+    )
     return t3
 
 
@@ -166,16 +178,20 @@ def _create_results_table(self: "CPhiAnalyse") -> Table:
         ReportLab tabel object met de resultaten
     """
     output_table_df = self.get_short_results().copy()
-    output_table_df.index.name = 'Parameter'
+    output_table_df.index.name = "Parameter"
     output_table_df = output_table_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
     output_table_data = _df_to_table_with_index(output_table_df)
-    output_table = Table(output_table_data, repeatRows=1, hAlign='LEFT')
-    output_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-    ]))
+    output_table = Table(output_table_data, repeatRows=1, hAlign="LEFT")
+    output_table.setStyle(
+        TableStyle(
+            [
+                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ]
+        )
+    )
     return output_table
 
 
@@ -203,13 +219,13 @@ def _get_manual_values_paragraphs(self: "CPhiAnalyse", styles) -> list:
         manual_texts.append(f"handmatig opgegeven: cohesie_kar_handmatig = {self.cohesie_kar_handmatig}")
 
     if manual_texts:
-        paragraphs.append(Paragraph("Handmatig opgegeven waarden:", styles['Heading3']))
+        paragraphs.append(Paragraph("Handmatig opgegeven waarden:", styles["Heading3"]))
         for txt in manual_texts:
-            paragraphs.append(Paragraph(txt, styles['Normal']))
+            paragraphs.append(Paragraph(txt, styles["Normal"]))
     else:
         paragraphs.append(
-            Paragraph("Geen handmatig opgegeven waarden, figuur gebaseerd op eerste inschatting",
-                      styles['Normal']))
+            Paragraph("Geen handmatig opgegeven waarden, figuur gebaseerd op eerste inschatting", styles["Normal"])
+        )
 
     return paragraphs
 
@@ -240,15 +256,19 @@ def save_to_pdf(self: "CPhiAnalyse", path: str) -> str:
         Het absolute pad naar het bestand van het aangemaakte PDF-bestand
     """
     # Maak titel en bestandsnaam
-    title = (f"{self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]} analyse met "
-             f"{self.effective_stress} op {self.investigation_groups[0]}")
-    file_name = (f"c_phi_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_"
-                 f"{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf")
+    title = (
+        f"{self.analysis_type.split('_')[0]} {self.analysis_type.split('_')[1]} analyse met "
+        f"{self.effective_stress} op {self.investigation_groups[0]}"
+    )
+    file_name = (
+        f"c_phi_pdf_export_{self.investigation_groups[0]}_{self.analysis_type}_"
+        f"{str(self.effective_stress).replace('%', 'procent_').replace(' ', '')}.pdf"
+    )
     file_path = f"{path}/{file_name}"
 
     # Maak en bewaar de figuur alleen als deze nog niet bestaat
     fig_path = f"{path}/temp_plot.png"
-    if not hasattr(self, 'figure') or len(self.figure.data) == 0:
+    if not hasattr(self, "figure") or len(self.figure.data) == 0:
         self.show_title = False
         self.figure = go.Figure()
         self.set_figure()
@@ -261,9 +281,9 @@ def save_to_pdf(self: "CPhiAnalyse", path: str) -> str:
     # Maak het PDF-document
     doc = SimpleDocTemplate(file_path, pagesize=landscape(A4))
     styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='Left', parent=styles['Normal'], alignment=TA_LEFT))
-    styles.add(ParagraphStyle(name='TitleLeft', parent=styles['Title'], alignment=TA_LEFT))
-    story = [Paragraph(title, styles['TitleLeft']), Spacer(width=1, height=12)]
+    styles.add(ParagraphStyle(name="Left", parent=styles["Normal"], alignment=TA_LEFT))
+    styles.add(ParagraphStyle(name="TitleLeft", parent=styles["Title"], alignment=TA_LEFT))
+    story = [Paragraph(title, styles["TitleLeft"]), Spacer(width=1, height=12)]
 
     # Voeg figuur toe met aangepaste grootte
     fig_path = f"{path}/temp_plot.png"
@@ -284,24 +304,25 @@ def save_to_pdf(self: "CPhiAnalyse", path: str) -> str:
     img = RLImage(fig_path)
     img.drawWidth = img_width_pt
     img.drawHeight = img_height_pt
-    img.hAlign = 'LEFT'
+    img.hAlign = "LEFT"
 
     story.append(img)
     story.append(Spacer(width=1, height=12))
 
     # Voeg initiële waarden toe
     story.append(
-        Paragraph("Parameter bepaling fysisch realiseerbare ondergrens en gemiddelde waarden", styles['Heading2']))
+        Paragraph("Parameter bepaling fysisch realiseerbare ondergrens en gemiddelde waarden", styles["Heading2"])
+    )
     story.append(_create_initial_values_table(self))
     story.append(Spacer(1, 12))
 
     # Voeg resultaten toe
-    story.append(Paragraph("Resultaten", styles['Heading2']))
+    story.append(Paragraph("Resultaten", styles["Heading2"]))
     story.append(_create_results_table(self))
     story.append(Spacer(1, 12))
 
     # Voeg invoertabel toe
-    story.append(Paragraph("Informatietabel invoerselectie", styles['Heading2']))
+    story.append(Paragraph("Informatietabel invoerselectie", styles["Heading2"]))
     story.append(_create_input_table(self))
     story.append(Spacer(1, 12))
 
@@ -310,6 +331,7 @@ def save_to_pdf(self: "CPhiAnalyse", path: str) -> str:
 
     # Ruim tijdelijke plot bestanden op
     import os
+
     try:
         if os.path.exists(fig_path):
             os.remove(fig_path)

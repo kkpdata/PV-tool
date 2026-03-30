@@ -15,27 +15,27 @@ if TYPE_CHECKING:
 
 def count_ln_sv_sutabel(self: "SUTABEL"):
     """Telt het aantal ln(s'v) waarden in de sutabel dataframe."""
-    return self.sutabel_data_df['ln(s\'v)'].count()
+    return self.sutabel_data_df["ln(s'v)"].count()
 
 
 def sum_ln_sv_sutabel(self: "SUTABEL"):
     """Berekent de som van ln(s'v) waarden in de sutabel dataframe."""
-    return self.sutabel_data_df['ln(s\'v)'].sum()
+    return self.sutabel_data_df["ln(s'v)"].sum()
 
 
 def sum_ln_su_sutabel(self: "SUTABEL"):
     """Berekent de som van ln(su) waarden in de sutabel dataframe."""
-    return self.sutabel_data_df['ln(su)'].sum()
+    return self.sutabel_data_df["ln(su)"].sum()
 
 
 def sum_sv_tt_sutabel(self: "SUTABEL"):
     """Berekent de som van s_tt waarden in de sutabel dataframe."""
-    return self.sutabel_data_df['s_tt'].sum()
+    return self.sutabel_data_df["s_tt"].sum()
 
 
 def sum_sv_ty_sutabel(self: "SUTABEL"):
     """Berekent de som van s_ty waarden in de sutabel dataframe."""
-    return self.sutabel_data_df['s_ty'].sum()
+    return self.sutabel_data_df["s_ty"].sum()
 
 
 def e_a2_sutabel(self: "SUTABEL"):
@@ -50,7 +50,7 @@ def e_a1_sutabel(self: "SUTABEL"):
 
 def sum_chi_2_sutabel(self: "SUTABEL"):
     """Berekent de som van chi-kwadraat waarden in de sutabel dataframe."""
-    return self.sutabel_data_df['chi_2'].sum()
+    return self.sutabel_data_df["chi_2"].sum()
 
 
 def var_a2_sutabel(self: "SUTABEL"):
@@ -60,17 +60,22 @@ def var_a2_sutabel(self: "SUTABEL"):
 
 def var_a1_sutabel(self: "SUTABEL"):
     """Berekent de variantie van a1 voor sutabel analyse."""
-    return (1 / count_ln_sv_sutabel(self) *
-            (1 + sum_ln_sv_sutabel(self) ** 2 /
-             (count_ln_sv_sutabel(self) * sum_sv_tt_sutabel(self))) * sum_chi_2_sutabel(self) /
-            (count_ln_sv_sutabel(self) - 2))
+    return (
+        1
+        / count_ln_sv_sutabel(self)
+        * (1 + sum_ln_sv_sutabel(self) ** 2 / (count_ln_sv_sutabel(self) * sum_sv_tt_sutabel(self)))
+        * sum_chi_2_sutabel(self)
+        / (count_ln_sv_sutabel(self) - 2)
+    )
 
 
 def cov_a1_a2_sutabel(self: "SUTABEL"):
     """Berekent de covariantie tussen a1 en a2 voor sutabel analyse."""
-    return (-(sum_ln_sv_sutabel(self) /
-              (count_ln_sv_sutabel(self) * sum_sv_tt_sutabel(self))) * sum_chi_2_sutabel(self) /
-            (count_ln_sv_sutabel(self) - 2))
+    return (
+        -(sum_ln_sv_sutabel(self) / (count_ln_sv_sutabel(self) * sum_sv_tt_sutabel(self)))
+        * sum_chi_2_sutabel(self)
+        / (count_ln_sv_sutabel(self) - 2)
+    )
 
 
 def rho_a1_a2_sutabel(self: "SUTABEL"):
@@ -97,27 +102,27 @@ def t_n_2_sutabel(self: "SUTABEL"):
 
 def sum_s_eff_sutabel(self: "SUTABEL"):
     """Berekent de som van effectieve spanning waarden in de sutabel dataframe."""
-    return self.sutabel_data_df['s\''].sum()
+    return self.sutabel_data_df["s'"].sum()
 
 
 def count_s_eff_sutabel(self: "SUTABEL"):
     """Telt het aantal effectieve spanning waarden in de sutabel dataframe."""
-    return self.sutabel_data_df['s\''].count()
+    return self.sutabel_data_df["s'"].count()
 
 
 def sum_5_pr_ondergrens_sutabel(self: "SUTABEL"):
     """Berekent de som van 5% ondergrens waarden in de sutabel dataframe."""
-    return self.sutabel_data_df['5_pr_ondergrens'].sum()
+    return self.sutabel_data_df["5_pr_ondergrens"].sum()
 
 
 def sum_stt_ondergrens_sutabel(self: "SUTABEL"):
     """Berekent de som van s_tt ondergrens waarden in de sutabel dataframe."""
-    return self.sutabel_data_df['s_tt_ondergrens'].sum()
+    return self.sutabel_data_df["s_tt_ondergrens"].sum()
 
 
 def sum_sty_ondergrens_sutabel(self: "SUTABEL"):
     """Berekent de som van s_ty ondergrens waarden in de sutabel dataframe."""
-    return self.sutabel_data_df['s_ty_ondergrens'].sum()
+    return self.sutabel_data_df["s_ty_ondergrens"].sum()
 
 
 def a2_kar_sutabel(self: "SUTABEL"):
@@ -128,7 +133,8 @@ def a2_kar_sutabel(self: "SUTABEL"):
 def a1_kar_sutabel(self: "SUTABEL"):
     """Berekent het karakteristieke snijpunt (a1) voor sutabel analyse."""
     return (sum_5_pr_ondergrens_sutabel(self) - a2_kar_sutabel(self) * sum_s_eff_sutabel(self)) / count_s_eff_sutabel(
-        self)
+        self
+    )
 
 
 def steyx_sutabel(self: "SUTABEL"):

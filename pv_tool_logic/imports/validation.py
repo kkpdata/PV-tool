@@ -9,9 +9,16 @@ from pathlib import Path
 
 from pandas_schema import Schema
 
-from pv_tool_logic.imports.validate_catagories import (validate_alg, validate_kenmerken_boring, validate_monster,
-                                                 validate_clas, validate_crs, validate_samendrukking, validate_dss,
-                                                 validate_triaxiaal)
+from pv_tool_logic.imports.validate_catagories import (
+    validate_alg,
+    validate_kenmerken_boring,
+    validate_monster,
+    validate_clas,
+    validate_crs,
+    validate_samendrukking,
+    validate_dss,
+    validate_triaxiaal,
+)
 
 if TYPE_CHECKING:
     from pv_tool_logic.imports.import_data import Dbase
@@ -20,8 +27,7 @@ if TYPE_CHECKING:
 class Validation:
     """In deze class staan alle functies die nodig zijn om de validatie uit te voeren."""
 
-    def __init__(self, dbase: Dbase,
-                 critical: Optional[bool] = True):
+    def __init__(self, dbase: Dbase, critical: Optional[bool] = True):
         self.dbase = dbase
         self.dataframes: Optional[Dict] = None
         self.critical = critical
@@ -46,7 +52,7 @@ class Validation:
             "Triaxiaalproeven single stage": "TXT_SS_",
             "Triaxiaalproeven multistage": "TXT_MS",
             "Beschrijving proefresultaten en controle berekening terreinspanning": "CEL_",
-            "Analyse": "ANA_"
+            "Analyse": "ANA_",
         }
 
         if self.dbase.dbase_df is None:
@@ -61,28 +67,28 @@ class Validation:
         return self.dataframes
 
     def validation_selection(
-            self,
-            category: Literal[
-                'Classificatie',
-                'Constant rate of strain proeven (CRS)',
-                'Samendrukkingsproeven',
-                'DSS-proeven',
-                'Triaxiaalproeven single stage'
-            ]
+        self,
+        category: Literal[
+            "Classificatie",
+            "Constant rate of strain proeven (CRS)",
+            "Samendrukkingsproeven",
+            "DSS-proeven",
+            "Triaxiaalproeven single stage",
+        ],
     ):
         """Deze functie verwijdert rijen uit de dataframes waar geen proef is gedaan."""
-        df_alg = self.split_dbase()['Algemene kenmerken']
+        df_alg = self.split_dbase()["Algemene kenmerken"]
         df_to_check = self.split_dbase()[category]
-        if category == 'Classificatie':
-            uitgevoerd = df_alg['ALG__CLASSIFICATIE']
-        elif category == 'Constant rate of strain proeven (CRS)':
-            uitgevoerd = df_alg['ALG__CRS']
-        elif category == 'Samendrukkingsproeven':
-            uitgevoerd = df_alg['ALG__SAMENDRUKKING']
-        elif category == 'DSS-proeven':
-            uitgevoerd = df_alg['ALG__DSS']
-        elif category == 'Triaxiaalproeven single stage':
-            uitgevoerd = df_alg['ALG__TRIAXIAAL']
+        if category == "Classificatie":
+            uitgevoerd = df_alg["ALG__CLASSIFICATIE"]
+        elif category == "Constant rate of strain proeven (CRS)":
+            uitgevoerd = df_alg["ALG__CRS"]
+        elif category == "Samendrukkingsproeven":
+            uitgevoerd = df_alg["ALG__SAMENDRUKKING"]
+        elif category == "DSS-proeven":
+            uitgevoerd = df_alg["ALG__DSS"]
+        elif category == "Triaxiaalproeven single stage":
+            uitgevoerd = df_alg["ALG__TRIAXIAAL"]
         else:
             raise ValueError("Ongeldige categorie")
 
@@ -135,8 +141,11 @@ class Validation:
         to_delete = []
         for i in validation_df.index:
             data = [validation_df[f"{schema_column}_validate"].loc[i] for schema_column in available_columns]
-            if not data or all(item == '' for item in data) or all(
-                    isinstance(item, float) and math.isnan(item) for item in data):
+            if (
+                not data
+                or all(item == "" for item in data)
+                or all(isinstance(item, float) and math.isnan(item) for item in data)
+            ):
                 to_delete.append(i)
             elif all(data):
                 to_delete.append(i)
@@ -157,25 +166,25 @@ class Validation:
 
             # Determine the messages for the first row
             if original_column_data.isnull().all():
-                summary_row_1.append('geen data')
+                summary_row_1.append("geen data")
             elif validation_column_data.str.strip().any():
-                summary_row_1.append('fouten gevonden')
+                summary_row_1.append("fouten gevonden")
             else:
-                summary_row_1.append('geen fouten gevonden')
+                summary_row_1.append("geen fouten gevonden")
 
             # No message for the validation column
-            summary_row_1.append('')
+            summary_row_1.append("")
 
             # No message for the original column
-            summary_row_2.append('')
+            summary_row_2.append("")
 
             # Add number of errors
-            summary_row_2.append(validation_df[f"{col}_validate"]
-                                 .apply(lambda x: bool(str(x).strip()) if pd.notna(x) else False)
-                                 .sum())
+            summary_row_2.append(
+                validation_df[f"{col}_validate"].apply(lambda x: bool(str(x).strip()) if pd.notna(x) else False).sum()
+            )
 
         initial_index = validation_df.index.tolist()
-        new_index = ['samenvatting', 'aantal fouten'] + initial_index
+        new_index = ["samenvatting", "aantal fouten"] + initial_index
 
         # Prepend the summary rows using pd.concat
         summary_df = pd.DataFrame([summary_row_1, summary_row_2], columns=validation_df.columns)
@@ -185,10 +194,10 @@ class Validation:
         return validation_df, error_log
 
     def validation_log(self, export_path: Path, critical: Optional[bool] = True):
-        """ Voert alle validaties uit en genereert een Excel-bestand (logbestand)."""
+        """Voert alle validaties uit en genereert een Excel-bestand (logbestand)."""
         self.critical = critical
 
-        c = 'critical_errors' if self.critical else 'warnings'
+        c = "critical_errors" if self.critical else "warnings"
 
         if export_path.is_dir():
             file_name = f"validation_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{c}.xlsx"
@@ -204,7 +213,7 @@ class Validation:
             "validate_samendrukking": validate_samendrukking,
             "validate_monster": validate_monster,
             "validate_triaxiaal": validate_triaxiaal,
-            "validate_dss": validate_dss
+            "validate_dss": validate_dss,
         }
 
         if self.critical:
@@ -232,7 +241,7 @@ class Validation:
                     validation_df.index = validation_df.index.astype(str)
                     # Set index name if it's empty to prevent Excel warnings
                     if validation_df.index.name is None:
-                        validation_df.index.name = 'ID'
+                        validation_df.index.name = "ID"
                     validation_df.to_excel(writer, sheet_name=sheet_name, index=True)
 
             # After the file is completely written and closed, then format each sheet
@@ -244,8 +253,8 @@ class Validation:
                         sheet_name=sheet_name,
                         num_columns=num_columns,
                         num_rows=num_rows,
-                        table_name=f'tabel_{sheet_name.lower()}',
-                        index=True
+                        table_name=f"tabel_{sheet_name.lower()}",
+                        index=True,
                     )
                 except Exception as format_error:
                     print(f"Waarschuwing: Kon sheet {sheet_name} niet formatteren: {str(format_error)}")
@@ -265,7 +274,7 @@ class Validation:
         self.total_error_log = [self.critical_error_log, self.warning_error_log]
 
     def print_critical_errors(self):
-        """"Print de errors uit de import."""
+        """ "Print de errors uit de import."""
         errors = self.error_totals
         for error in errors:
             print(error)

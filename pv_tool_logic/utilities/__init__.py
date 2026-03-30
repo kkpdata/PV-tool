@@ -14,7 +14,4 @@ from pv_tool_logic.utilities.utils import get_repo_root, make_temp_folder
 # Note: widget_functions imports are available but not exposed here to avoid circular imports
 # Import directly from pv_tool_logic.utilities.widget_functions when needed
 
-__all__ = [
-    'get_repo_root',
-    'make_temp_folder',
-]
+__all__ = ["get_repo_root", "make_temp_folder"]

@@ -6,20 +6,20 @@ if TYPE_CHECKING:
 import plotly.graph_objects as go
 from pv_tool_logic.cphi_analysis.calc_parameters import *
 from typing import Optional, List
-from pv_tool_logic.cphi_analysis.globals import (TEXTUAL_NAMES, TEXTUAL_NAMES_DSS, NEW_COLUMN_NAMES)
+from pv_tool_logic.cphi_analysis.globals import TEXTUAL_NAMES, TEXTUAL_NAMES_DSS, NEW_COLUMN_NAMES
 from pandas import DataFrame
 import numpy as np
 
 # Kleuren voor extra onderzoeksgroepen — blauw is gereserveerd voor de hoofdgroep
 EXTRA_GROEPEN_KLEUREN = [
-    '#E6610A',  # oranje
-    '#2CA02C',  # groen
-    '#9467BD',  # paars
-    '#8C564B',  # bruin
-    '#E377C2',  # roze
-    '#7F7F7F',  # grijs
-    '#BCBD22',  # geelgroen
-    '#17BECF',  # cyaan
+    "#E6610A",  # oranje
+    "#2CA02C",  # groen
+    "#9467BD",  # paars
+    "#8C564B",  # bruin
+    "#E377C2",  # roze
+    "#7F7F7F",  # grijs
+    "#BCBD22",  # geelgroen
+    "#17BECF",  # cyaan
 ]
 
 
@@ -27,35 +27,32 @@ def add_proefresultaten(self: CPhiAnalyse):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
     boring_monsternummer = self.cphi_analyses_data_df.index
 
-    x_proefresultaten = self.cphi_analyses_data_df['S\'']
-    y_proefresultaten = self.cphi_analyses_data_df['T']
+    x_proefresultaten = self.cphi_analyses_data_df["S'"]
+    y_proefresultaten = self.cphi_analyses_data_df["T"]
 
     self.figure.add_trace(
         go.Scatter(
             x=x_proefresultaten,
             y=y_proefresultaten,
-            mode='markers',
-            marker=dict(
-                color='blue'
-            ),
-            name=f'Geanalyseerd: {self.investigation_groups[0]}',
+            mode="markers",
+            marker=dict(color="blue"),
+            name=f"Geanalyseerd: {self.investigation_groups[0]}",
             text=boring_monsternummer,
-            hoverinfo='text'
+            hoverinfo="text",
         )
     )
 
 
 def get_extra_data(self: CPhiAnalyse, investigationgroups_extra: Optional[List]):
-    if self.analysis_type in ['TXT_CPhi', 'TXT_SH']:
-        dataset_df = self.dbase_df[self.dbase_df['ALG__TRIAXIAAL']]
-    elif self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
-        dataset_df = self.dbase_df[self.dbase_df['ALG__DSS']]
+    if self.analysis_type in ["TXT_CPhi", "TXT_SH"]:
+        dataset_df = self.dbase_df[self.dbase_df["ALG__TRIAXIAAL"]]
+    elif self.analysis_type in ["DSS_CPhi", "DSS_SH"]:
+        dataset_df = self.dbase_df[self.dbase_df["ALG__DSS"]]
     else:
         raise ValueError(f"analysis type for extra dataset not right: {self.analysis_type}")
 
-    dataset_df = dataset_df[
-        dataset_df['PV_NAAM'].isin(investigationgroups_extra)]
-    if self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
+    dataset_df = dataset_df[dataset_df["PV_NAAM"].isin(investigationgroups_extra)]
+    if self.analysis_type in ["DSS_CPhi", "DSS_SH"]:
         dataset_df = dataset_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])]
     else:
         dataset_df = dataset_df[TEXTUAL_NAMES.get(self.effective_stress, [])]
@@ -69,21 +66,21 @@ def add_extra_proefresultaten(self: CPhiAnalyse, extra_groepen: Optional[List]):
     boring_monsternummer = df.index
 
     n = 0
-    for naam in df['PV_NAAM'].unique():
-        sub_df = df[df['PV_NAAM'] == naam]
-        x_extra_proefresultaten = sub_df['S\'']
-        y_extra_proefresultaten = sub_df['T']
+    for naam in df["PV_NAAM"].unique():
+        sub_df = df[df["PV_NAAM"] == naam]
+        x_extra_proefresultaten = sub_df["S'"]
+        y_extra_proefresultaten = sub_df["T"]
         kleur = EXTRA_GROEPEN_KLEUREN[n % len(EXTRA_GROEPEN_KLEUREN)]
 
         self.figure.add_trace(
             go.Scatter(
                 x=x_extra_proefresultaten,
                 y=y_extra_proefresultaten,
-                mode='markers',
+                mode="markers",
                 marker=dict(color=kleur),
-                name=f'Extra: {extra_groepen[n]}',
+                name=f"Extra: {extra_groepen[n]}",
                 text=boring_monsternummer,
-                hoverinfo='text'
+                hoverinfo="text",
             )
         )
         n += 1
@@ -91,28 +88,18 @@ def add_extra_proefresultaten(self: CPhiAnalyse, extra_groepen: Optional[List]):
 
 def add_5pr_bovengrens(self: CPhiAnalyse):
     """Deze functie voegt de 5% bovengrens toe aan de figuur."""
-    x_5pr = self.cphi_analyses_data_df['s\'']
-    y_5pr = self.cphi_analyses_data_df['5pr_bovengrens_cor']
+    x_5pr = self.cphi_analyses_data_df["s'"]
+    y_5pr = self.cphi_analyses_data_df["5pr_bovengrens_cor"]
 
     self.figure.add_trace(
-        go.Scatter(
-            x=x_5pr,
-            y=y_5pr,
-            mode='lines',
-            name='5% bovengrens',
-            line=dict(
-                color='black',
-                width=1,
-                dash='dash'
-            )
-        )
+        go.Scatter(x=x_5pr, y=y_5pr, mode="lines", name="5% bovengrens", line=dict(color="black", width=1, dash="dash"))
     )
 
 
 def add_raaklijn_kar_boven(self: CPhiAnalyse):
     """Deze functie voegt de bovenste raaklijn van de schematiseringshandleiding methode toe aan de figuur."""
     x1 = 0
-    x2 = self.cphi_analyses_data_df['S\''].max() + 5
+    x2 = self.cphi_analyses_data_df["S'"].max() + 5
     y1 = x1 * calc_a2_phi_kar_boven_sh(self)
     y2 = x2 * calc_a2_phi_kar_boven_sh(self)
 
@@ -120,44 +107,24 @@ def add_raaklijn_kar_boven(self: CPhiAnalyse):
     y = [y1, y2]
 
     self.figure.add_trace(
-        go.Scatter(
-            x=x,
-            y=y,
-            mode='lines',
-            name='Raaklijn boven',
-            line=dict(
-                color='black',
-                width=1,
-                dash='dash'
-            )
-        )
+        go.Scatter(x=x, y=y, mode="lines", name="Raaklijn boven", line=dict(color="black", width=1, dash="dash"))
     )
 
 
 def add_5pr_ondergrens(self: CPhiAnalyse):
     """Deze functie voegt de 5% bovengrens toe aan de figuur."""
-    x_5pr = self.cphi_analyses_data_df['s\'']
-    y_5pr = self.cphi_analyses_data_df['5pr_ondergrens_cor']
+    x_5pr = self.cphi_analyses_data_df["s'"]
+    y_5pr = self.cphi_analyses_data_df["5pr_ondergrens_cor"]
 
     self.figure.add_trace(
-        go.Scatter(
-            x=x_5pr,
-            y=y_5pr,
-            mode='lines',
-            name='5% ondergrens',
-            line=dict(
-                color='black',
-                width=1,
-                dash='dash'
-            )
-        )
+        go.Scatter(x=x_5pr, y=y_5pr, mode="lines", name="5% ondergrens", line=dict(color="black", width=1, dash="dash"))
     )
 
 
 def add_raaklijn_kar_onder(self: CPhiAnalyse):
     """Deze functie voegt de onderste raaklijn van de schematiseringshandleiding methode toe aan de figuur."""
     x1 = 0
-    x2 = self.cphi_analyses_data_df['S\''].max() + 5
+    x2 = self.cphi_analyses_data_df["S'"].max() + 5
     y1 = x1 * calc_a2_phi_kar_onder_sh(self)
     y2 = x2 * calc_a2_phi_kar_onder_sh(self)
 
@@ -165,24 +132,14 @@ def add_raaklijn_kar_onder(self: CPhiAnalyse):
     y = [y1, y2]
 
     self.figure.add_trace(
-        go.Scatter(
-            x=x,
-            y=y,
-            mode='lines',
-            name='Raaklijn onder',
-            line=dict(
-                color='black',
-                width=1,
-                dash='dash'
-            )
-        )
+        go.Scatter(x=x, y=y, mode="lines", name="Raaklijn onder", line=dict(color="black", width=1, dash="dash"))
     )
 
 
 def add_fysische_realiseerbare_ondergrens(self: CPhiAnalyse):
     """Deze functie voegt de fysische realiseerbare ondergrens toe aan de figuur."""
     raaklijn_kar_x1 = 0
-    raaklijn_kar_x2 = self.cphi_analyses_data_df['S\''].max() + 5
+    raaklijn_kar_x2 = self.cphi_analyses_data_df["S'"].max() + 5
 
     has_phi_kar = self.phi_kar_handmatig is not None
     has_cohesie_kar = self.cohesie_kar_handmatig is not None
@@ -190,31 +147,25 @@ def add_fysische_realiseerbare_ondergrens(self: CPhiAnalyse):
     if has_phi_kar and has_cohesie_kar:
         raaklijn_kar_y1 = self.cohesie_kar_handmatig + (raaklijn_kar_x1 * self.phi_kar_handmatig)
         raaklijn_kar_y2 = self.cohesie_kar_handmatig + (self.phi_kar_handmatig * raaklijn_kar_x2)
-        print('fysisch realiseerbare ondergrens gebaseerd op phi kar handmatig en cohesie kar handmatig')
+        print("fysisch realiseerbare ondergrens gebaseerd op phi kar handmatig en cohesie kar handmatig")
     elif not has_phi_kar and has_cohesie_kar:
         raaklijn_kar_y1 = self.cohesie_kar_handmatig + (raaklijn_kar_x1 * self.eerste_benadering_a2_kar)
         raaklijn_kar_y2 = self.cohesie_kar_handmatig + (self.eerste_benadering_a2_kar * raaklijn_kar_x2)
-        print('fysisch realiseerbare ondergrens gebaseerd op eerste benadering a2 kar en cohesie handmatig')
+        print("fysisch realiseerbare ondergrens gebaseerd op eerste benadering a2 kar en cohesie handmatig")
     elif has_phi_kar and not has_cohesie_kar:
         raaklijn_kar_y1 = self.eerste_benadering_a1_kar + (raaklijn_kar_x1 * self.phi_kar_handmatig)
         raaklijn_kar_y2 = self.eerste_benadering_a1_kar + (self.phi_kar_handmatig * raaklijn_kar_x2)
-        print('fysisch realiseerbare ondergrens gebaseerd op phi kar handmatig en eerste benadering a1')
+        print("fysisch realiseerbare ondergrens gebaseerd op phi kar handmatig en eerste benadering a1")
     else:
         raaklijn_kar_y1 = self.eerste_benadering_a1_kar + (raaklijn_kar_x1 * self.eerste_benadering_a2_kar)
         raaklijn_kar_y2 = self.eerste_benadering_a1_kar + (self.eerste_benadering_a2_kar * raaklijn_kar_x2)
-        print('fysisch realiseerbare ondergrens gebaseerd op eerste benadering a1 en eerste benadering a2')
+        print("fysisch realiseerbare ondergrens gebaseerd op eerste benadering a1 en eerste benadering a2")
 
     x = [raaklijn_kar_x1, raaklijn_kar_x2]
     y = [raaklijn_kar_y1, raaklijn_kar_y2]
 
     self.figure.add_trace(
-        go.Scatter(
-            x=x,
-            y=y,
-            mode='lines',
-            name='Fysische realiseerbare ondergrens',
-            line=dict(color='purple', width=2),
-        )
+        go.Scatter(x=x, y=y, mode="lines", name="Fysische realiseerbare ondergrens", line=dict(color="purple", width=2))
     )
 
 
@@ -227,38 +178,30 @@ def _get_helling_value(helling):
 
 def add_gemiddelde(self: CPhiAnalyse):
     """Deze functie voegt de gemiddelde waarden toe aan de figuur."""
-    x1 = self.cphi_analyses_data_df['S\''].min() + 5
-    x2 = self.cphi_analyses_data_df['S\''].max() + 5
+    x1 = self.cphi_analyses_data_df["S'"].min() + 5
+    x2 = self.cphi_analyses_data_df["S'"].max() + 5
 
     if self.cohesie_gem_handmatig is not None:
         helling = _get_helling_value(self.helling_gecorrigeerd)
         y1 = x1 * helling + self.cohesie_gem_handmatig
         y2 = x2 * helling + self.cohesie_gem_handmatig
-        print('gemiddelde gebaseerd op helling gecorrigeerd en cohesie gem handmatig')
+        print("gemiddelde gebaseerd op helling gecorrigeerd en cohesie gem handmatig")
     else:
         helling = _get_helling_value(self.helling_gecorrigeerd)
         y1 = x1 * helling + self.eerste_benadering_a1_gem
         y2 = x2 * helling + self.eerste_benadering_a1_gem
-        print('gemiddelde gebaseerd op helling gecorrigeerd en eerste benadering a1 gem')
+        print("gemiddelde gebaseerd op helling gecorrigeerd en eerste benadering a1 gem")
 
     x = [x1, x2]
     y = [y1, y2]
 
-    self.figure.add_trace(
-        go.Scatter(
-            x=x,
-            y=y,
-            mode='lines',
-            name='gemiddelde',
-            line=dict(color='orange', width=2),
-        )
-    )
+    self.figure.add_trace(go.Scatter(x=x, y=y, mode="lines", name="gemiddelde", line=dict(color="orange", width=2)))
 
 
 def add_gemiddelde_sh(self: CPhiAnalyse):
     """Deze functie voegt de gemiddelde waarden toe aan de figuur."""
-    x1 = self.cphi_analyses_data_df['S\''].min() + 5
-    x2 = self.cphi_analyses_data_df['S\''].max() + 5
+    x1 = self.cphi_analyses_data_df["S'"].min() + 5
+    x2 = self.cphi_analyses_data_df["S'"].max() + 5
     y1 = x1 * calc_a2_phi_gem_sh(self)
     y2 = x2 * calc_a2_phi_gem_sh(self)
 
@@ -266,41 +209,35 @@ def add_gemiddelde_sh(self: CPhiAnalyse):
     y = [y1, y2]
 
     self.figure.add_trace(
-        go.Scatter(
-            x=x,
-            y=y,
-            mode='lines',
-            name='Raaklijn gemiddeld',
-            line=dict(color='orange', width=2)
-        )
+        go.Scatter(x=x, y=y, mode="lines", name="Raaklijn gemiddeld", line=dict(color="orange", width=2))
     )
 
 
 def _get_marker_direction(stress_df):
     """
-        Bepaalt de richting van de marker op basis van het eerste segment van het spanningspad.
+    Bepaalt de richting van de marker op basis van het eerste segment van het spanningspad.
 
-        Parameters
-        ----------
-        stress_df : DataFrame
-            DataFrame met kolommen 'S\'' en 'T' voor de spanningswaarden
+    Parameters
+    ----------
+    stress_df : DataFrame
+        DataFrame met kolommen 'S\'' en 'T' voor de spanningswaarden
 
-        Returns
-        -------
-        str
-            Symbol naam voor de marker ('triangle-up', 'triangle-down', 'triangle-left', of 'triangle-right')
-        """
+    Returns
+    -------
+    str
+        Symbol naam voor de marker ('triangle-up', 'triangle-down', 'triangle-left', of 'triangle-right')
+    """
     if len(stress_df) < 2:
-        return 'triangle-up'
+        return "triangle-up"
 
-    dx = stress_df['S\''].iloc[1] - stress_df['S\''].iloc[0]
-    dy = stress_df['T'].iloc[1] - stress_df['T'].iloc[0]
+    dx = stress_df["S'"].iloc[1] - stress_df["S'"].iloc[0]
+    dy = stress_df["T"].iloc[1] - stress_df["T"].iloc[0]
 
     # Bepaal dominante richting
     if abs(dx) > abs(dy):
-        return 'triangle-right' if dx > 0 else 'triangle-left'
+        return "triangle-right" if dx > 0 else "triangle-left"
     else:
-        return 'triangle-up' if dy > 0 else 'triangle-down'
+        return "triangle-up" if dy > 0 else "triangle-down"
 
 
 def add_stress_paths(self: CPhiAnalyse, sample_stress_paths: dict) -> None:
@@ -324,37 +261,35 @@ def add_stress_paths(self: CPhiAnalyse, sample_stress_paths: dict) -> None:
         # Voeg de spanningspad lijn toe voor dit monster
         self.figure.add_trace(
             go.Scatter(
-                x=stress_df['S\''],
-                y=stress_df['T'],
-                mode='lines+markers',
-                line=dict(color='lightgray', width=1),
-                marker=dict(color='lightgray', size=1),
-                name='s\'-t curve' if first_sample else f'Spanningspad {sample_name}',
-                text=[f"{sample_name} - {state}<br>S\':{s:.1f}, T:{t:.1f}"
-                      for state, s, t in zip(stress_df['stress_state'], stress_df['S\''], stress_df['T'])],
-                hoverinfo='text',
+                x=stress_df["S'"],
+                y=stress_df["T"],
+                mode="lines+markers",
+                line=dict(color="lightgray", width=1),
+                marker=dict(color="lightgray", size=1),
+                name="s'-t curve" if first_sample else f"Spanningspad {sample_name}",
+                text=[
+                    f"{sample_name} - {state}<br>S':{s:.1f}, T:{t:.1f}"
+                    for state, s, t in zip(stress_df["stress_state"], stress_df["S'"], stress_df["T"])
+                ],
+                hoverinfo="text",
                 showlegend=first_sample,
-                legendgroup='spanningspaden'  # Groepeer alle spanningspad traces
+                legendgroup="spanningspaden",  # Groepeer alle spanningspad traces
             )
         )
 
         # Voeg het eerste punt toe met een speciaal symbool
         self.figure.add_trace(
             go.Scatter(
-                x=[stress_df['S\''].iloc[0]],
-                y=[stress_df['T'].iloc[0]],
-                mode='markers',
-                marker=dict(
-                    symbol=marker_symbol,
-                    size=7,
-                    color='gray'
-                ),
-                name='K0' if first_sample else f'Start {sample_name}',
+                x=[stress_df["S'"].iloc[0]],
+                y=[stress_df["T"].iloc[0]],
+                mode="markers",
+                marker=dict(symbol=marker_symbol, size=7, color="gray"),
+                name="K0" if first_sample else f"Start {sample_name}",
                 text=f"""{sample_name} - {stress_df['stress_state'].iloc[0]}<br>S':{stress_df["S'"].iloc[0]:.1f}, 
                 T:{stress_df['T'].iloc[0]:.1f}""",
-                hoverinfo='text',
+                hoverinfo="text",
                 showlegend=first_sample,
-                legendgroup='spanningspaden'  # Zelfde groep als de lijnen
+                legendgroup="spanningspaden",  # Zelfde groep als de lijnen
             )
         )
 
@@ -367,14 +302,14 @@ def set_layout(self: CPhiAnalyse):
 
     De figuurgrootte is geoptimaliseerd voor zowel schermdisplay als PDF-export.
     """
-    title = f'{self.analysis_type} analyse met {self.effective_stress} op {self.investigation_groups[0]}'
-    if self.analysis_type in ['DSS_CPhi', 'DSS_SH']:
-        xas_title = '\u03C3 \' [kPa]'
-        yas_title = '\u03C4 [kPa]'
+    title = f"{self.analysis_type} analyse met {self.effective_stress} op {self.investigation_groups[0]}"
+    if self.analysis_type in ["DSS_CPhi", "DSS_SH"]:
+        xas_title = "\u03c3 ' [kPa]"
+        yas_title = "\u03c4 [kPa]"
     else:
-        xas_title = 's\' [kPa]'
-        yas_title = 't [kPa]'
-    legend_title = 'Legenda'
+        xas_title = "s' [kPa]"
+        yas_title = "t [kPa]"
+    legend_title = "Legenda"
     self.figure.update_layout(
         width=1152,
         height=648,
@@ -382,5 +317,5 @@ def set_layout(self: CPhiAnalyse):
         xaxis_title=xas_title,
         yaxis_title=yas_title,
         legend_title=legend_title,
-        margin=dict(t=100, r=50, b=100, l=50)
+        margin=dict(t=100, r=50, b=100, l=50),
     )

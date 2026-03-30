@@ -9,9 +9,7 @@ from pv_tool_logic.cphi_analysis.c_phi_analysis import CPhiAnalyse
 
 FILE_PATH = os.path.join(get_repo_root(), "test_files")
 repo_root = get_repo_root()
-export_dir = make_temp_folder(
-    parent_folder=os.path.join(repo_root, "temp_exports"), add_microseconds=True
-)
+export_dir = make_temp_folder(parent_folder=os.path.join(repo_root, "temp_exports"), add_microseconds=True)
 export_dir = Path(export_dir)
 
 
@@ -20,18 +18,22 @@ def test_cphi_analyse():
     dbase = Dbase()
     source_dir = Path(os.path.join(FILE_PATH, "Dbase.xlsx"))
     dbase.import_data(source="Dbase", source_dir=source_dir)
-    export_name = 'Template_PVtool5_0.xlsx'
+    export_name = "Template_PVtool5_0.xlsx"
     dbase.export_dbase_to_template(export_dir=export_dir)
 
     # Initialize analysis
-    analysis_types: list[Literal['TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH']] = [
-        'TXT_CPhi', 'TXT_SH', 'DSS_CPhi', 'DSS_SH']
+    analysis_types: list[Literal["TXT_CPhi", "TXT_SH", "DSS_CPhi", "DSS_SH"]] = [
+        "TXT_CPhi",
+        "TXT_SH",
+        "DSS_CPhi",
+        "DSS_SH",
+    ]
     for analysis_type in analysis_types:
         analyse = CPhiAnalyse(
             dbase=dbase,
-            investigation_groups=['TXT_SAFE_klei_licht_16_175'],
-            effective_stress='15% rek',
-            analysis_type=analysis_type
+            investigation_groups=["TXT_SAFE_klei_licht_16_175"],
+            effective_stress="15% rek",
+            analysis_type=analysis_type,
         )
         # apply settings
         analyse.apply_settings(alpha=0.75)
@@ -62,9 +64,9 @@ class TestImportAndValidate(unittest.TestCase):
 
         analyse = CPhiAnalyse(
             dbase=dbase,
-            investigation_groups=['TXT_SAFE_klei_licht_16_175'],
-            effective_stress='15% rek',
-            analysis_type='TXT_CPhi'
+            investigation_groups=["TXT_SAFE_klei_licht_16_175"],
+            effective_stress="15% rek",
+            analysis_type="TXT_CPhi",
         )
 
         # Apply settings and parameters

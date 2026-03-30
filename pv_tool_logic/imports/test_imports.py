@@ -38,9 +38,7 @@ def test_validate():
     dbase.import_data(source="Dbase", source_dir=source_dir)
 
     repo_root = get_repo_root()
-    export_dir = make_temp_folder(
-        parent_folder=os.path.join(repo_root), add_microseconds=True
-    )
+    export_dir = make_temp_folder(parent_folder=os.path.join(repo_root), add_microseconds=True)
     export_dir = Path(export_dir)
     dbase.validate_data(export_path=export_dir)
 

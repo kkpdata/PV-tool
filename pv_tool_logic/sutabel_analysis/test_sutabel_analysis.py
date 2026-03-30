@@ -8,9 +8,7 @@ from typing import Literal
 
 FILE_PATH = os.path.join(get_repo_root(), "test_files")
 repo_root = get_repo_root()
-export_dir = make_temp_folder(
-    parent_folder=os.path.join(repo_root, "temp_exports"), add_microseconds=True
-)
+export_dir = make_temp_folder(parent_folder=os.path.join(repo_root, "temp_exports"), add_microseconds=True)
 export_dir = Path(export_dir)
 
 
@@ -22,26 +20,21 @@ def test_sutabel_analyse():
     dbase = Dbase()
     source_dir = Path(os.path.join(FILE_PATH, "Dbase.xlsx"))
     dbase.import_data(source="Dbase", source_dir=source_dir)
-    export_name = 'Template_PVtool5_0.xlsx'
+    export_name = "Template_PVtool5_0.xlsx"
     dbase.export_dbase_to_template(export_dir=export_dir)
 
     # Initialize analysis types voor SUTABEL
-    analysis_types: list[Literal['TXT_su_tabel', 'DSS_su_tabel']] = ['TXT_su_tabel', 'DSS_su_tabel']
+    analysis_types: list[Literal["TXT_su_tabel", "DSS_su_tabel"]] = ["TXT_su_tabel", "DSS_su_tabel"]
 
     for analysis_type in analysis_types:
-        if analysis_type == 'DSS_su_tabel':
-            ig = ['DSS_SAFE_veen']
-            es = '20% rek'
+        if analysis_type == "DSS_su_tabel":
+            ig = ["DSS_SAFE_veen"]
+            es = "20% rek"
         else:
-            ig = ['TXT_SAFE_klei_licht_16_175']
-            es = '15% rek'
+            ig = ["TXT_SAFE_klei_licht_16_175"]
+            es = "15% rek"
 
-        analyse = SUTABEL(
-            dbase=dbase,
-            investigation_groups=ig,
-            effective_stress=es,
-            analysis_type=analysis_type
-        )
+        analyse = SUTABEL(dbase=dbase, investigation_groups=ig, effective_stress=es, analysis_type=analysis_type)
 
         # Apply settings
         analyse.apply_settings(alpha=0.75)
@@ -61,17 +54,19 @@ def test_sutabel_analyse():
         try:
             analyse.show_figure_ln_sv_ln_su_sutabel()
             fig_ln = analyse.figure_ln_sv_ln_su
-            analyse.save_fig_html(fig=fig_ln, path=str(export_dir),
-                                  export_name=f"sutabel_ln_figure_{analysis_type}.html")
+            analyse.save_fig_html(
+                fig=fig_ln, path=str(export_dir), export_name=f"sutabel_ln_figure_{analysis_type}.html"
+            )
             analyse.show_figure_sv_su_sutabel()
             fig_sv_su = analyse.figure_sv_su
-            analyse.save_fig_html(fig=fig_sv_su, path=str(export_dir),
-                                  export_name=f"sutabel_sv_figure_{analysis_type}.html")
+            analyse.save_fig_html(
+                fig=fig_sv_su, path=str(export_dir), export_name=f"sutabel_sv_figure_{analysis_type}.html"
+            )
         except Exception as e:
             print(f"Error during show figures before manual parameters for {analysis_type}: {e}")
 
         # Test manual parameters (met voorbeeldwaardes die bij TXT SAFE klei licht 15% een goede fit geven)
-        if analysis_type == 'DSS_su_tabel':
+        if analysis_type == "DSS_su_tabel":
             analyse.set_manual_parameters(a1_kar=0.0, a2_kar=0.8, vc_fit_kar=0.18)
         else:
             analyse.set_manual_parameters(a1_kar=0.47, a2_kar=0.67, vc_fit_kar=0.1)
@@ -87,12 +82,16 @@ def test_sutabel_analyse():
         try:
             analyse.show_figure_ln_sv_ln_su_sutabel()
             fig_ln_sv_ln_su = analyse.figure_ln_sv_ln_su
-            analyse.save_fig_html(fig=fig_ln_sv_ln_su, path=str(export_dir),
-                                  export_name=f"sutabel_ln_figure_{analysis_type}_manual.html")
+            analyse.save_fig_html(
+                fig=fig_ln_sv_ln_su, path=str(export_dir), export_name=f"sutabel_ln_figure_{analysis_type}_manual.html"
+            )
             analyse.show_figure_sv_su_sutabel()
             fig_sv_su_sutabel = analyse.figure_sv_su
-            analyse.save_fig_html(fig=fig_sv_su_sutabel, path=str(export_dir),
-                                  export_name=f"sutabel_sv_figure_{analysis_type}_manual.html")
+            analyse.save_fig_html(
+                fig=fig_sv_su_sutabel,
+                path=str(export_dir),
+                export_name=f"sutabel_sv_figure_{analysis_type}_manual.html",
+            )
         except Exception as e:
             print(f"Error during show figures and exporting to html for {analysis_type}: {e}")
 
@@ -122,5 +121,5 @@ class TestSutabelAnalyse(unittest.TestCase):
         test_sutabel_analyse()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
