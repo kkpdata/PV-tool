@@ -1,12 +1,12 @@
 
 [tool.poetry]
 name = "pv_tool"
-version = "1.0.0"
+version = "0.1.0"
 description = "Proevenverzamelingtool voor het opstellen van lokale of regionale proevenverzamelingen voor het bepalen van geotechnische parameters."
 authors = [
     "Tjalda Deenekamp <tjalda.deenekamp@arcadis.nl>",
-    "Nathan Gebraad <nathan.gebraad@arcadis.com>",
-    "Leo Kwakman <leo.kwakman@arcadis.com>"
+    "Leo Kwakman <leo.kwakman@arcadis.com>",
+    "Nathan Gebraad <nathan.gebraad@arcadis.com>"
 ]
 license = "GPL-3.0-or-later"
 readme = "README.md"
@@ -21,3 +21,18 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.12"
+pandas = "^3.0.1"
+numpy = "^2.4.4"
+scipy = "^1.17.1"
+matplotlib = "^3.10.8"
+plotly = "^6.6.0"
+openpyxl = "^3.1.5"
+gitpython = "^3.1.46"
+pandas-schema = "^0.3.6"
+xlsxwriter = "^3.2.9"
+reportlab = "^4.4.10"
+kaleido = "^1.2.0"
+ipywidgets = "^8.1.8"
+ipyfilechooser = "^0.6.0"
+ipython = "^9.12.0"
+pillow = "^12.1.1"
