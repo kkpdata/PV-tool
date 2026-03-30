@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "pv_tool_logic"
-version = "0.1.5"
+version = "0.1.6"
 description = "Proevenverzamelingtool voor het opstellen van lokale of regionale proevenverzamelingen voor het bepalen van geotechnische parameters."
 authors = [
     "Tjalda Deenekamp <tjalda.deenekamp@arcadis.nl>",
@@ -21,7 +21,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.12"
-pandas = "^3.0.1"
+pandas = "<3.0.0"
 numpy = "^2.4.4"
 scipy = "^1.17.1"
 matplotlib = "^3.10.8"
