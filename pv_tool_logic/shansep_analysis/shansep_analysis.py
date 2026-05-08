@@ -749,12 +749,18 @@ class SHANSEP:
         self.snijpunt_gem_handmatig = snijpunt_gem
         self.s_gem_handmatig = s_gem
         self.m_gem_handmatig = m_gem
-        self.pop_gem_handmatig = snijpunt_gem / s_gem / m_gem
+        try:
+            self.pop_gem_handmatig = snijpunt_gem / s_gem / m_gem
+        except (ZeroDivisionError, TypeError):
+            self.pop_gem_handmatig = None
 
         self.snijpunt_kar_handmatig = snijpunt_kar
         self.s_kar_handmatig = s_kar
         self.m_kar_handmatig = m_kar
-        self.pop_kar_handmatig = snijpunt_kar / s_kar / m_kar
+        try:
+            self.pop_kar_handmatig = snijpunt_kar / s_kar / m_kar
+        except (ZeroDivisionError, TypeError):
+            self.pop_kar_handmatig = None
 
         # Recalculate standard deviations now that manual parameters are set
         self.st_dev_m_handmatig = st_dev_m_handmatig(self)

@@ -1,3 +1,6 @@
+import math
+from typing import Optional
+from functools import partial
 import ipywidgets as widgets
 import numpy as np
 from ipyfilechooser import FileChooser
@@ -145,13 +148,22 @@ def toon_grid_settings_shansep():
     return alpha_widget
 
 
+def _round_optional(value: Optional[float], decimals: int = 2) -> Optional[float]:
+    """Rond een float af; geeft None terug bij ontbrekende of ongeldige waarde."""
+    if value is None:
+        return None
+    if not math.isfinite(value):
+        return None
+    return round(value, decimals)
+
+
 def get_benaderings_waarden(analyse):
-    SNIJPUNT_GEM_BENADERING_R2 = round(analyse.e_a1_oc, 2)
-    S_GEM_BENADERING_UIT_S_en_POP_R2 = round(analyse.e_a2_oc, 2)
-    m_GEM_BENADERING_uit_S_en_m_R3 = round(analyse.e_a2_nc_oc, 2)
-    SNIJPUNT_KAR_BENADERING_R2 = round(analyse.a1_kar_oc, 2)
-    S_KAR_BENADERING_UIT_S_en_POP_R2 = round(analyse.a2_kar_oc, 2)
-    m_KAR_BENADERING_uit_S_en_m_R3 = round(analyse.a2_kar_nc_oc, 2)
+    SNIJPUNT_GEM_BENADERING_R2 = _round_optional(analyse.e_a1_oc, 2)
+    S_GEM_BENADERING_UIT_S_en_POP_R2 = _round_optional(analyse.e_a2_oc, 2)
+    m_GEM_BENADERING_uit_S_en_m_R3 = _round_optional(analyse.e_a2_nc_oc, 2)
+    SNIJPUNT_KAR_BENADERING_R2 = _round_optional(analyse.a1_kar_oc, 2)
+    S_KAR_BENADERING_UIT_S_en_POP_R2 = _round_optional(analyse.a2_kar_oc, 2)
+    m_KAR_BENADERING_uit_S_en_m_R3 = _round_optional(analyse.a2_kar_nc_oc, 2)
     return (
         SNIJPUNT_GEM_BENADERING_R2,
         S_GEM_BENADERING_UIT_S_en_POP_R2,
@@ -233,15 +245,15 @@ def get_laatste_resultaten_shansep(
     if (
         laatste_resultaten is not None
         and not laatste_resultaten.empty
-        and "PV_A1_SNIJPUNT_YAS_GEM [-]" in laatste_resultaten
+        and "PV_A1_SNIJPUNT_YAS_GEM" in laatste_resultaten
     ):
         handmatig = {
-            "PV_A1_SNIJPUNT_YAS_GEM": [laatste_resultaten["PV_A1_SNIJPUNT_YAS_GEM [-]"]],
-            "PV_A2_S_GEM": [laatste_resultaten["PV_A2_S_GEM [-]"]],
-            "PV_m_GEM": [laatste_resultaten["PV_m_GEM [-]"]],
-            "PV_A1_SNIJPUNT_YAS_KAR": [laatste_resultaten["PV_A1_SNIJPUNT_YAS_KAR [-]"]],
-            "PV_A2_S_KAR": [laatste_resultaten["PV_A2_S_KAR [-]"]],
-            "PV_m_KAR": [laatste_resultaten["PV_m_KAR [-]"]],
+            "PV_A1_SNIJPUNT_YAS_GEM": [laatste_resultaten["PV_A1_SNIJPUNT_YAS_GEM"]],
+            "PV_A2_S_GEM": [laatste_resultaten["PV_A2_S_GEM"]],
+            "PV_m_GEM": [laatste_resultaten["PV_m_GEM"]],
+            "PV_A1_SNIJPUNT_YAS_KAR": [laatste_resultaten["PV_A1_SNIJPUNT_YAS_KAR"]],
+            "PV_A2_S_KAR": [laatste_resultaten["PV_A2_S_KAR"]],
+            "PV_m_KAR": [laatste_resultaten["PV_m_KAR"]],
         }
     else:
         handmatig = {
@@ -269,23 +281,46 @@ def _create_grid_row(descriptions, values_yas, values_S, values_m, values_pop):
     return rows
 
 
+def _to_display(val) -> str:
+    """Zet None om naar lege string, anders naar string representatie van float."""
+    if val is None:
+        return ""
+    return str(val)
+
+
+def _parse(val: str) -> Optional[float]:
+    """Parset een string naar float; geeft None terug bij lege string of ongeldige invoer."""
+    if val.strip() == "":
+        return None
+    try:
+        return float(val)
+    except ValueError:
+        return None
+
+
+def _update_result(ft_1, ft_2, ft_3, result_label, calc_func, change=None):
+    """Berekent en toont het resultaat op basis van de drie invoervelden."""
+    try:
+        v1 = _parse(ft_1.value)
+        v2 = _parse(ft_2.value)
+        v3 = _parse(ft_3.value)
+        result_label.value = calc_func(v1, v2, v3)
+    except Exception:
+        result_label.value = "Fout"
+
+
 def _create_handmatig_row(init_vals, calc_func):
-    ft_1 = widgets.FloatText(value=init_vals[0], layout=widgets.Layout(width="180px"))
-    ft_2 = widgets.FloatText(value=init_vals[1], layout=widgets.Layout(width="180px"))
-    ft_3 = widgets.FloatText(value=init_vals[2], layout=widgets.Layout(width="180px"))
+    ft_1 = widgets.Text(value=_to_display(init_vals[0]), layout=widgets.Layout(width="180px"))
+    ft_2 = widgets.Text(value=_to_display(init_vals[1]), layout=widgets.Layout(width="180px"))
+    ft_3 = widgets.Text(value=_to_display(init_vals[2]), layout=widgets.Layout(width="180px"))
     result_label = widgets.Label(value="", layout=widgets.Layout(width="180px"))
 
-    def _update_result(change=None):
-        try:
-            v1, v2, v3 = ft_1.value, ft_2.value, ft_3.value
-            result_label.value = calc_func(v1, v2, v3)
-        except Exception:
-            result_label.value = "Fout"
+    update = partial(_update_result, ft_1, ft_2, ft_3, result_label, calc_func)
+    update()
+    ft_1.observe(update, names="value")
+    ft_2.observe(update, names="value")
+    ft_3.observe(update, names="value")
 
-    _update_result()
-    ft_1.observe(_update_result, names="value")
-    ft_2.observe(_update_result, names="value")
-    ft_3.observe(_update_result, names="value")
     return [widgets.Label("Handmatige invoer", layout=widgets.Layout(width="350px")), ft_1, ft_2, ft_3, result_label], (
         ft_1,
         ft_2,
@@ -299,6 +334,11 @@ def _pop_calc(v1, v2, v3):
         return "Niet gedefinieerd"
     else:
         return f"{v1 / v2 / v3:.3f}"
+
+
+def _to_display_list(series) -> list:
+    """Zet een series om naar een weergavelijst; NaN wordt vervangen door '-'."""
+    return [("-" if (isinstance(val, float) and np.isnan(val)) else val) for val in series.round(2)]
 
 
 def show_grids(analyse, handmatig_gem, handmatig_kar):
@@ -321,12 +361,9 @@ def show_grids(analyse, handmatig_gem, handmatig_kar):
     benadering_gem = matrix_gem.drop(matrix_gem.index[-1])
     col_order = ["snijpunt y-as [kPa]", "Schuifsterkteratio S [-]", "sterkte toename exponent = m [-]", "POP [kPa]"]
 
-    def to_display_list(series):
-        return [("-" if (isinstance(val, float) and np.isnan(val)) else val) for val in series.round(2)]
-
-    benadering_gem = [to_display_list(benadering_gem[col]) for col in col_order]
+    benadering_gem = [_to_display_list(benadering_gem[col]) for col in col_order]
     benadering_kar = matrix_kar.drop(matrix_kar.index[-1])
-    benadering_kar = [to_display_list(benadering_kar[col]) for col in col_order]
+    benadering_kar = [_to_display_list(benadering_kar[col]) for col in col_order]
 
     # GRID GEMIDDELDE
     grid_gem = widgets.GridspecLayout(6, 5, width="1050px")
@@ -403,12 +440,12 @@ def show_shansep_analysis(
     )
     analyse.apply_settings(alpha=alpha_widget.value)
     analyse.set_parameters_handmatig(
-        snijpunt_gem=widgets_gem[0].value,
-        s_gem=widgets_gem[1].value,
-        m_gem=widgets_gem[2].value,
-        snijpunt_kar=widgets_kar[0].value,
-        s_kar=widgets_kar[1].value,
-        m_kar=widgets_kar[2].value,
+        snijpunt_gem=_parse(widgets_gem[0].value),
+        s_gem=_parse(widgets_gem[1].value),
+        m_gem=_parse(widgets_gem[2].value),
+        snijpunt_kar=_parse(widgets_kar[0].value),
+        s_kar=_parse(widgets_kar[1].value),
+        m_kar=_parse(widgets_kar[2].value),
     )
 
     # Toon resultaten
@@ -449,5 +486,5 @@ def export_shansep_results(
     analyse.add_results_to_template(path=export_dir, export_name=export_name)
     # exporteer figuren als plotly
     analyse.save_figs_html(path=export_dir)
-    # export to pdf
+    # export to PDF
     analyse.save_to_pdf(path=export_dir)

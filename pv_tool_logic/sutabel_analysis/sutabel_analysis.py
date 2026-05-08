@@ -343,9 +343,7 @@ class SUTABEL:
         su_kar_values = [self.svgm_kar_sutabel * (sv ** (1 - self.m_kar_sutabel)) for sv in sv_values]
 
         # Maak sutabel_grafiek dataframe
-        self.sutabel_grafiek = DataFrame(
-            {"s'v [kPa]": sv_values, "su_gem [kPa]": su_gem_values, "su_kar [kPa]": su_kar_values}
-        )
+        self.sutabel_grafiek = DataFrame({"s'v": sv_values, "su_gem": su_gem_values, "su_kar": su_kar_values})
 
         # Als vc_fit_kar is opgegeven, bereken ook de constante vc fit
         if self.vc_fit_kar_sutabel is not None and self.STDEV_logn_vc_sutabel is not None:
@@ -358,10 +356,10 @@ class SUTABEL:
 
             self.su_fit_constante_vc = DataFrame(
                 {
-                    "s'v [kPa]": sv_values,
-                    "ln(su_gem) [kPa]": ln_su_gem,
-                    "ln(su_kar) [kPa]": ln_su_kar,
-                    "su_kar fit met constante vc [kPa]": su_kar_fit_vc,
+                    "s'v": sv_values,
+                    "ln(su_gem)": ln_su_gem,
+                    "ln(su_kar)": ln_su_kar,
+                    "su_kar fit met constante vc": su_kar_fit_vc,
                 }
             )
         else:
@@ -455,6 +453,9 @@ class SUTABEL:
         # Bereken afgeleide parameters met de te gebruiken waarden
         self.svgm_kar_sutabel = math.exp(a1_kar_te_gebruiken)
         self.m_kar_sutabel = 1 - a2_kar_te_gebruiken
+
+        self.a1_kar_sutabel = a1_kar_te_gebruiken
+        self.a2_kar_sutabel = a2_kar_te_gebruiken
 
         # Update vc parameters
         if vc_te_gebruiken is not None:

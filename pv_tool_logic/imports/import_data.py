@@ -92,10 +92,16 @@ class Dbase:
         start_row = 7  # Excel: rij 8
         start_col = 1  # Excel: kolom A
 
-        with importlib.resources.path("pv_tool_logic.templates", "Template_PVtool5_0.xlsx") as template_path:
-            wb = load_workbook(template_path)
+        export_to = os.path.join(export_dir, export_name)
 
-        # wb = load_workbook(template_path)
+        # Laad bestaand bestand om resultaten-tabbladen te behouden,
+        # gebruik het lege template als het bestand nog niet bestaat
+        if os.path.exists(export_to):
+            wb = load_workbook(export_to)
+        else:
+            with importlib.resources.path("pv_tool_logic.templates", "Template_PVtool5_0.xlsx") as template_path:
+                wb = load_workbook(template_path)
+
         if sheet_name not in wb.sheetnames:
             raise ValueError(f"Sheet '{sheet_name}' bestaat niet in template!")
 
@@ -105,12 +111,11 @@ class Dbase:
         index_col_name = export_df.index.name if export_df.index.name else "Index"
         export_df.insert(0, index_col_name, export_df.index)
 
-        export_df = export_df.replace({pd.NA: ""})  # want kan geen NA omschrijven naar excel
+        export_df = export_df.replace({pd.NA: ""})
 
         for i, row in enumerate(export_df.values):
             for j, value in enumerate(row):
                 ws.cell(row=start_row + 1 + i, column=start_col + j, value=value)
 
-        export_to = os.path.join(export_dir, export_name)
         wb.save(export_to)
         print(f"DataFrame naar template geëxporteerd in {export_to}")

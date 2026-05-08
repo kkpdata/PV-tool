@@ -1,7 +1,10 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "pv_tool_logic"
-version = "0.1.6"
+version = "1.0.0"
 description = "Proevenverzamelingtool voor het opstellen van lokale of regionale proevenverzamelingen voor het bepalen van geotechnische parameters."
 authors = [
     "Tjalda Deenekamp <tjalda.deenekamp@arcadis.nl>",
@@ -16,13 +19,15 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.11"
 pandas = "<3.0.0"
-numpy = "^2.4.4"
+#numpy = "^2.4.4" # mogelijk aanpassen als PV-app wordt gebruikt i.p.v. de notebook.
+numpy = ">=1.24.0,<2.0.0"
 scipy = "^1.17.1"
 matplotlib = "^3.10.8"
 plotly = "^6.6.0"

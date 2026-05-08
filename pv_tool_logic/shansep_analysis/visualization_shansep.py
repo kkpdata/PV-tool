@@ -303,21 +303,26 @@ def add_linear_fit_sv_su_nc(self: SHANSEP):
 
 def add_linear_fit_ln_ocr_ln_s(self: SHANSEP):
     """Deze functie voegt de lineaire fit van de proefresultaten toe aan de figuur."""
-    x1 = self.shansep_data_df_nc_oc["LN(OCR)"].min()
-    x2 = self.shansep_data_df_nc_oc["LN(OCR)"].max()
+    df = self.shansep_data_df_nc_oc[["LN(OCR)", "LN(su/svc)"]].dropna()
 
-    x_data = self.shansep_data_df_nc_oc["LN(OCR)"].values
-    y_data = self.shansep_data_df_nc_oc["LN(su/svc)"].values
+    if len(df) < 2:
+        print("Waarschuwing: onvoldoende geldige datapunten voor lineaire fit ln(OCR)-ln(su/svc).")
+        return
+
+    x_data = df["LN(OCR)"].values
+    y_data = df["LN(su/svc)"].values
+
+    x1, x2 = x_data.min(), x_data.max()
+
     helling, intercept = np.polyfit(x_data, y_data, 1)
 
     y1 = x1 * helling + intercept
     y2 = x2 * helling + intercept
 
-    x = [x1, x2]
-    y = [y1, y2]
-
     self.figure_ln_ocr_ln_s.add_trace(
-        go.Scatter(x=x, y=y, mode="lines", name="Lineaire fit proefresultaten", line=dict(color="green", width=2))
+        go.Scatter(
+            x=[x1, x2], y=[y1, y2], mode="lines", name="Lineaire fit proefresultaten", line=dict(color="green", width=2)
+        )
     )
 
 

@@ -9,6 +9,12 @@ import numpy as np
 from scipy.stats import t, norm
 
 
+def _safe_dev(numerator, denominator):
+    if denominator is None or np.isnan(denominator) or denominator == 0:
+        return np.nan
+    return numerator / denominator
+
+
 def count_sv_oc(self: SHANSEP):
     return self.shansep_data_df_oc["S'v"].count()
 
@@ -174,11 +180,14 @@ def sum_sv_ty_nc_oc(self: SHANSEP):
 
 
 def e_a2_nc_oc(self: SHANSEP):
-    return sum_sv_ty_nc_oc(self) / sum_sv_tt_nc_oc(self)
+    return _safe_dev(sum_sv_ty_nc_oc(self), sum_sv_tt_nc_oc(self))
 
 
 def e_a1_nc_oc(self: SHANSEP):
-    return (sum_ln_su_svc_nc_oc(self) - sum_ln_ocr_nc_oc(self) * e_a2_nc_oc(self)) / count_ln_ocr_nc_oc(self)
+    count = count_ln_ocr_nc_oc(self)
+    if count <= 0:
+        return np.nan
+    return _safe_dev(sum_ln_su_svc_nc_oc(self) - sum_ln_ocr_nc_oc(self) * e_a2_nc_oc(self), count)
 
 
 def sum_chi_2_nc_oc(self: SHANSEP):
@@ -186,29 +195,38 @@ def sum_chi_2_nc_oc(self: SHANSEP):
 
 
 def var_a2_nc_oc(self: SHANSEP):
-    return (1 / sum_sv_tt_nc_oc(self)) * sum_chi_2_nc_oc(self) / (count_ln_ocr_nc_oc(self) - 2)
+    count = count_ln_ocr_nc_oc(self)
+    s_tt = sum_sv_tt_nc_oc(self)
+    if count <= 2 or s_tt == 0 or np.isnan(s_tt):
+        return np.nan
+    return _safe_dev(sum_chi_2_nc_oc(self), s_tt * (count - 2))
 
 
 def var_a1_nc_oc(self: SHANSEP):
-    return (
-        1
-        / count_ln_ocr_nc_oc(self)
-        * (1 + sum_ln_ocr_nc_oc(self) ** 2 / (count_ln_ocr_nc_oc(self) * sum_sv_tt_nc_oc(self)))
-        * sum_chi_2_nc_oc(self)
-        / (count_ln_ocr_nc_oc(self) - 2)
-    )
+    count = count_ln_ocr_nc_oc(self)
+    s_tt = sum_sv_tt_nc_oc(self)
+    if count <= 2 or s_tt == 0 or np.isnan(s_tt):
+        return np.nan
+
+    term = 1 + (sum_ln_ocr_nc_oc(self) ** 2) / (count * s_tt)
+    return (1 / count) * term * sum_chi_2_nc_oc(self) / (count - 2)
 
 
 def cov_a1_a2_nc_oc(self: SHANSEP):
-    return (
-        -(sum_ln_ocr_nc_oc(self) / (count_ln_ocr_nc_oc(self) * sum_sv_tt_nc_oc(self)))
-        * sum_chi_2_nc_oc(self)
-        / (count_ln_ocr_nc_oc(self) - 2)
-    )
+    count = count_ln_ocr_nc_oc(self)
+    s_tt = sum_sv_tt_nc_oc(self)
+    if count <= 2 or s_tt == 0 or np.isnan(s_tt):
+        return np.nan
+
+    return -(sum_ln_ocr_nc_oc(self) / (count * s_tt)) * sum_chi_2_nc_oc(self) / (count - 2)
 
 
 def rho_a1_a2_nc_oc(self: SHANSEP):
-    return cov_a1_a2_nc_oc(self) / (var_a2_nc_oc(self) * var_a1_nc_oc(self)) ** 0.5
+    v2 = var_a2_nc_oc(self)
+    v1 = var_a1_nc_oc(self)
+    if np.isnan(v1) or np.isnan(v2) or v1 <= 0 or v2 <= 0:
+        return np.nan
+    return cov_a1_a2_nc_oc(self) / np.sqrt(v2 * v1)
 
 
 def sigma_a2_nc_oc(self: SHANSEP):
@@ -222,6 +240,8 @@ def sigma_a1_nc_oc(self: SHANSEP):
 def t_n_2_nc_oc(self: SHANSEP):
     significantieniveau = 0.1
     degrees_of_freedom = count_ln_ocr_nc_oc(self) - 2
+    if degrees_of_freedom <= 0:
+        return np.nan
     return t.ppf(1 - significantieniveau / 2, degrees_of_freedom)
 
 
@@ -246,11 +266,14 @@ def sum_sty_ondergrens_nc_oc(self: SHANSEP):
 
 
 def a2_kar_nc_oc(self: SHANSEP):
-    return sum_sty_ondergrens_nc_oc(self) / sum_stt_ondergrens_nc_oc(self)
+    return _safe_dev(sum_sty_ondergrens_nc_oc(self), sum_stt_ondergrens_nc_oc(self))
 
 
 def a1_kar_nc_oc(self: SHANSEP):
-    return (sum_5_pr_ondergrens_nc_oc(self) - a2_kar_nc_oc(self) * sum_s_eff_nc_oc(self)) / count_s_eff_nc_oc(self)
+    count = count_ln_ocr_nc_oc(self)
+    if count <= 0:
+        return np.nan
+    return _safe_dev(sum_5_pr_ondergrens_nc_oc(self) - a2_kar_nc_oc(self) * sum_s_eff_nc_oc(self), count)
 
 
 def st_dev_s_handmatig(self: SHANSEP):

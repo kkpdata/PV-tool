@@ -395,7 +395,7 @@ def toon_cphi_tabel(
     # De referenties naar de lijstjes voor live bijwerken
     invoer_refs = [None, PV_A1_COH_GEM_handmatig_ref, PV_A2_PHI_KAR_handmatig_ref, PV_A1_COH_KAR_handmatig_ref]
 
-    def on_value_change(change, ref):  # TODO: ref geeft een waarschuwing. De code werkt, maar oplossen
+    def on_value_change(change, ref):
         if ref is not None:
             try:
                 ref[0] = float(change["new"])
@@ -477,10 +477,15 @@ def voer_cphi_analyse_uit(
 
         # Ophalen handmatige waardes of defaults
         laatste_resultaten = analyse.get_previous_results(path=export_dir, file_name=export_name)
-        if laatste_resultaten is not None and not laatste_resultaten.empty and "PV_A1_COH_GEM" in laatste_resultaten:
-            PV_A1_COH_GEM_handmatig = [laatste_resultaten["PV_A1_COH_GEM"]]
-            PV_A2_PHI_KAR_handmatig = [laatste_resultaten["PV_A2_TAN_PHI_KAR"]]
-            PV_A1_COH_KAR_handmatig = [laatste_resultaten["PV_A1_COH_KAR"]]
+        if laatste_resultaten is not None:
+            try:
+                PV_A1_COH_GEM_handmatig = [laatste_resultaten["PV_A1_COH_GEM"]]
+                PV_A2_PHI_KAR_handmatig = [laatste_resultaten["PV_A2_TAN_PHI_KAR"]]
+                PV_A1_COH_KAR_handmatig = [laatste_resultaten["PV_A1_COH_KAR"]]
+            except (KeyError, TypeError) as e:
+                PV_A1_COH_GEM_handmatig = [PV_A1_COH_GEM_benadering]
+                PV_A2_PHI_KAR_handmatig = [PV_A2_PHI_KAR_benadering]
+                PV_A1_COH_KAR_handmatig = [PV_A1_COH_KAR_benadering]
         else:
             PV_A1_COH_GEM_handmatig = [PV_A1_COH_GEM_benadering]
             PV_A2_PHI_KAR_handmatig = [PV_A2_PHI_KAR_benadering]

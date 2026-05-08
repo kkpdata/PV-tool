@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 import pandas as pd
+import numpy as np
 
 if TYPE_CHECKING:
     from pv_tool_logic.imports.import_data import Dbase
@@ -121,35 +122,21 @@ def add_dss_consol_type(self: Dbase):
 def add_txt_consol_type_reken(self: Dbase):
     """Vult de kolom rekenwaarde van consolidatie type: als er een handmatige waarde is ingevuld,
     wordt deze overgenomen, anders wordt de voorgestelde waarde overgenomen."""
-
-    def calculate_row(row):
-        if (
-            row["ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG"]
-            and row["ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG"] is not None
-            and not pd.isna(row["ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG"])
-        ):
-            return row["ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG"]
-        else:
-            return row["ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL"]
-
-    self.dbase_df["ANA_TXT_CONSOLIDATIE_TYPE_REKEN"] = self.dbase_df.apply(calculate_row, axis=1)
+    handmatig = self.dbase_df["ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG"].mask(
+        self.dbase_df["ANA_TXT_CONSOLIDATIE_TYPE_HANDMATIG"].isin(["None", "nan"])
+    )
+    voorstel = self.dbase_df["ANA_TXT_CONSOLIDATIE_TYPE_VOORSTEL"]
+    self.dbase_df["ANA_TXT_CONSOLIDATIE_TYPE_REKEN"] = handmatig.combine_first(voorstel)
 
 
 def add_dss_consol_type_reken(self: Dbase):
     """Vult de kolom rekenwaarde van consolidatie type: als er een handmatige waarde is ingevuld,
     wordt deze overgenomen, anders wordt de voorgestelde waarde overgenomen."""
-
-    def calculate_row(row):
-        if (
-            row["ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG"]
-            and row["ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG"] is not None
-            and not pd.isna(row["ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG"])
-        ):
-            return row["ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG"]
-        else:
-            return row["ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL"]
-
-    self.dbase_df["ANA_DSS_CONSOLIDATIE_TYPE_REKEN"] = self.dbase_df.apply(calculate_row, axis=1)
+    handmatig = self.dbase_df["ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG"].mask(
+        self.dbase_df["ANA_DSS_CONSOLIDATIE_TYPE_HANDMATIG"].isin(["None", "nan"])
+    )
+    voorstel = self.dbase_df["ANA_DSS_CONSOLIDATIE_TYPE_VOORSTEL"]
+    self.dbase_df["ANA_DSS_CONSOLIDATIE_TYPE_REKEN"] = handmatig.combine_first(voorstel)
 
 
 def add_grensspanning_proef(self: Dbase):
@@ -187,75 +174,65 @@ def add_grensspanning_voorstel(self: Dbase):
 def calc_grensspanning_reken(self: Dbase):
     """
     Berekent de rekenwaarde van de grensspanning per rij.
+
+    De prioriteitsvolgorde is:
+    1. ANA_GRENSSPANNING_HANDMATIG  (handmatig ingevuld)
+    2. ANA_GRENSSPANNING_VOORSTEL   (berekend voorstel)
+    3. ANA_GRENSSPANNING_PROEF      (gemeten proefwaarde)
     """
+    df = self.dbase_df
 
-    def calculate_row(row):
-        if (
-            "ANA_GRENSSPANNING_HANDMATIG" in row
-            and row["ANA_GRENSSPANNING_HANDMATIG"] is not None
-            and not pd.isna(row["ANA_GRENSSPANNING_HANDMATIG"])
-        ):
-            return row["ANA_GRENSSPANNING_HANDMATIG"]
-        elif (
-            "ANA_GRENSSPANNING_VOORSTEL" in row
-            and row["ANA_GRENSSPANNING_VOORSTEL"] is not None
-            and not pd.isna(row["ANA_GRENSSPANNING_VOORSTEL"])
-        ):
-            return row["ANA_GRENSSPANNING_VOORSTEL"]
-        elif "ANA_GRENSSPANNING_PROEF" in row:
-            return row["ANA_GRENSSPANNING_PROEF"]
-        return None
+    handmatig = (
+        pd.to_numeric(df.get("ANA_GRENSSPANNING_HANDMATIG"), errors="coerce")
+        if "ANA_GRENSSPANNING_HANDMATIG" in df.columns
+        else pd.Series(pd.NA, index=df.index)
+    )
 
-    if (
-        "ANA_GRENSSPANNING_HANDMATIG" in self.dbase_df.columns
-        or "ANA_GRENSSPANNING_VOORSTEL" in self.dbase_df.columns
-        or "ANA_GRENSSPANNING_PROEF" in self.dbase_df.columns
-    ):
-        self.dbase_df["ANA_GRENSSPANNING_REKEN"] = self.dbase_df.apply(calculate_row, axis=1)
-    else:
-        self.dbase_df["ANA_GRENSSPANNING_REKEN"] = None
+    voorstel = (
+        pd.to_numeric(df.get("ANA_GRENSSPANNING_VOORSTEL"), errors="coerce")
+        if "ANA_GRENSSPANNING_VOORSTEL" in df.columns
+        else pd.Series(pd.NA, index=df.index)
+    )
+
+    proef = (
+        pd.to_numeric(df.get("ANA_GRENSSPANNING_PROEF"), errors="coerce")
+        if "ANA_GRENSSPANNING_PROEF" in df.columns
+        else pd.Series(pd.NA, index=df.index)
+    )
+
+    # Fallback: handmatig → voorstel → proef
+    self.dbase_df["ANA_GRENSSPANNING_REKEN"] = handmatig.combine_first(voorstel).combine_first(proef)
 
 
 def calc_ocr_txt(self: Dbase):
     """Deze functie berekent de OCR van de triaxiaalproeven per rij."""
-
-    def calculate_row(row):
-        if row["ALG__TRIAXIAAL"]:
-            grensspanning_reken = row["ANA_GRENSSPANNING_REKEN"]
-            terreinspanning = row["ANA_TERREINSPANNING"]
-
-            if grensspanning_reken is not None and terreinspanning is not None:
-                if row["ANA_TXT_CONSOLIDATIE_TYPE_REKEN"] == "OC":
-                    return grensspanning_reken / terreinspanning
-                else:
-                    return 1.0
-            return None
-        return None
-
-    if "ALG__TRIAXIAAL" in self.dbase_df.columns:
-        self.dbase_df["OCR_TXT"] = self.dbase_df.apply(calculate_row, axis=1)
-    else:
+    if "ALG__TRIAXIAAL" not in self.dbase_df.columns:
         self.dbase_df["OCR_TXT"] = None
+        return
+
+    df = self.dbase_df
+    mask = df["ALG__TRIAXIAAL"] & df["ANA_GRENSSPANNING_REKEN"].notna() & df["ANA_TERREINSPANNING"].notna()
+    is_oc = df["ANA_TXT_CONSOLIDATIE_TYPE_REKEN"] == "OC"
+
+    self.dbase_df["OCR_TXT"] = pd.Series(
+        np.where(mask & is_oc, df["ANA_GRENSSPANNING_REKEN"] / df["ANA_TERREINSPANNING"], np.where(mask, 1.0, np.nan)),
+        index=df.index,
+        dtype="float64",
+    )
 
 
 def calc_ocr_dss(self: Dbase):
     """Deze functie berekent de OCR van de DSS-proeven."""
-
-    def calculate_row(row):
-        if row["ALG__DSS"]:
-            grensspanning_reken = row["ANA_GRENSSPANNING_REKEN"]
-            terreinspanning = row["ANA_TERREINSPANNING"]
-
-            if grensspanning_reken is not None and terreinspanning is not None:
-                if row["ANA_DSS_CONSOLIDATIE_TYPE_REKEN"] == "OC":
-                    return grensspanning_reken / terreinspanning
-                else:
-                    return 1.0
-            else:
-                return None
-        return None
-
-    if "ALG__DSS" in self.dbase_df.columns:
-        self.dbase_df["OCR_DSS"] = self.dbase_df.apply(calculate_row, axis=1)
-    else:
+    if "ALG__DSS" not in self.dbase_df.columns:
         self.dbase_df["OCR_DSS"] = None
+        return
+
+    df = self.dbase_df
+    mask = df["ALG__DSS"] & df["ANA_GRENSSPANNING_REKEN"].notna() & df["ANA_TERREINSPANNING"].notna()
+    is_oc = df["ANA_DSS_CONSOLIDATIE_TYPE_REKEN"] == "OC"
+
+    self.dbase_df["OCR_DSS"] = pd.Series(
+        np.where(mask & is_oc, df["ANA_GRENSSPANNING_REKEN"] / df["ANA_TERREINSPANNING"], np.where(mask, 1.0, np.nan)),
+        index=df.index,
+        dtype="float64",
+    )

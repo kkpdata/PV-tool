@@ -168,6 +168,10 @@ class CPhiAnalyse:
         self.figure = go.Figure()
         self.show_title: Optional[bool] = True
 
+        # Analyse status
+        self._is_run: bool = False
+        self._is_run_sh: bool = False
+
     # ========= Instelling en Data Ophalen Methodes ==========
 
     def get_cphi_data(self):
@@ -559,21 +563,27 @@ class CPhiAnalyse:
         Voert de volledige c-phi analyse uit in de juiste volgorde:
         data ophalen, parameters berekenen en resultaten bepalen.
         """
+        if self._is_run:
+            return
         self.get_cphi_data()
         self.expand_analysis_df()
         self.eerste_benadering()
         self.expand_analysis_df_corrected()
         self.eerste_benadering_deel2()
         self.result_values()
+        self._is_run = True
 
     def _run_sh(self):
         """
         Voert de volledige c-phi schematiseringshandleiding analyse uit in de juiste volgorde:
         data ophalen, parameters berekenen en resultaten bepalen.
         """
+        if self._is_run_sh:
+            return
         self.get_cphi_data()
         self.expand_analysis_df_sh()
         self.result_values_sh()
+        self._is_run_sh = True
 
     # ========== Visualisatie Methodes ==========
 

@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+import pandas as pd
+
 if TYPE_CHECKING:
     from pv_tool_logic.shansep_analysis.shansep_analysis import SHANSEP
 from pv_tool_logic.shansep_analysis.variables import (
@@ -35,19 +37,26 @@ import numpy as np
 
 
 def calculate_ln_ocr(self: SHANSEP):
-    self.shansep_data_df.loc[:, "LN(OCR)"] = self.shansep_data_df["OCR"].apply(
-        lambda x: np.log(x) if x is not None and x > 0 else ""
-    )
+    ocr = np.where(self.shansep_data_df["OCR"] > 0, self.shansep_data_df["OCR"], np.nan)
+    self.shansep_data_df.loc[:, "LN(OCR)"] = np.log(ocr)
+    # self.shansep_data_df.loc[:, "LN(OCR)"] = self.shansep_data_df["OCR"].apply(
+    #     lambda x: np.log(x) if x is not None and x > 0 else ""
+    # )
 
 
 def calculate_sv_spop(self: SHANSEP):
-    self.shansep_data_df.loc[:, "S"] = self.shansep_data_df["Su"] / self.shansep_data_df["S'v"]
+    su = self.shansep_data_df["Su"]
+    sv = self.shansep_data_df["S'v"]
+    self.shansep_data_df.loc[:, "S"] = su / sv
+    # self.shansep_data_df.loc[:, "S"] = self.shansep_data_df["Su"] / self.shansep_data_df["S'v"]
 
 
 def calculate_ln_sv_spop(self: SHANSEP):
-    self.shansep_data_df.loc[:, "LN(su/svc)"] = self.shansep_data_df["S"].apply(
-        lambda x: np.log(x) if x is not None and x > 0 else ""
-    )
+    s = np.where(self.shansep_data_df["S"] > 0, self.shansep_data_df["S"], np.nan)
+    self.shansep_data_df.loc[:, "LN(su/svc)"] = np.log(s)
+    # self.shansep_data_df.loc[:, "LN(su/svc)"] = self.shansep_data_df["S"].apply(
+    #     lambda x: np.log(x) if x is not None and x > 0 else ""
+    # )
 
 
 def calculate_pop(self: SHANSEP):
@@ -152,13 +161,25 @@ def calculate_chi_2_ondergrens_oc(self: SHANSEP):
 
 def calculate_sv_tt_nc_oc(self: SHANSEP):
     df = self.shansep_data_df_nc_oc.copy()
-    df["s_tt"] = (df["LN(OCR)"] - sum_ln_ocr_nc_oc(self) / count_ln_ocr_nc_oc(self)) ** 2
+    count = count_ln_ocr_nc_oc(self)
+    if count <= 0:
+        df["s_tt"] = np.nan
+        self.shansep_data_df_nc_oc = df
+        return
+    mean = sum_ln_ocr_nc_oc(self) / count
+    df["s_tt"] = (df["LN(OCR)"] - mean) ** 2
     self.shansep_data_df_nc_oc = df
 
 
 def calculate_sv_ty_nc_oc(self: SHANSEP):
     df = self.shansep_data_df_nc_oc.copy()
-    mean_s = sum_ln_ocr_nc_oc(self) / count_ln_ocr_nc_oc(self)
+    count = count_ln_ocr_nc_oc(self)
+    if count <= 0:
+        df["s_ty"] = np.nan
+        self.shansep_data_df_nc_oc = df
+        return
+
+    mean_s = sum_ln_ocr_nc_oc(self) / count
     df["s_ty"] = (df["LN(OCR)"] - mean_s) * df["LN(su/svc)"]
     self.shansep_data_df_nc_oc = df
 
@@ -182,13 +203,27 @@ def s_max_nc_oc(self: SHANSEP):
 
 def calculate_sv_eff_nc_oc(self: SHANSEP):
     """Berekent s' waarden met gelijke intervallen tussen min en max."""
-    lijst = [s_min_nc_oc(self)]
-    formule = (s_max_nc_oc(self) - s_min_nc_oc(self)) / (count_ln_ocr_nc_oc(self) - 1)
-    aantal_waarden = len(self.shansep_data_df_nc_oc)
-    for i in range(1, aantal_waarden):
-        nieuwe_waarde = lijst[i - 1] + formule
-        lijst.append(nieuwe_waarde)
+    count = count_ln_ocr_nc_oc(self)
+    if count <= 1:
+        self.shansep_data_df_nc_oc["s'"] = np.nan
+        return
+
+    min_val = s_min_nc_oc(self)
+    max_val = s_max_nc_oc(self)
+    if pd.isna(min_val) or pd.isna(max_val):
+        self.shansep_data_df_nc_oc["s'"] = np.nan
+        return
+
+    stap = (max_val - min_val) / (count - 1)
+    lijst = [min_val + i * stap for i in range(len(self.shansep_data_df_nc_oc))]
     self.shansep_data_df_nc_oc["s'"] = lijst
+    # lijst = [s_min_nc_oc(self)]
+    # formule = (s_max_nc_oc(self) - s_min_nc_oc(self)) / (count_ln_ocr_nc_oc(self) - 1)
+    # aantal_waarden = len(self.shansep_data_df_nc_oc)
+    # for i in range(1, aantal_waarden):
+    #     nieuwe_waarde = lijst[i - 1] + formule
+    #     lijst.append(nieuwe_waarde)
+    # self.shansep_data_df_nc_oc["s'"] = lijst
 
 
 def calculate_5pr_ondergrens_nc_oc(self: SHANSEP):
@@ -225,15 +260,25 @@ def calculate_5pr_bovengrens_nc_oc(self: SHANSEP):
 
 
 def calculate_sv_tt_ondergrens_nc_oc(self: SHANSEP):
-    formule = (self.shansep_data_df_nc_oc["s'"] - sum_s_eff_nc_oc(self) / count_s_eff_nc_oc(self)) ** 2
-    self.shansep_data_df_nc_oc["s_tt_ondergrens"] = formule
+    count = count_s_eff_nc_oc(self)
+    if count <= 0:
+        self.shansep_data_df_nc_oc["s_tt_ondergrens"] = np.nan
+        return
+
+    mean_s = sum_s_eff_nc_oc(self) / count
+    self.shansep_data_df_nc_oc["s_tt_ondergrens"] = (self.shansep_data_df_nc_oc["s'"] - mean_s) ** 2
 
 
 def calculate_sv_ty_ondergrens_nc_oc(self: SHANSEP):
-    formule = (
-        self.shansep_data_df_nc_oc["s'"] - sum_s_eff_nc_oc(self) / count_s_eff_nc_oc(self)
+    count = count_s_eff_nc_oc(self)
+    if count <= 0:
+        self.shansep_data_df_nc_oc["s_ty_ondergrens"] = np.nan
+        return
+
+    mean_s = sum_s_eff_nc_oc(self) / count
+    self.shansep_data_df_nc_oc["s_ty_ondergrens"] = (
+        self.shansep_data_df_nc_oc["s'"] - mean_s
     ) * self.shansep_data_df_nc_oc["5_pr_ondergrens"]
-    self.shansep_data_df_nc_oc["s_ty_ondergrens"] = formule
 
 
 def calculate_chi_2_ondergrens_nc_oc(self: SHANSEP):

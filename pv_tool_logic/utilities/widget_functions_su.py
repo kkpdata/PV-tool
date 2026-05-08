@@ -233,6 +233,8 @@ def get_laatste_resultaten_sutabel(
         export_dir = str(import_path.parent)
         export_name = import_path.name
     else:
+        if export_dir_widget is None or export_name_widget is None:
+            return a2_kar_benadering, a1_kar_benadering, vc_benadering
         export_dir = (
             export_dir_widget.selected_path if hasattr(export_dir_widget, "selected_path") else export_dir_widget
         )
@@ -242,15 +244,17 @@ def get_laatste_resultaten_sutabel(
 
     try:
         laatste_resultaten = analyse.get_previous_results(path=export_dir, file_name=export_name)
-    except FileNotFoundError:
+    except FileNotFoundError as e:
+        laatste_resultaten = None
+    except Exception as e:
         laatste_resultaten = None
 
-    if laatste_resultaten is not None and not laatste_resultaten.empty and "PV_a2_KAR [-]" in laatste_resultaten:
-        a2_kar = round(laatste_resultaten["PV_a2_KAR [-]"], 2)
-        a1_kar = round(laatste_resultaten["PV_a1_KAR [-]"], 2)
+    if laatste_resultaten is not None and not laatste_resultaten.empty and "PV_a2_KAR" in laatste_resultaten:
+        a2_kar = round(laatste_resultaten["PV_a2_KAR"], 2)
+        a1_kar = round(laatste_resultaten["PV_a1_KAR"], 2)
         vc_kar = (
-            round(laatste_resultaten["PV_vc_FIT_KAR [-]"], 2)
-            if laatste_resultaten["PV_vc_FIT_KAR [-]"] is not None
+            round(laatste_resultaten["PV_vc_FIT_KAR"], 2)
+            if laatste_resultaten["PV_vc_FIT_KAR"] is not None
             else vc_benadering
         )
     else:

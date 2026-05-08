@@ -60,6 +60,22 @@ def import_pv_tool(self: Dbase, pv_dir: Path):
     return self.pv_tool
 
 
+def _converteer_komma_naar_punt(df: pd.DataFrame) -> pd.DataFrame:
+    """Converteert string kolommen met komma als decimaalscheiding naar numeriek.
+
+    Vervangt ',' door '.' in string-waarden en converteert naar float waar mogelijk.
+    Kolommen die niet volledig numeriek zijn blijven als object-type.
+    """
+    for col in df.columns:
+        if df[col].dtype == object:
+            converted = df[col].apply(lambda x: str(x).replace(",", ".") if isinstance(x, str) else x)
+            numeriek = pd.to_numeric(converted, errors="coerce")
+            # Alleen omzetten als er minstens één geldige numerieke waarde is
+            if numeriek.notna().any():
+                df[col] = numeriek
+    return df
+
+
 def import_stowa(self: Dbase, stowa_dir: Path):
     """Importeert de stowa-database"""
     stowa = pd.read_excel(stowa_dir, skiprows=8, sheet_name="Dbase")
@@ -68,5 +84,9 @@ def import_stowa(self: Dbase, stowa_dir: Path):
     )
     stowa["ALG__BORING_MONSTERNR_ID"] = stowa[["REGEL", "BORING_NUMMER", "MONSTER_ID"]].apply("_".join, axis=1)
     stowa = stowa.set_index("ALG__BORING_MONSTERNR_ID")
+
+    # Converteer komma-decimalen naar punt en zet om naar numeriek
+    stowa = _converteer_komma_naar_punt(stowa)
+
     self.stowa_df = stowa
-    return self.pv_tool
+    return self.stowa_df

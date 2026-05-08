@@ -249,8 +249,8 @@ def add_sutabel_kar_line(self: "SUTABEL"):
     if self.sutabel_grafiek is None:
         return
 
-    x = self.sutabel_grafiek["s'v [kPa]"].tolist()
-    y = self.sutabel_grafiek["su_kar [kPa]"].tolist()
+    x = self.sutabel_grafiek["s'v"].tolist()
+    y = self.sutabel_grafiek["su_kar"].tolist()
 
     self.figure_sv_su.add_trace(
         go.Scatter(x=x, y=y, mode="lines", name="Sutabel karakteristiek", line=dict(color="black", width=2))
@@ -266,8 +266,8 @@ def add_sutabel_gem_line(self: "SUTABEL"):
     if self.sutabel_grafiek is None:
         return
 
-    x = self.sutabel_grafiek["s'v [kPa]"].tolist()
-    y = self.sutabel_grafiek["su_gem [kPa]"].tolist()
+    x = self.sutabel_grafiek["s'v"].tolist()
+    y = self.sutabel_grafiek["su_gem"].tolist()
 
     self.figure_sv_su.add_trace(
         go.Scatter(x=x, y=y, mode="lines", name="Sutabel gemiddeld", line=dict(color="purple", width=2, dash="dot"))
@@ -284,8 +284,8 @@ def add_su_kar_fit_constante_vc(self: "SUTABEL"):
     if self.su_fit_constante_vc is None:
         return
 
-    x = self.su_fit_constante_vc["s'v [kPa]"].tolist()
-    y = self.su_fit_constante_vc["su_kar fit met constante vc [kPa]"].tolist()
+    x = self.su_fit_constante_vc["s'v"].tolist()
+    y = self.su_fit_constante_vc["su_kar fit met constante vc"].tolist()
 
     self.figure_sv_su.add_trace(
         go.Scatter(

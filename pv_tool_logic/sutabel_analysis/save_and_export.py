@@ -63,52 +63,50 @@ def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = "T
             self.get_sutabel_parameters()
 
     expected_columns = [
-        "PVNAAM",
+        "PV_NAAM",
         "PV_REK",
         "PV_TYPE_PROEF",
         "PV_ANALYSE",
         "PV_RESULTAAT_ID",
         "PV_TYPEVERZAMELING",
-        "PV_e_a1_GEM [-]",
-        "PV_e_a2_GEM [-]",
-        "PV_svgm_GEM [kPa]",
-        "PV_m_GEM [-]",
-        "PV_a1_KAR [-]",
-        "PV_a2_KAR [-]",
-        "PV_svgm_KAR [kPa]",
-        "PV_m_KAR [-]",
-        "PV_vc_FIT_KAR [-]",
-        "PV_STDEV_LOGN_vc [-]",
-        "PV_STEYX [-]",
-        "PV_VGWNAT_GEM [kN/m3]",
-        "PV_VGWNAT_SD [kN/m3]",
+        "PV_e_a1_GEM",
+        "PV_e_a2_GEM",
+        "PV_svgm_GEM",
+        "PV_m_GEM",
+        "PV_a1_KAR",
+        "PV_a2_KAR",
+        "PV_svgm_KAR",
+        "PV_m_KAR",
+        "PV_vc_FIT_KAR",
+        "PV_STDEV_LOGN_vc",
+        "PV_STEYX",
+        "PV_VGWNAT_GEM",
+        "PV_VGWNAT_SD",
         "PV_WATERGEHALTE_GEM",
         "PV_WATERGEHALTE_SD",
         "Timestamp",
     ]
 
     new_row = {
-        "PVNAAM": self.investigation_groups[0],
+        "PV_NAAM": self.investigation_groups[0],
         "PV_REK": self.effective_stress,
         "PV_TYPE_PROEF": self.analysis_type.split("_")[0],
         "PV_ANALYSE": "_".join(self.analysis_type.split("_")[1:]),
         "PV_RESULTAAT_ID": f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type}",
         "PV_TYPEVERZAMELING": self.alpha,
-        "PV_e_a1_GEM [-]": round(self.e_a1_sutabel, 6) if self.e_a1_sutabel is not None else None,
-        "PV_e_a2_GEM [-]": round(self.e_a2_sutabel, 6) if self.e_a2_sutabel is not None else None,
-        "PV_svgm_GEM [kPa]": round(self.svgm_gem_sutabel, 6) if self.svgm_gem_sutabel is not None else None,
-        "PV_m_GEM [-]": round(self.m_gem_sutabel, 6) if self.m_gem_sutabel is not None else None,
-        "PV_a1_KAR [-]": round(self.a1_kar_sutabel, 6) if self.a1_kar_sutabel is not None else None,
-        "PV_a2_KAR [-]": round(self.a2_kar_sutabel, 6) if self.a2_kar_sutabel is not None else None,
-        "PV_svgm_KAR [kPa]": round(self.svgm_kar_sutabel, 6) if self.svgm_kar_sutabel is not None else None,
-        "PV_m_KAR [-]": round(self.m_kar_sutabel, 6) if self.m_kar_sutabel is not None else None,
-        "PV_vc_FIT_KAR [-]": round(self.vc_fit_kar_sutabel, 6) if self.vc_fit_kar_sutabel is not None else None,
-        "PV_STDEV_LOGN_vc [-]": (
-            round(self.STDEV_logn_vc_sutabel, 6) if self.STDEV_logn_vc_sutabel is not None else None
-        ),
-        "PV_STEYX [-]": round(self.steyx_sutabel, 6) if self.steyx_sutabel is not None else None,
-        "PV_VGWNAT_GEM [kN/m3]": round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
-        "PV_VGWNAT_SD [kN/m3]": round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
+        "PV_e_a1_GEM": round(self.e_a1_sutabel, 6) if self.e_a1_sutabel is not None else None,
+        "PV_e_a2_GEM": round(self.e_a2_sutabel, 6) if self.e_a2_sutabel is not None else None,
+        "PV_svgm_GEM": round(self.svgm_gem_sutabel, 6) if self.svgm_gem_sutabel is not None else None,
+        "PV_m_GEM": round(self.m_gem_sutabel, 6) if self.m_gem_sutabel is not None else None,
+        "PV_a1_KAR": round(self.a1_kar_sutabel, 6) if self.a1_kar_sutabel is not None else None,
+        "PV_a2_KAR": round(self.a2_kar_sutabel, 6) if self.a2_kar_sutabel is not None else None,
+        "PV_svgm_KAR": round(self.svgm_kar_sutabel, 6) if self.svgm_kar_sutabel is not None else None,
+        "PV_m_KAR": round(self.m_kar_sutabel, 6) if self.m_kar_sutabel is not None else None,
+        "PV_vc_FIT_KAR": round(self.vc_fit_kar_sutabel, 6) if self.vc_fit_kar_sutabel is not None else None,
+        "PV_STDEV_LOGN_vc": (round(self.STDEV_logn_vc_sutabel, 6) if self.STDEV_logn_vc_sutabel is not None else None),
+        "PV_STEYX": round(self.steyx_sutabel, 6) if self.steyx_sutabel is not None else None,
+        "PV_VGWNAT_GEM": round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
+        "PV_VGWNAT_SD": round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
         "PV_WATERGEHALTE_GEM": round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None,
         "PV_WATERGEHALTE_SD": round(self.calc_watergehalte_sd, 3) if self.calc_watergehalte_sd is not None else None,
         "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -116,8 +114,8 @@ def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = "T
 
     workbook = load_workbook(file_path)
 
-    if "Resultaten SU-tabel - m" in workbook.sheetnames:
-        df_existing = read_excel(file_path, sheet_name="Resultaten SU-tabel - m")
+    if "Resultaten SU-tabel-m" in workbook.sheetnames:
+        df_existing = read_excel(file_path, sheet_name="Resultaten SU-tabel-m")
         df_existing = df_existing.dropna(how="all")
         df_existing.columns = df_existing.columns.astype(str)
         new_row_df = DataFrame([new_row], columns=df_existing.columns)
@@ -130,12 +128,12 @@ def add_sutabel_results_to_dbase(self: "SUTABEL", path: str, file_name: str = "T
 
     # Write data to Excel
     with ExcelWriter(file_path, mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
-        df_updated.to_excel(writer, sheet_name="Resultaten SU-tabel - m", index=False)
+        df_updated.to_excel(writer, sheet_name="Resultaten SU-tabel-m", index=False)
 
     # Format the Excel sheet
     format_excel_sheet(
         file_path=file_path,
-        sheet_name="Resultaten SU-tabel - m",
+        sheet_name="Resultaten SU-tabel-m",
         num_columns=df_updated.shape[1],
         num_rows=df_updated.shape[0],
         table_name="ResultatenSUTabelMTable",
@@ -177,180 +175,149 @@ def add_results_to_template(self: "SUTABEL", path, export_name=None):
             self.get_sutabel_parameters()
 
     expected_columns = [
-        "PVNAAM",
+        "PV_NAAM",
         "PV_REK",
         "PV_TYPE_PROEF",
         "PV_ANALYSE",
         "PV_RESULTAAT_ID",
         "PV_TYPEVERZAMELING",
-        "PV_e_a1_GEM [-]",
-        "PV_e_a2_GEM [-]",
-        "PV_svgm_GEM [kPa]",
-        "PV_m_GEM [-]",
-        "PV_a1_KAR [-]",
-        "PV_a2_KAR [-]",
-        "PV_svgm_KAR [kPa]",
-        "PV_m_KAR [-]",
-        "PV_vc_FIT_KAR [-]",
-        "PV_STDEV_LOGN_vc [-]",
-        "PV_STEYX [-]",
-        "PV_VGWNAT_GEM [kN/m3]",
-        "PV_VGWNAT_SD [kN/m3]",
+        "PV_e_a1_GEM",
+        "PV_e_a2_GEM",
+        "PV_svgm_GEM",
+        "PV_m_GEM",
+        "PV_a1_KAR",
+        "PV_a2_KAR",
+        "PV_svgm_KAR",
+        "PV_m_KAR",
+        "PV_vc_FIT_KAR",
+        "PV_STDEV_LOGN_vc",
+        "PV_STEYX",
+        "PV_VGWNAT_GEM",
+        "PV_VGWNAT_SD",
         "PV_WATERGEHALTE_GEM",
         "PV_WATERGEHALTE_SD",
         "Timestamp",
-        "SU-tabel s'v 1 [kPa]",
-        "SU-tabel s'v 2 [kPa]",
-        "SU-tabel s'v 3 [kPa]",
-        "SU-tabel s'v 4 [kPa]",
-        "SU-tabel s'v 5 [kPa]",
-        "SU-tabel s'v 6 [kPa]",
-        "SU-tabel s'v 7 [kPa]",
-        "SU-tabel su_gem 1 [kPa]",
-        "SU-tabel su_gem 2 [kPa]",
-        "SU-tabel su_gem 3 [kPa]",
-        "SU-tabel su_gem 4 [kPa]",
-        "SU-tabel su_gem 5 [kPa]",
-        "SU-tabel su_gem 6 [kPa]",
-        "SU-tabel su_gem 7 [kPa]",
-        "SU-tabel su_kar 1 [kPa]",
-        "SU-tabel su_kar 2 [kPa]",
-        "SU-tabel su_kar 3 [kPa]",
-        "SU-tabel su_kar 4 [kPa]",
-        "SU-tabel su_kar 5 [kPa]",
-        "SU-tabel su_kar 6 [kPa]",
-        "SU-tabel su_kar 7 [kPa]",
+        "SU-tabel s'v 1",
+        "SU-tabel s'v 2",
+        "SU-tabel s'v 3",
+        "SU-tabel s'v 4",
+        "SU-tabel s'v 5",
+        "SU-tabel s'v 6",
+        "SU-tabel s'v 7",
+        "SU-tabel su_gem 1",
+        "SU-tabel su_gem 2",
+        "SU-tabel su_gem 3",
+        "SU-tabel su_gem 4",
+        "SU-tabel su_gem 5",
+        "SU-tabel su_gem 6",
+        "SU-tabel su_gem 7",
+        "SU-tabel su_kar 1",
+        "SU-tabel su_kar 2",
+        "SU-tabel su_kar 3",
+        "SU-tabel su_kar 4",
+        "SU-tabel su_kar 5",
+        "SU-tabel su_kar 6",
+        "SU-tabel su_kar 7",
     ]
 
     new_row = {
-        "PVNAAM": self.investigation_groups[0],
+        "PV_NAAM": self.investigation_groups[0],
         "PV_REK": self.effective_stress,
         "PV_TYPE_PROEF": self.analysis_type.split("_")[0],
         "PV_ANALYSE": "_".join(self.analysis_type.split("_")[1:]),
         "PV_RESULTAAT_ID": f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type}",
         "PV_TYPEVERZAMELING": self.alpha,
-        "PV_e_a1_GEM [-]": round(self.e_a1_sutabel, 3) if self.e_a1_sutabel is not None else None,
-        "PV_e_a2_GEM [-]": round(self.e_a2_sutabel, 3) if self.e_a2_sutabel is not None else None,
-        "PV_svgm_GEM [kPa]": round(self.svgm_gem_sutabel, 3) if self.svgm_gem_sutabel is not None else None,
-        "PV_m_GEM [-]": round(self.m_gem_sutabel, 3) if self.m_gem_sutabel is not None else None,
-        "PV_a1_KAR [-]": round(self.a1_kar_sutabel, 3) if self.a1_kar_sutabel is not None else None,
-        "PV_a2_KAR [-]": round(self.a2_kar_sutabel, 3) if self.a2_kar_sutabel is not None else None,
-        "PV_svgm_KAR [kPa]": round(self.svgm_kar_sutabel, 3) if self.svgm_kar_sutabel is not None else None,
-        "PV_m_KAR [-]": round(self.m_kar_sutabel, 3) if self.m_kar_sutabel is not None else None,
-        "PV_vc_FIT_KAR [-]": round(self.vc_fit_kar_sutabel, 3) if self.vc_fit_kar_sutabel is not None else None,
-        "PV_STDEV_LOGN_vc [-]": (
-            round(self.STDEV_logn_vc_sutabel, 3) if self.STDEV_logn_vc_sutabel is not None else None
-        ),
-        "PV_STEYX [-]": round(self.steyx_sutabel, 3) if self.steyx_sutabel is not None else None,
-        "PV_VGWNAT_GEM [kN/m3]": round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
-        "PV_VGWNAT_SD [kN/m3]": round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
+        "PV_e_a1_GEM": round(self.e_a1_sutabel, 3) if self.e_a1_sutabel is not None else None,
+        "PV_e_a2_GEM": round(self.e_a2_sutabel, 3) if self.e_a2_sutabel is not None else None,
+        "PV_svgm_GEM": round(self.svgm_gem_sutabel, 3) if self.svgm_gem_sutabel is not None else None,
+        "PV_m_GEM": round(self.m_gem_sutabel, 3) if self.m_gem_sutabel is not None else None,
+        "PV_a1_KAR": round(self.a1_kar_sutabel, 3) if self.a1_kar_sutabel is not None else None,
+        "PV_a2_KAR": round(self.a2_kar_sutabel, 3) if self.a2_kar_sutabel is not None else None,
+        "PV_svgm_KAR": round(self.svgm_kar_sutabel, 3) if self.svgm_kar_sutabel is not None else None,
+        "PV_m_KAR": round(self.m_kar_sutabel, 3) if self.m_kar_sutabel is not None else None,
+        "PV_vc_FIT_KAR": round(self.vc_fit_kar_sutabel, 3) if self.vc_fit_kar_sutabel is not None else None,
+        "PV_STDEV_LOGN_vc": (round(self.STDEV_logn_vc_sutabel, 3) if self.STDEV_logn_vc_sutabel is not None else None),
+        "PV_STEYX": round(self.steyx_sutabel, 3) if self.steyx_sutabel is not None else None,
+        "PV_VGWNAT_GEM": round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
+        "PV_VGWNAT_SD": round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
         "PV_WATERGEHALTE_GEM": round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None,
         "PV_WATERGEHALTE_SD": round(self.calc_watergehalte_sd, 3) if self.calc_watergehalte_sd is not None else None,
         "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "SU-tabel s'v 1 [kPa]": (
-            round(self.sutabel_grafiek["s'v [kPa]"].iloc[0], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel s'v 1": (round(self.sutabel_grafiek["s'v"].iloc[0], 3) if self.sutabel_grafiek is not None else None),
+        "SU-tabel s'v 2": (round(self.sutabel_grafiek["s'v"].iloc[1], 3) if self.sutabel_grafiek is not None else None),
+        "SU-tabel s'v 3": (round(self.sutabel_grafiek["s'v"].iloc[2], 3) if self.sutabel_grafiek is not None else None),
+        "SU-tabel s'v 4": (round(self.sutabel_grafiek["s'v"].iloc[3], 3) if self.sutabel_grafiek is not None else None),
+        "SU-tabel s'v 5": (round(self.sutabel_grafiek["s'v"].iloc[4], 3) if self.sutabel_grafiek is not None else None),
+        "SU-tabel s'v 6": (round(self.sutabel_grafiek["s'v"].iloc[5], 3) if self.sutabel_grafiek is not None else None),
+        "SU-tabel s'v 7": (round(self.sutabel_grafiek["s'v"].iloc[6], 3) if self.sutabel_grafiek is not None else None),
+        "SU-tabel su_gem 1": (
+            round(self.sutabel_grafiek["su_gem"].iloc[0], 3) if self.sutabel_grafiek is not None else None
         ),
-        "SU-tabel s'v 2 [kPa]": (
-            round(self.sutabel_grafiek["s'v [kPa]"].iloc[1], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel su_gem 2": (
+            round(self.sutabel_grafiek["su_gem"].iloc[1], 3) if self.sutabel_grafiek is not None else None
         ),
-        "SU-tabel s'v 3 [kPa]": (
-            round(self.sutabel_grafiek["s'v [kPa]"].iloc[2], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel su_gem 3": (
+            round(self.sutabel_grafiek["su_gem"].iloc[2], 3) if self.sutabel_grafiek is not None else None
         ),
-        "SU-tabel s'v 4 [kPa]": (
-            round(self.sutabel_grafiek["s'v [kPa]"].iloc[3], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel su_gem 4": (
+            round(self.sutabel_grafiek["su_gem"].iloc[3], 3) if self.sutabel_grafiek is not None else None
         ),
-        "SU-tabel s'v 5 [kPa]": (
-            round(self.sutabel_grafiek["s'v [kPa]"].iloc[4], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel su_gem 5": (
+            round(self.sutabel_grafiek["su_gem"].iloc[4], 3) if self.sutabel_grafiek is not None else None
         ),
-        "SU-tabel s'v 6 [kPa]": (
-            round(self.sutabel_grafiek["s'v [kPa]"].iloc[5], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel su_gem 6": (
+            round(self.sutabel_grafiek["su_gem"].iloc[5], 3) if self.sutabel_grafiek is not None else None
         ),
-        "SU-tabel s'v 7 [kPa]": (
-            round(self.sutabel_grafiek["s'v [kPa]"].iloc[6], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel su_gem 7": (
+            round(self.sutabel_grafiek["su_gem"].iloc[6], 3) if self.sutabel_grafiek is not None else None
         ),
-        "SU-tabel su_gem 1 [kPa]": (
-            round(self.sutabel_grafiek["su_gem [kPa]"].iloc[0], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel su_kar 1": (
+            round(self.sutabel_grafiek["su_kar"].iloc[0], 3) if self.sutabel_grafiek is not None else None
         ),
-        "SU-tabel su_gem 2 [kPa]": (
-            round(self.sutabel_grafiek["su_gem [kPa]"].iloc[1], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel su_kar 2": (
+            round(self.sutabel_grafiek["su_kar"].iloc[1], 3) if self.sutabel_grafiek is not None else None
         ),
-        "SU-tabel su_gem 3 [kPa]": (
-            round(self.sutabel_grafiek["su_gem [kPa]"].iloc[2], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel su_kar 3": (
+            round(self.sutabel_grafiek["su_kar"].iloc[2], 3) if self.sutabel_grafiek is not None else None
         ),
-        "SU-tabel su_gem 4 [kPa]": (
-            round(self.sutabel_grafiek["su_gem [kPa]"].iloc[3], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel su_kar 4": (
+            round(self.sutabel_grafiek["su_kar"].iloc[3], 3) if self.sutabel_grafiek is not None else None
         ),
-        "SU-tabel su_gem 5 [kPa]": (
-            round(self.sutabel_grafiek["su_gem [kPa]"].iloc[4], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel su_kar 5": (
+            round(self.sutabel_grafiek["su_kar"].iloc[4], 3) if self.sutabel_grafiek is not None else None
         ),
-        "SU-tabel su_gem 6 [kPa]": (
-            round(self.sutabel_grafiek["su_gem [kPa]"].iloc[5], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel su_kar 6": (
+            round(self.sutabel_grafiek["su_kar"].iloc[5], 3) if self.sutabel_grafiek is not None else None
         ),
-        "SU-tabel su_gem 7 [kPa]": (
-            round(self.sutabel_grafiek["su_gem [kPa]"].iloc[6], 3) if self.sutabel_grafiek is not None else None
-        ),
-        "SU-tabel su_kar 1 [kPa]": (
-            round(self.sutabel_grafiek["su_kar [kPa]"].iloc[0], 3) if self.sutabel_grafiek is not None else None
-        ),
-        "SU-tabel su_kar 2 [kPa]": (
-            round(self.sutabel_grafiek["su_kar [kPa]"].iloc[1], 3) if self.sutabel_grafiek is not None else None
-        ),
-        "SU-tabel su_kar 3 [kPa]": (
-            round(self.sutabel_grafiek["su_kar [kPa]"].iloc[2], 3) if self.sutabel_grafiek is not None else None
-        ),
-        "SU-tabel su_kar 4 [kPa]": (
-            round(self.sutabel_grafiek["su_kar [kPa]"].iloc[3], 3) if self.sutabel_grafiek is not None else None
-        ),
-        "SU-tabel su_kar 5 [kPa]": (
-            round(self.sutabel_grafiek["su_kar [kPa]"].iloc[4], 3) if self.sutabel_grafiek is not None else None
-        ),
-        "SU-tabel su_kar 6 [kPa]": (
-            round(self.sutabel_grafiek["su_kar [kPa]"].iloc[5], 3) if self.sutabel_grafiek is not None else None
-        ),
-        "SU-tabel su_kar 7 [kPa]": (
-            round(self.sutabel_grafiek["su_kar [kPa]"].iloc[6], 3) if self.sutabel_grafiek is not None else None
+        "SU-tabel su_kar 7": (
+            round(self.sutabel_grafiek["su_kar"].iloc[6], 3) if self.sutabel_grafiek is not None else None
         ),
     }
+    header_row = 7  # consistent met skiprows=6 in get_previous_results
 
-    workbook = load_workbook(file_path)
-
-    if "Resultaten SU-tabel - m" in workbook.sheetnames:
-        df_existing = read_excel(file_path, sheet_name="Resultaten SU-tabel - m")
-        df_existing = df_existing.dropna(how="all")
-        df_existing.columns = df_existing.columns.astype(str)
-        new_row_df = DataFrame([new_row], columns=df_existing.columns)
-        df_updated = concat([df_existing, new_row_df], ignore_index=True)
-    else:
-        df_updated = DataFrame([new_row], columns=expected_columns)
-
-    # Ensure all column headers are strings
-    df_updated.columns = df_updated.columns.astype(str)
-
-    if file_path.exists():
-        wb = load_workbook(file_path)
-    else:
-        template_path = Path(get_repo_root()) / "pv_tool" / "templates" / "Template_PVtool5_0.xlsx"
-        wb = load_workbook(template_path)
+    wb = load_workbook(file_path)
 
     if sheet_name in wb.sheetnames:
         ws = wb[sheet_name]
-        first_empty_row = (
-            ws.max_row + 1
-            if any(ws.iter_rows(min_row=ws.max_row, max_row=ws.max_row, values_only=True))
-            else ws.max_row
-        )
+        col_name_to_idx = {
+            ws.cell(row=header_row, column=col).value: col
+            for col in range(1, ws.max_column + 1)
+            if ws.cell(row=header_row, column=col).value is not None
+        }
+        first_empty_row = ws.max_row + 1
     else:
         ws = wb.create_sheet(sheet_name)
+        col_name_to_idx = {}
         for col_idx, col_name in enumerate(expected_columns, start=1):
-            ws.cell(row=1, column=col_idx, value=col_name)
-        first_empty_row = 2
+            ws.cell(row=header_row, column=col_idx, value=col_name)
+            col_name_to_idx[col_name] = col_idx
+        first_empty_row = header_row + 1
 
-    for col_idx, col_name in enumerate(expected_columns, start=1):
+    for col_name, col_idx in col_name_to_idx.items():
         ws.cell(row=first_empty_row, column=col_idx, value=new_row.get(col_name, ""))
 
     wb.save(file_path)
     print(f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'.")
-    return df_updated
 
 
 def _create_sutabel_input_table(self: "SUTABEL") -> Table:
