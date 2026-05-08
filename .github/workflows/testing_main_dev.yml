@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.12'
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
@@ -36,7 +36,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          coverage run --source=pv_tool -m pytest
+          coverage run --source=pv_tool_logic -m pytest
           coverage report -m
           coverage json
           if [ -f readme_images/coverage.svg ]; then rm readme_images/coverage.svg; fi
@@ -46,7 +46,7 @@ jobs:
           } || {
             coverage-badge -o readme_images/coverage.svg && echo "Badge generated with coverage-badge"  
           } || {
-            python -m pv_tool.utilities.generate_coverage_badge readme_images/coverage.svg && echo "Badge generated with module script"
+            python -m pv_tool_logic.utilities.generate_coverage_badge readme_images/coverage.svg && echo "Badge generated with module script"
           } || {
             python generate_coverage_badge.py readme_images/coverage.svg && echo "Badge generated with standalone script"
           } || {
