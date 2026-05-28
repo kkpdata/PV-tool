@@ -10,6 +10,17 @@ if TYPE_CHECKING:
 
 IsEmptyValidator = CustomElementValidation(lambda value: value != "" and not pd.isna(value), "This cell is empty")
 
+def _is_numeric(val):
+    """Helper function for check if value is numeric."""
+    if pd.isna(val):
+        return True
+    try:
+        float(val)
+        return True
+    except (ValueError, TypeError):
+        return False
+
+NumericValidator = CustomElementValidation(_is_numeric, 'Niet-numerieke waarde')
 
 def validate_alg(self: Validation):
     """Deze functie valideert de kolommen van het dataframe 'algemene kenmerken'."""
@@ -95,7 +106,7 @@ def validate_crs(self: Validation):
     else:
         schema = Schema(
             [
-                Column("CRS_TERREINSPANNING", [InRangeValidation(0, 500)]),
+                Column("CRS_TERREINSPANNING", [NumericValidator, InRangeValidation(0, 500)]),
                 Column("CRS_GRENSSPANNING_A", [InRangeValidation(0, 1000)]),
                 Column("CRS_ISOTACHE_A", [InRangeValidation(0, 0.1)]),
                 Column("CRS_ISOTACHE_B", [InRangeValidation(0, 1)]),
@@ -125,7 +136,7 @@ def validate_samendrukking(self: Validation):
     else:
         schema = Schema(
             [
-                Column("SD_TERREINSPANNING", [InRangeValidation(0, 500)]),
+                Column("SD_TERREINSPANNING", [NumericValidator, InRangeValidation(0, 500)]),
                 Column("SD_ISOTACHE_A", [InRangeValidation(0, 0.1)]),
                 Column("SD_ISOTACHE_B", [InRangeValidation(0, 1)]),
                 Column("SD_ISOTACHE_C", [InRangeValidation(0, 0.1)]),
@@ -154,7 +165,7 @@ def validate_dss(self: Validation):
     else:
         schema = Schema(
             [
-                Column("DSS_TERREINSPANNING", [InRangeValidation(0, 500)]),
+                Column("DSS_TERREINSPANNING", [NumericValidator, InRangeValidation(0, 500)]),
                 Column("DSS_MAX_EFF_VERT_SPANNING_CONSOLIDATIE", [InRangeValidation(0, 2000)]),
                 Column("DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE", [InRangeValidation(0, 2000)]),
                 Column("DSS_S_2%", [InRangeValidation(0, 2000)]),
@@ -194,7 +205,7 @@ def validate_triaxiaal(self: Validation):
     else:
         schema = Schema(
             [
-                Column("TXT_SS_TERREINSPANNING", [InRangeValidation(0, 500)]),
+                Column("TXT_SS_TERREINSPANNING", [NumericValidator, InRangeValidation(0, 500)]),
                 Column("TXT_SS_VOLUMEGEWICHT_NAT", [InRangeValidation(8, 25)]),
                 Column("TXT_SS_S'_MAX_CONSOLIDATIE", [InRangeValidation(0, 2000)]),
                 Column("TXT_SS_T_MAX_CONSOLIDATIE", [InRangeValidation(0, 1000)]),

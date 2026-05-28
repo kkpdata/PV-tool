@@ -75,7 +75,7 @@ De validatie bestaat uit:
 - Export van validatieresultaten naar Excel-bestanden
 
 ```python
-from pv_tool.imports.import_data import Dbase
+from pv_tool_logic.imports.import_data import Dbase
 
 dbase = Dbase()
 dbase.import_data(source="Dbase", source_dir="pad/naar/bestand.xlsx")

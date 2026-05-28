@@ -24,7 +24,8 @@ def import_dbase(self: Dbase, dbase_dir: Path):
         raise ValueError("Column 'ALG__BORING_MONSTERNR_ID' not found in the Excel file")
 
     # Now read the file with the correct header row and set the index
-    dbase = pd.read_excel(dbase_dir, sheet_name="Dbase5_0", skiprows=header_row, index_col="ALG__BORING_MONSTERNR_ID")
+    # dbase = pd.read_excel(dbase_dir, sheet_name="Dbase5_0", skiprows=header_row, index_col="ALG__BORING_MONSTERNR_ID")
+    dbase = pd.read_excel(dbase_dir, sheet_name="Dbase5_0", skiprows=header_row)
     self.dbase_df = dbase
     return self.dbase_df
 
@@ -55,7 +56,7 @@ def import_pv_tool(self: Dbase, pv_dir: Path):
             elif col == "ANA_GRENSSPANNING_HANDMATIG":
                 pv[col] = pd.to_numeric(pv[col], errors="coerce")
 
-    pv = pv.set_index("ALG__BORING_MONSTERNR_ID")
+    pv = pv.set_index("ALG__BORING_MONSTERNR_ID", drop=False)
     self.pv_tool = pv
     return self.pv_tool
 
@@ -83,7 +84,7 @@ def import_stowa(self: Dbase, stowa_dir: Path):
         stowa[["REGEL", "BORING_NUMMER", "MONSTER_ID"]].fillna("").astype(str)
     )
     stowa["ALG__BORING_MONSTERNR_ID"] = stowa[["REGEL", "BORING_NUMMER", "MONSTER_ID"]].apply("_".join, axis=1)
-    stowa = stowa.set_index("ALG__BORING_MONSTERNR_ID")
+    stowa = stowa.set_index("ALG__BORING_MONSTERNR_ID", drop=False)
 
     # Converteer komma-decimalen naar punt en zet om naar numeriek
     stowa = _converteer_komma_naar_punt(stowa)

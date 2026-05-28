@@ -6,6 +6,7 @@ from typing import Optional, Literal
 from pathlib import Path
 import os.path
 
+from pv_tool_logic.imports.add_ana_columns import recalc_alg_boring_monsternr
 from pv_tool_logic.imports.create_dbase import (
     add_missing_columns,
     select_columns,
@@ -16,7 +17,6 @@ from pv_tool_logic.imports.create_dbase import (
 from pv_tool_logic.imports.import_options import import_dbase, import_pv_tool, import_stowa
 from pv_tool_logic.imports.validation import Validation
 from pv_tool_logic.imports.globals import PV_TOOL_DBASE_COLUMNS, ANA_COLUMNS
-
 
 class Dbase:
     """Deze class bevat alle functies die te maken hebben met het bouwen de Dbase-dataframe"""
@@ -33,14 +33,17 @@ class Dbase:
             add_missing_columns(self)
             alg_columns(self)
             add_ana_columns(self)
+            recalc_alg_boring_monsternr(self)
             add_pv_naam(self)
         elif source == "PV-tool":
             select_columns(self)
             alg_columns(self)
             add_ana_columns(self)
+            recalc_alg_boring_monsternr(self)
             add_pv_naam(self)
         elif source == "Dbase":
             add_ana_columns(self)
+            recalc_alg_boring_monsternr(self)
             add_pv_naam(self)
 
     def import_dbase_short(self, source: Literal["Stowa", "PV-tool", "Dbase"], source_dir: Path):
@@ -109,7 +112,9 @@ class Dbase:
 
         export_df = self.create_dbase_for_export()
         index_col_name = export_df.index.name if export_df.index.name else "Index"
-        export_df.insert(0, index_col_name, export_df.index)
+        if index_col_name in export_df.columns:
+            export_df.drop(columns=[index_col_name], inplace=True)
+        export_df.insert(0, index_col_name, export_df.index.astype(str))
 
         export_df = export_df.replace({pd.NA: ""})
 

@@ -72,16 +72,52 @@ def add_columns(self: Dbase):
     self.dbase_df = new_df
 
 
+def recalc_alg_boring_monsternr(self:Dbase):
+    """(Her)berekenen 'ALG__BORING_MONSTERNR_ID'"""
+    df = self.dbase_df
+    if df is None:
+        return
+
+    columns = ["ALG__REGEL", "BORING_NUMMER", "MONSTER_ID"]
+
+    def make_id(row):
+        segs = []
+        for col in columns:
+            v = row.get(col, "")
+            if pd.isna(v):
+                continue
+            s = str(v).strip()
+            if not s or s.lower() in ("nan", "none"):
+                continue
+            segs.append(s)
+        return "_".join(segs) if segs else pd.NA
+
+    # Herbereken de kolom
+    df["ALG__BORING_MONSTERNR_ID"] = df.apply(make_id, axis=1)
+
+    # Verwijder dubbele kolommen (houd laatste occurrence)
+    df = df.loc[:, ~df.columns.duplicated(keep="last")]
+
+    idx_series = df["ALG__BORING_MONSTERNR_ID"].astype(str)
+    idx_series = idx_series.replace("nan", "").replace("None", "")
+    df.index = idx_series
+    df.index.name = "ALG__BORING_MONSTERNR_ID"
+
+    self.dbase_df = df
+
 def add_terreinspanning(self: Dbase):
-    """deze functie berekend de terreinspanning."""
+    """Deze functie berekent de terreinspanning."""
     columns = ["SD_TERREINSPANNING", "CRS_TERREINSPANNING", "DSS_TERREINSPANNING", "TXT_SS_TERREINSPANNING"]
-    self.dbase_df["ANA_TERREINSPANNING"] = self.dbase_df[columns].max(axis=1, skipna=True)
+    try:
+        self.dbase_df["ANA_TERREINSPANNING"] = self.dbase_df[columns].max(axis=1, skipna=True)
+    except TypeError:
+        # Ongeldige waarden in input (niet-numeric), resultaat op NaN.
+        self.dbase_df["ANA_TERREINSPANNING"] = pd.NA
 
 
 def add_txt_max_vert_consol_sp(self: Dbase):
     """Deze functie berekend de verticale consolidatiespanning bij het einde van de triaxiaalproef.
     Kan worden omgezet naar max"""
-    # product1 = self.dbase_df["TXT_SS_S'_MAX_CONSOLIDATIE"] + self.dbase_df['TXT_SS_T_MAX_CONSOLIDATIE']
     product2 = self.dbase_df["TXT_SS_S'_EIND_CONSOLIDATIE"] + self.dbase_df["TXT_SS_T_EIND_CONSOLIDATIE"]
     self.dbase_df["ANA_TXT_MAX_VERTICALE_CONSOLIDATIE_SPANNING"] = product2
 
@@ -89,8 +125,6 @@ def add_txt_max_vert_consol_sp(self: Dbase):
 def add_dss_max_consol_sp(self: Dbase):
     """Deze functie berekend de verticale consolidatiespanning bij het einde van de DSS-proef.
     Kan worden omgezet naar max"""
-    # self.dbase_df['ANA_DSS_MAX_CONSOLIDATIE_SPANNING'] = self.dbase_df[
-    #     ['DSS_MAX_EFF_VERT_SPANNING_CONSOLIDATIE', 'DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE']].max(axis=1)
     self.dbase_df["ANA_DSS_MAX_CONSOLIDATIE_SPANNING"] = self.dbase_df["DSS_EFF_VERT_SPANNING_EINDE_CONSOLIDATIE"]
 
 
