@@ -24,7 +24,6 @@ def import_dbase(self: Dbase, dbase_dir: Path):
         raise ValueError("Column 'ALG__BORING_MONSTERNR_ID' not found in the Excel file")
 
     # Now read the file with the correct header row and set the index
-    # dbase = pd.read_excel(dbase_dir, sheet_name="Dbase5_0", skiprows=header_row, index_col="ALG__BORING_MONSTERNR_ID")
     dbase = pd.read_excel(dbase_dir, sheet_name="Dbase5_0", skiprows=header_row)
     self.dbase_df = dbase
     return self.dbase_df
