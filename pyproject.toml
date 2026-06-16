@@ -30,7 +30,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.13"
 pandas = "<3.0.0"
 #numpy = "^2.4.4" # mogelijk aanpassen als PV-app wordt gebruikt i.p.v. de notebook.
 numpy = ">=1.24.0,<2.0.0"
