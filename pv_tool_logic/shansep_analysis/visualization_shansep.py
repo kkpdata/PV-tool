@@ -64,7 +64,7 @@ def add_proefresultaten_sv_su_nc(self: SHANSEP):
 
 def add_proefresultaten_ln_ocr_ln_s(self: SHANSEP):
     """Deze functie voegt de proefresultaten toe aan de figuur."""
-    boring_monsternummer = self.shansep_data_df_oc.index
+    boring_monsternummer = self.shansep_data_df_nc_oc.index
 
     x_proefresultaten = self.shansep_data_df_nc_oc["LN(OCR)"]
     y_proefresultaten = self.shansep_data_df_nc_oc["LN(su/svc)"]
