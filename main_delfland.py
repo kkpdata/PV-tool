@@ -9,13 +9,14 @@ from pv_tool_logic.imports.import_data import Dbase
 
 # Import Dbase
 dbase = Dbase()
-dbase_dir = Path(r"C:\Users\deenekat7271\ARCADIS\30242510 - Proevenverzameling - Project\05 Project execution\Proevenverzameling_v3\Delfland2026_PVtool5_0.xlsx")
+dbase_dir = Path(r"C:\Users\deenekat7271\ARCADIS\30242510 - Proevenverzameling - Project\05 Project execution\Proevenverzameling_v3\Delfland2026_PVtool5_0_v2.xlsx")
 export_dir = Path(r"C:\Users\deenekat7271\Downloads")
 dbase.import_data(source="Dbase", source_dir=dbase_dir)
 
 df = dbase.dbase_df
 
 #%%
+
 print(df.index)
 
 print(df['ALG__BORING_MONSTERNR_ID'])
@@ -128,8 +129,8 @@ print(vg_df)
 
 #%% plots
 # loop_column = 'BORING_NUMMER'
-# loop_column = 'ALG_REFERENTIE'
-loop_column = 'BORING_POSITIE'
+loop_column = 'ALG_REFERENTIE'
+# loop_column = 'BORING_POSITIE'
 
 count = 0
 max_grensspanning = vg_df['grensspanning'].max()
