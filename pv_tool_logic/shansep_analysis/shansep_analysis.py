@@ -231,6 +231,17 @@ class SHANSEP:
             self.total_shansep_data_df = self.shansep_data_df.copy()
             self.shansep_data_df = self.shansep_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])].copy()
 
+        # Controleer of er data is gevonden
+        if self.shansep_data_df.empty:
+            raise ValueError(
+                f"Geen data gevonden na filtering op investigation_groups {self.investigation_groups} "
+                f"en effective_stress '{self.effective_stress}' "
+                f"voor analyse type '{self.analysis_type}'"
+            )
+        # Check of minimaal 3 proeven in verzameling
+        if len(self.shansep_data_df) < 3:
+            raise ValueError(f"Minimaal 3 proeven nodig voor het uitvoeren van de analyse."
+                             f"Gevonden: {len(self.shansep_data_df)}")
         self.shansep_data_df.columns = NEW_COLUMN_NAMES
 
     def apply_settings(self, alpha: Optional[float] = None):
@@ -482,8 +493,6 @@ class SHANSEP:
 
         self.get_shansep_parameters()
 
-    # ========= Resultaten Methodes ==========
-
     def get_result_values_shansep(self):
         """
         Berekent de definitieve resultaten van de shansep analyse
@@ -576,20 +585,6 @@ class SHANSEP:
         self.inschatting_s_kar = self.a2_kar_oc
         self.inschatting_m_kar = self.a2_kar_nc_oc
         self.inschatting_pop_kar = pop_bepaald
-
-        # write a warning that if any of the values of m are larger than 1, the user should change this
-        for m_value in [self.m_gem_handmatig, self.m_kar_handmatig]:
-            if m_value is not None and m_value > 1:
-                print(
-                    "Waarschuwing: De handmatige waarde van m is groter dan 1. Dit is fysiek niet mogelijk. "
-                    "Overweeg om deze waarde aan te passen."
-                )
-        for m_value in [self.e_a2_nc_oc, self.a2_kar_nc_oc]:
-            if m_value is not None and m_value > 1:
-                print(
-                    "Waarschuwing: De inschatting van de waarde van m is groter dan 1. Dit is fysiek niet mogelijk. "
-                    "Overweeg om deze waarde aan te passen."
-                )
 
         # write these dataframes to excel
         return self.df_results_shansep_gem, self.df_results_shansep_kar
@@ -757,6 +752,13 @@ class SHANSEP:
         self.snijpunt_kar_handmatig = snijpunt_kar
         self.s_kar_handmatig = s_kar
         self.m_kar_handmatig = m_kar
+
+        # Controle handmatige m-waardes
+        for m_value in [self.m_gem_handmatig, self.m_kar_handmatig, self.m_kar_handmatig]:
+            if m_value is not None and m_value > 1:
+                print(f"Waarschuwing: De handmatige waarde van m is groter dan 1. Dit is fysisch niet mogelijk. "
+                      f"Overweeg om deze waarde aan te passen.")
+
         try:
             self.pop_kar_handmatig = snijpunt_kar / s_kar / m_kar
         except (ZeroDivisionError, TypeError):

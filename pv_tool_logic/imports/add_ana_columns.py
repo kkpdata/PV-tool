@@ -73,10 +73,13 @@ def add_columns(self: Dbase):
 
 
 def recalc_alg_boring_monsternr(self:Dbase):
-    """(Her)berekenen 'ALG__BORING_MONSTERNR_ID'"""
+    """(Her)berekenen 'ALG_REGEL' en 'ALG__BORING_MONSTERNR_ID'"""
     df = self.dbase_df
     if df is None:
         return
+
+    # Zorg ervoor dat ALG_REGEL oploopt van 1 tot n, zonder dubbelingen
+    df['ALG__REGEL'] = range(1, len(df) + 1)
 
     columns = ["ALG__REGEL", "BORING_NUMMER", "MONSTER_ID"]
 

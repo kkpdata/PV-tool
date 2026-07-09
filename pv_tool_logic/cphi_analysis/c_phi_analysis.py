@@ -226,6 +226,11 @@ class CPhiAnalyse:
 
             print(f"Data na filtering: {len(self.cphi_analyses_data_df)} rijen gevonden")
 
+        # Minimaal 3 proeven nodig voor het uitvoeren van de analyses.
+        if len(self.cphi_analyses_data_df) < 3:
+            raise ValueError(f"Minimaal 3 proeven nodig voor het uitvoeren van de analyse."
+                             f"Gevonden: {len(self.cphi_analyses_data_df)} ")
+
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
 
     def apply_settings(
@@ -558,6 +563,12 @@ class CPhiAnalyse:
 
         self.st_dev_phi = calc_st_dev_phi(self)
 
+    def check_min_needed_tests(self):
+        """Check of minimaal 3 proeven in de verzameling zitten."""
+        investigation_groups = self.investigation_groups
+
+        ...
+
     def _run(self):
         """
         Voert de volledige c-phi analyse uit in de juiste volgorde:
@@ -565,12 +576,14 @@ class CPhiAnalyse:
         """
         if self._is_run:
             return
+
         self.get_cphi_data()
         self.expand_analysis_df()
         self.eerste_benadering()
         self.expand_analysis_df_corrected()
         self.eerste_benadering_deel2()
         self.result_values()
+
         self._is_run = True
 
     def _run_sh(self):

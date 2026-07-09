@@ -46,13 +46,13 @@ def alg_columns(self):
     """Controleert welke proeven zijn uitgevoerd."""
     # Controleert of de algemene classificatie proeven zijn uitgevoerd.
     self.dbase_df["ALG__CLASSIFICATIE"] = self.dbase_df[CLAS_COLUMNS].notnull().any(axis=1)
-    # Controleert of de CRS-proeven zijn uitgevoerd.#
+    # Controleert of de CRS-proeven zijn uitgevoerd.
     self.dbase_df["ALG__CRS"] = self.dbase_df[CRS_COLUMNS].notnull().any(axis=1)
-    # Controleert of de samendrukkingsproeven zijn uitgevoerd.#
+    # Controleert of de samendrukkingsproeven zijn uitgevoerd.
     self.dbase_df["ALG__SAMENDRUKKING"] = self.dbase_df[SD_COLUMNS].notnull().any(axis=1)
-    # Controleert of de DSS-proeven zijn uitgevoerd.#
+    # Controleert of de DSS-proeven zijn uitgevoerd.
     self.dbase_df["ALG__DSS"] = self.dbase_df[DSS_COLUMNS].notnull().any(axis=1)
-    # Controleert of de triaxiaalproeven zijn uitgevoerd.#
+    # Controleert of de triaxiaalproeven zijn uitgevoerd.
     self.dbase_df["ALG__TRIAXIAAL"] = self.dbase_df[TXT_COLUMNS].notnull().any(axis=1)
     # Overschrijft de waardes uit de kolommen ALG_VEENCLASSIFICATIE, ALG__KORRELVERDELING en ALG__SONDEERWAARDE
     # met nan-waardes.

@@ -188,6 +188,18 @@ class SUTABEL:
             self.total_sutabel_data_df = self.sutabel_data_df.copy()
             self.sutabel_data_df = self.sutabel_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])].copy()
 
+            # Controleer of er data is gevonden
+            if self.sutabel_data_df.empty:
+                raise ValueError(
+                    f"Geen data gevonden na filtering op investigation_groups {self.investigation_groups} "
+                    f"en effective_stress '{self.effective_stress}' "
+                    f"voor analyse type '{self.analysis_type}'"
+                )
+            # Check of minimaal 3 proeven in verzameling
+            if len(self.sutabel_data_df) < 3:
+                raise ValueError(f"Minimaal 3 proeven nodig voor het uitvoeren van de analyse."
+                                 f"Gevonden: {len(self.sutabel_data_df)}")
+
         self.sutabel_data_df.columns = NEW_COLUMN_NAMES
 
     def get_previous_results(self, path: str, file_name: str):
