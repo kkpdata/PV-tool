@@ -1,7 +1,8 @@
 from typing import Optional, List, Literal
+import importlib.resources
 from pathlib import Path
 from datetime import datetime
-from pv_tool_logic.utilities.utils import get_repo_root
+import xlwings as xw
 from pandas import DataFrame, concat, read_excel, isna
 from pv_tool_logic.cphi_analysis.globals import (
     TEXTUAL_NAMES,
@@ -703,10 +704,13 @@ class CPhiAnalyse:
         """
         Voegt een nieuwe resultatenrij toe aan tabblad 'Resultaten c-phi' in het Excel-template.
         Als het tabblad niet bestaat, wordt het aangemaakt en worden de kolomnamen weggeschreven.
+
+        Gebruikt xlwings zodat dropdowns, data-validaties en andere Excel-specifieke objecten behouden blijven.
         """
         if export_name is None:
             export_name = "Template_PVtool5_0.xlsx"
-        file_path = Path(path) / export_name
+
+        file_path = (Path(path) / export_name).resolve()
         sheet_name = "Resultaten c-phi"
 
         expected_columns = [
@@ -735,14 +739,15 @@ class CPhiAnalyse:
             "Timestamp",
         ]
 
-        # Maak de resultaat-rij aan
         new_row = {
             "PV_NAAM": self.investigation_groups[0],
             "PV_REK": self.effective_stress,
             "PV_TYPE_PROEF": self.analysis_type.split("_")[0],
             "PV_ANALYSE": self.analysis_type.split("_")[1],
-            "PV_RESULTAAT_ID": f"{self.investigation_groups[0]}_{self.effective_stress}_"
-            f"{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
+            "PV_RESULTAAT_ID": (
+                f"{self.investigation_groups[0]}_{self.effective_stress}_"
+                f"{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}"
+            ),
             "PV_TYPEVERZAMELING": self.alpha,
             "PV_A1_COH_GEM": round(self.gem_a1, 3) if self.gem_a1 is not None else None,
             "PV_A2_TAN_PHI_GEM": round(self.gem_a2, 3) if self.gem_a2 is not None else None,
@@ -762,7 +767,12 @@ class CPhiAnalyse:
             "PV_PHI_KAR": round(self.phi_kar, 3) if self.phi_kar is not None else None,
             "PV_COH_SD_DSTAB": (
                 round(self.st_dev_c, 3)
-                if (self.c_gem is not None and self.c_kar is not None and self.c_gem >= 0 and self.c_kar >= 0)
+                if (
+                        self.c_gem is not None
+                        and self.c_kar is not None
+                        and self.c_gem >= 0
+                        and self.c_kar >= 0
+                )
                 else "[-]" if self.c_gem is None or self.c_kar is None else "[-] (c < 0)"
             ),
             "PV_PHI_SD_DSTAB": round(self.st_dev_phi, 3) if self.st_dev_phi is not None else None,
@@ -771,38 +781,83 @@ class CPhiAnalyse:
             "PV_VGWNAT_GEM": round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
             "PV_VGWNAT_SD": round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
             "PV_WATERGEHALTE_GEM": (
-                round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None
+                round(self.calc_watergehalte_gem, 3)
+                if self.calc_watergehalte_gem is not None
+                else None
             ),
             "PV_WATERGEHALTE_SD": (
-                round(self.calc_watergehalte_sd, 3) if self.calc_watergehalte_sd is not None else None
+                round(self.calc_watergehalte_sd, 3)
+                if self.calc_watergehalte_sd is not None
+                else None
             ),
             "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
 
-        if file_path.exists():
-            wb = load_workbook(file_path)
-        else:
-            template_path = Path(get_repo_root()) / "pv_tool" / "templates" / "Template_PVtool5_0.xlsx"
-            wb = load_workbook(template_path)
+        row_values = [[new_row.get(col, "") for col in expected_columns]]
 
-        if sheet_name in wb.sheetnames:
-            ws = wb[sheet_name]
-            first_empty_row = (
-                ws.max_row + 1
-                if any(ws.iter_rows(min_row=ws.max_row, max_row=ws.max_row, values_only=True))
-                else ws.max_row
-            )
-        else:
-            ws = wb.create_sheet(sheet_name)
-            for col_idx, col_name in enumerate(expected_columns, start=1):
-                ws.cell(row=1, column=col_idx, value=col_name)
-            first_empty_row = 2
+        app = None
+        wb = None
+        opened_by_function = False
 
-        for col_idx, col_name in enumerate(expected_columns, start=1):
-            ws.cell(row=first_empty_row, column=col_idx, value=new_row.get(col_name, ""))
+        try:
+            for app_instance in xw.apps:
+                for wb_instance in app_instance.books:
+                    try:
+                        if Path(wb_instance.fullname).resolve() == file_path:
+                            wb = wb_instance
+                            break
+                    except Exception:
+                        pass
 
-        wb.save(file_path)
-        print(f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'.")
+                if wb is not None:
+                    break
+
+            if wb is None:
+                app = xw.App(visible=False)
+                app.display_alerts = False
+                app.screen_updating = False
+
+                if file_path.exists():
+                    wb = app.books.open(str(file_path))
+                else:
+                    with importlib.resources.path(
+                            "pv_tool_logic.templates",
+                            "Template_PVtool5_0.xlsx",
+                    ) as template_path:
+                        wb = app.books.open(str(template_path))
+                        wb.save(str(file_path))
+
+                opened_by_function = True
+
+            sheet_names = [sheet.name for sheet in wb.sheets]
+
+            if sheet_name in sheet_names:
+                ws = wb.sheets[sheet_name]
+            else:
+                ws = wb.sheets.add(sheet_name, after=wb.sheets[-1])
+                ws.range((1, 1)).value = [expected_columns]
+
+            if ws.range((1, 1)).value in [None, ""]:
+                ws.range((1, 1)).value = [expected_columns]
+                first_empty_row = 2
+            else:
+                # Eerste lege rij bepalen op basis van kolom A
+                last_row = ws.range("A" + str(ws.cells.last_cell.row)).end("up").row
+                first_empty_row = max(last_row + 1, 2)
+
+            ws.range((first_empty_row, 1)).value = row_values
+
+            wb.save()
+
+            print(f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'.")
+
+        finally:
+            # Alleen sluiten als deze functie het workbook zelf heeft geopend
+            if opened_by_function and wb is not None:
+                wb.close()
+
+            if opened_by_function and app is not None:
+                app.quit()
 
     @property
     def save_total_to_excel(self):

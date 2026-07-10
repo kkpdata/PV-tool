@@ -1,10 +1,10 @@
 from pandas import DataFrame
 import pandas as pd
-from openpyxl import load_workbook
 import importlib.resources
 from typing import Optional, Literal
 from pathlib import Path
-import os.path
+import importlib.resources
+import xlwings as xw
 
 from pv_tool_logic.imports.add_ana_columns import recalc_alg_boring_monsternr
 from pv_tool_logic.imports.create_dbase import (
@@ -89,38 +89,107 @@ class Dbase:
         return self.dbase_df[final_columns].copy()
 
     def export_dbase_to_template(self, export_dir, export_name="Template_PVtool5_0.xlsx"):
-        """Exporteert het dbase-dataframe naar de excel-template"""
+        """
+        Exporteert het dbase-dataframe naar de Excel-template met xlwings.
 
+        Hiermee blijven dropdowns, data-validaties en andere Excel-specifieke objecten behouden.
+        """
         sheet_name = "Dbase5_0"
-        start_row = 7  # Excel: rij 8
-        start_col = 1  # Excel: kolom A
+        start_row = 7  # Excel rij 8
+        start_col = 1  # Kolom A
 
-        export_to = os.path.join(export_dir, export_name)
+        export_to = str(Path(export_dir) / export_name)
 
-        # Laad bestaand bestand om resultaten-tabbladen te behouden,
-        # gebruik het lege template als het bestand nog niet bestaat
-        if os.path.exists(export_to):
-            wb = load_workbook(export_to)
-        else:
-            with importlib.resources.path("pv_tool_logic.templates", "Template_PVtool5_0.xlsx") as template_path:
-                wb = load_workbook(template_path)
-
-        if sheet_name not in wb.sheetnames:
-            raise ValueError(f"Sheet '{sheet_name}' bestaat niet in template!")
-
-        ws = wb[sheet_name]
-
+        # Maak export dataframe
         export_df = self.create_dbase_for_export()
+
         index_col_name = export_df.index.name if export_df.index.name else "Index"
+
         if index_col_name in export_df.columns:
-            export_df.drop(columns=[index_col_name], inplace=True)
+            export_df = export_df.drop(columns=[index_col_name])
+
         export_df.insert(0, index_col_name, export_df.index.astype(str))
 
         export_df = export_df.replace({pd.NA: ""})
+        export_df = export_df.fillna("")
 
-        for i, row in enumerate(export_df.values):
-            for j, value in enumerate(row):
-                ws.cell(row=start_row + 1 + i, column=start_col + j, value=value)
+        from datetime import time
 
-        wb.save(export_to)
-        print(f"DataFrame naar template geëxporteerd in {export_to}")
+        for col in export_df.columns:
+            mask = export_df[col].apply(lambda x: isinstance(x, time))
+            if mask.any():
+                print(f"Kolom bevat datetime.time: {col}")
+                print(export_df.loc[mask, col])
+
+        export_values = export_df.values.tolist()
+
+        app = None
+        wb = None
+        opened_by_function = False
+
+        try:
+            export_path = Path(export_to).resolve()
+
+            for app_instance in xw.apps:
+                for wb_instance in app_instance.books:
+                    try:
+                        if Path(wb_instance.fullname).resolve() == export_path:
+                            wb = wb_instance
+                            print("Bestaand geopend Excel-bestand gevonden.")
+                            break
+                    except Exception:
+                        pass
+
+                if wb is not None:
+                    break
+
+            if wb is None:
+
+                if export_path.exists():
+                    app = xw.App(visible=False)
+                    wb = app.books.open(str(export_path))
+                    opened_by_function = True
+
+                else:
+                    with importlib.resources.path(
+                        "pv_tool_logic.templates",
+                        "Template_PVtool5_0.xlsx"
+                    ) as template_path:
+
+                        app = xw.App(visible=False)
+                        wb = app.books.open(str(template_path))
+
+                        wb.save(str(export_path))
+                        opened_by_function = True
+
+            if sheet_name not in [sheet.name for sheet in wb.sheets]:
+                raise ValueError(
+                    f"Sheet '{sheet_name}' bestaat niet in template!"
+                )
+
+            ws = wb.sheets[sheet_name]
+
+            last_row = ws.used_range.last_cell.row
+            last_col = ws.used_range.last_cell.column
+
+            if last_row > start_row:
+                ws.range(
+                    (start_row + 1, start_col),
+                    (last_row, last_col)
+                ).clear_contents()
+
+            if export_values:
+                ws.range((start_row + 1, start_col)).value = export_values
+
+            wb.save()
+
+            print(f"DataFrame naar template geëxporteerd in {export_to}")
+
+        finally:
+
+            # Alleen sluiten als deze functie het bestand zelf geopend heeft
+            if opened_by_function and wb is not None:
+                wb.close()
+
+            if opened_by_function and app is not None:
+                app.quit()
