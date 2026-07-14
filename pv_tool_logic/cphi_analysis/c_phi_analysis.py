@@ -2,8 +2,10 @@ from typing import Optional, List, Literal
 import importlib.resources
 from pathlib import Path
 from datetime import datetime
+
+import pandas as pd
 import xlwings as xw
-from pandas import DataFrame, concat, read_excel, isna
+from pandas import DataFrame, concat, read_excel, isna, Series
 from pv_tool_logic.cphi_analysis.globals import (
     TEXTUAL_NAMES,
     ALL_TEXTUAL_NAMES,
@@ -348,6 +350,8 @@ class CPhiAnalyse:
             for stress, df in all_data.items():
                 if sample_name in df.index:
                     sample_data = df.loc[sample_name]
+                    if isinstance(sample_data, pd.DataFrame):
+                        sample_data = sample_data.iloc[0]
                     if not (isna(sample_data["S'"]) or isna(sample_data["T"])):
                         stress_data["S'"].append(sample_data["S'"])
                         stress_data["T"].append(sample_data["T"])
@@ -358,7 +362,11 @@ class CPhiAnalyse:
 
                 if self.analysis_type in ["TXT_CPhi", "TXT_SH"]:
                     rek_bij_t_piek = self.total_cphi_analyses_data_df.loc[sample_name, "TXT_SS_REK_BIJ_T_PIEK"]
+                    if isinstance(rek_bij_t_piek, Series):
+                        rek_bij_t_piek = rek_bij_t_piek.iloc[0]
                     rek_bij_t_eind = self.total_cphi_analyses_data_df.loc[sample_name, "TXT_SS_REK_BIJ_T_EIND"]
+                    if isinstance(rek_bij_t_eind, Series):
+                        rek_bij_t_eind = rek_bij_t_eind.iloc[0]
                     if not isna(rek_bij_t_piek) and "pieksterkte" in stress_df["stress_state"].values:
                         # Verplaats de rij met 'pieksterkte' naar de juiste positie
                         piek_row = stress_df[stress_df["stress_state"] == "pieksterkte"]
@@ -378,7 +386,11 @@ class CPhiAnalyse:
                         ).reset_index(drop=True)
                 elif self.analysis_type in ["DSS_CPhi", "DSS_SH"]:
                     rek_bij_t_max = self.total_cphi_analyses_data_df.loc[sample_name, "DSS_REK_BIJ_T_MAX"]
+                    if isinstance(rek_bij_t_max, Series):
+                        rek_bij_t_max = rek_bij_t_max.iloc[0]
                     rek_bij_t_eind = self.total_cphi_analyses_data_df.loc[sample_name, "DSS_REK_BIJ_T_EIND"]
+                    if isinstance(rek_bij_t_eind, Series):
+                        rek_bij_t_eind = rek_bij_t_eind.iloc[0]
                     if not isna(rek_bij_t_max) and "pieksterkte" in stress_df["stress_state"].values:
                         # Verplaats de rij met 'pieksterkte' naar de juiste positie
                         piek_row = stress_df[stress_df["stress_state"] == "pieksterkte"]
