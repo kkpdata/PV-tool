@@ -8,7 +8,6 @@ import shutil, tempfile
 import pandas as pd
 import xlwings as xw
 from pandas import DataFrame, concat, read_excel, isna, Series
-from requests import delete
 
 from pv_tool_logic.cphi_analysis.globals import (
     TEXTUAL_NAMES,
