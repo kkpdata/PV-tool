@@ -5,6 +5,7 @@ from pv_tool_logic.shansep_analysis.globals import TEXTUAL_NAMES, NEW_COLUMN_NAM
 from pandas import DataFrame, ExcelWriter, read_excel
 import plotly.graph_objects as go
 from pathlib import Path
+import shutil, tempfile
 from pv_tool_logic.shansep_analysis.calc_parameters import (
     calc_watergehalte_gem_txt,
     calc_watergehalte_gem_dss,
@@ -267,17 +268,16 @@ class SHANSEP:
 
         file_path = f"{path}/{file_name}"
 
-        try:
-            with open(file_path, "r"):
-                pass
-        except FileNotFoundError:
+        if not Path(file_path).exists():
             raise FileNotFoundError(f"Er is geen dbase aanwezig op de locatie {file_path}.")
 
+        tmp = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
+        shutil.copy2(file_path, tmp.name)
+        tmp.close()
         try:
-            results_df = read_excel(file_path, sheet_name="Resultaten SHANSEP", skiprows=6)
-        except ValueError:
-            print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
-            return None
+            results_df = read_excel(tmp.name, sheet_name="Resultaten SHANSEP", skiprows=6)
+        finally:
+            Path(tmp.name).unlink(missing_ok=True)
 
         filtered_df = results_df[
             (results_df["PV_RESULTAAT_ID"].str.contains(self.investigation_groups[0]))

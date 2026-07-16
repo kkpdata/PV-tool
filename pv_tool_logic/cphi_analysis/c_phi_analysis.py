@@ -3,10 +3,13 @@ from typing import Optional, List, Literal
 import importlib.resources
 from pathlib import Path
 from datetime import datetime
+import shutil, tempfile
 
 import pandas as pd
 import xlwings as xw
 from pandas import DataFrame, concat, read_excel, isna, Series
+from requests import delete
+
 from pv_tool_logic.cphi_analysis.globals import (
     TEXTUAL_NAMES,
     ALL_TEXTUAL_NAMES,
@@ -76,8 +79,6 @@ from pv_tool_logic.cphi_analysis.calc_parameters import (
     calc_tan_phi_kar_sh,
 )
 from openpyxl import load_workbook
-
-from utils import get_repo_root
 
 
 class CPhiAnalyse:
@@ -445,17 +446,16 @@ class CPhiAnalyse:
 
         file_path = f"{path}/{file_name}"
 
-        try:
-            with open(file_path, "r"):
-                pass
-        except FileNotFoundError:
+        if not Path(file_path).exists():
             raise FileNotFoundError("Er is geen dbase aanwezig onder de naam Template_PVtool5_0.xlsx")
 
+        tmp = tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False)
+        shutil.copy2(file_path, tmp.name)
+        tmp.close()
         try:
-            results_df = read_excel(file_path, sheet_name="Resultaten c-phi", skiprows=6)
-        except ValueError:
-            print("Er is geen tabblad 'Resultaten c-phi' aanwezig in het Excel-bestand.")
-            return None
+            results_df = read_excel(tmp.name, sheet_name="Resultaten c-phi", skiprows=6)
+        finally:
+            Path(tmp.name).unlink(missing_ok=True)
 
         filtered_df = results_df[
             (results_df["PV_RESULTAAT_ID"].str.contains(self.investigation_groups[0]))
@@ -470,8 +470,6 @@ class CPhiAnalyse:
         latest_entry = filtered_df.sort_values(by="Timestamp", ascending=False).iloc[0]
 
         return latest_entry
-
-    # ========= Analyse Methodes ==========
 
     def expand_analysis_df(self):
         """

@@ -19,7 +19,7 @@ def test_shansep_analyse():
     Test geïmplementeerd. Verander de invoer niet.
     """
     dbase = Dbase()
-    source_dir = Path(os.path.join(FILE_PATH, "Dbase.xlsx"))
+    source_dir = Path(os.path.join(FILE_PATH, "Template_PVtool5_0.xlsx"))
     dbase.import_data(source="Dbase", source_dir=source_dir)
     dbase.export_dbase_to_template(export_dir=export_dir)
 
@@ -35,7 +35,7 @@ def test_shansep_analyse():
 
     for analysis_type in analysis_types:
         # Test met een representatieve effective stress voor elk analysis type
-        ig = ["DSS_SAFE_veen"] if analysis_type == "DSS_S_POP" else ["TXT_SAFE_klei_licht_16_175"]
+        ig = ["DSS_voorbeeld"] if analysis_type == "DSS_S_POP" else ["TXT_voorbeeld"]
         es = effective_stresses[analysis_type][-1]  # Use the last value as the representative effective stress
 
         analyse = SHANSEP(
@@ -157,7 +157,7 @@ def test_shansep_analyse():
         # Dit zou een ValueError moeten geven
         SHANSEP(
             dbase=dbase,
-            investigation_groups=["TXT_SAFE_klei_licht_16_175"],
+            investigation_groups=["TXT_voorbeeld"],
             effective_stress="10% rek",  # Niet toegestaan voor TXT_S_POP
             analysis_type="TXT_S_POP",
         )
