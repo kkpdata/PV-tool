@@ -229,6 +229,10 @@ class Dbase:
 
         export_df = self.create_dbase_for_export()
         index_col_name = export_df.index.name if export_df.index.name else "Index"
+
+        if index_col_name in export_df.columns:
+            export_df = export_df.drop(columns=[index_col_name])
+
         export_df.insert(0, index_col_name, export_df.index.astype(str))
 
         export_df = export_df.replace({pd.NA: ""})
