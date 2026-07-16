@@ -1,3 +1,7 @@
+import os
+import platform
+from openpyxl import load_workbook
+
 from pandas import DataFrame
 import pandas as pd
 import importlib.resources
@@ -88,7 +92,14 @@ class Dbase:
         # Save in init with reordered columns
         return self.dbase_df[final_columns].copy()
 
-    def export_dbase_to_template(self, export_dir, export_name="Template_PVtool5_0.xlsx"):
+    def export_dbase_to_template(self, export_dir, export_name = "Template_PVtool5_0.xlsx"):
+        """Exporteert het dbase-dataframe naar Excel-template"""
+        if platform.system() == "Windows":
+            return self._export_dbase_xlwings(export_dir=export_dir, export_name=export_name)
+        else:
+            return self._export_dbase_openpyxl(export_dir=export_dir, export_name=export_name)
+
+    def _export_dbase_xlwings(self, export_dir, export_name="Template_PVtool5_0.xlsx"):
         """
         Exporteert het dbase-dataframe naar de Excel-template met xlwings.
 
@@ -193,3 +204,39 @@ class Dbase:
 
             if opened_by_function and app is not None:
                 app.quit()
+
+    def _export_dbase_openpyxl(self, export_dir, export_name="Template_PVtool5_0.xlsx"):
+        """Exporteert het dbase-dataframe naar de excel-template met openpyxl"""
+
+        sheet_name = "Dbase5_0"
+        start_row = 7  # Excel: rij 8
+        start_col = 1  # Excel: kolom A
+
+        export_to = os.path.join(export_dir, export_name)
+
+        # Laad bestaand bestand om resultaten-tabbladen te behouden,
+        # gebruik het lege template als het bestand nog niet bestaat
+        if os.path.exists(export_to):
+            wb = load_workbook(export_to)
+        else:
+            with importlib.resources.path("pv_tool_logic.templates", "Template_PVtool5_0.xlsx") as template_path:
+                wb = load_workbook(template_path)
+
+        if sheet_name not in wb.sheetnames:
+            raise ValueError(f"Sheet '{sheet_name}' bestaat niet in template!")
+
+        ws = wb[sheet_name]
+
+        export_df = self.create_dbase_for_export()
+        index_col_name = export_df.index.name if export_df.index.name else "Index"
+        export_df.insert(0, index_col_name, export_df.index.astype(str))
+
+        export_df = export_df.replace({pd.NA: ""})
+        export_df = export_df.fillna("")
+
+        for i, row in enumerate(export_df.values):
+            for j, value in enumerate(row):
+                ws.cell(row=start_row + 1 + i, column=start_col + j, value=value)
+
+        wb.save(export_to)
+        print(f"DataFrame naar template geëxporteerd in {export_to}")
