@@ -1,3 +1,4 @@
+import platform
 from typing import Optional, List, Literal
 import importlib.resources
 from pathlib import Path
@@ -75,6 +76,8 @@ from pv_tool_logic.cphi_analysis.calc_parameters import (
     calc_tan_phi_kar_sh,
 )
 from openpyxl import load_workbook
+
+from utils import get_repo_root
 
 
 class CPhiAnalyse:
@@ -719,6 +722,14 @@ class CPhiAnalyse:
 
         Gebruikt xlwings zodat dropdowns, data-validaties en andere Excel-specifieke objecten behouden blijven.
         """
+        if platform.system() == "Windows":
+            return self._add_results_xlwings(path, export_name)
+        else:
+            return self._add_results_openpyxl(path, export_name)
+
+
+    def _add_results_xlwings(self, path, export_name=None):
+        """Add results to template with xlwings if platform is Windows"""
         if export_name is None:
             export_name = "Template_PVtool5_0.xlsx"
 
@@ -870,6 +881,112 @@ class CPhiAnalyse:
 
             if opened_by_function and app is not None:
                 app.quit()
+
+    def _add_results_openpyxl(self, path, export_name=None):
+        """Add results to template with openpyxl if platform is not Windows"""
+        if export_name is None:
+            export_name = "Template_PVtool5_0.xlsx"
+        file_path = Path(path) / export_name
+        sheet_name = "Resultaten c-phi"
+
+        expected_columns = [
+            "PV_RESULTAAT_ID",
+            "PV_NAAM",
+            "PV_REK",
+            "PV_TYPE_PROEF",
+            "PV_ANALYSE",
+            "PV_A1_COH_GEM",
+            "PV_A2_TAN_PHI_GEM",
+            "PV_A1_COH_KAR",
+            "PV_A2_TAN_PHI_KAR",
+            "PV_PARTPHI",
+            "PV_PARTCOH",
+            "PV_TYPEVERZAMELING",
+            "PV_COH_GEM",
+            "PV_PHI_GEM",
+            "PV_COH_KAR",
+            "PV_PHI_KAR",
+            "PV_COH_SD_DSTAB",
+            "PV_PHI_SD_DSTAB",
+            "PV_VGWNAT_GEM",
+            "PV_VGWNAT_SD",
+            "PV_WATERGEHALTE_GEM",
+            "PV_WATERGEHALTE_SD",
+            "Timestamp",
+        ]
+
+        # Maak de resultaat-rij aan
+        new_row = {
+            "PV_NAAM": self.investigation_groups[0],
+            "PV_REK": self.effective_stress,
+            "PV_TYPE_PROEF": self.analysis_type.split("_")[0],
+            "PV_ANALYSE": self.analysis_type.split("_")[1],
+            "PV_RESULTAAT_ID": f"{self.investigation_groups[0]}_{self.effective_stress}_"
+                               f"{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
+            "PV_TYPEVERZAMELING": self.alpha,
+            "PV_A1_COH_GEM": round(self.gem_a1, 3) if self.gem_a1 is not None else None,
+            "PV_A2_TAN_PHI_GEM": round(self.gem_a2, 3) if self.gem_a2 is not None else None,
+            "PV_A1_COH_KAR": round(self.kar_a1, 3) if self.kar_a1 is not None else None,
+            "PV_A2_TAN_PHI_KAR": round(self.kar_a2, 3) if self.kar_a2 is not None else None,
+            "PV_COH_GEM": (
+                round(self.c_gem, 3)
+                if self.c_gem is not None and self.c_gem >= 0
+                else "[-]" if self.c_gem is None else f"{round(self.c_gem, 3)} (kan niet - aanpassen!)"
+            ),
+            "PV_PHI_GEM": round(self.phi_gem, 3) if self.phi_gem is not None else None,
+            "PV_COH_KAR": (
+                round(self.c_kar, 3)
+                if self.c_kar is not None and self.c_kar >= 0
+                else "[-]" if self.c_kar is None else f"{round(self.c_kar, 3)} (kan niet - aanpassen!)"
+            ),
+            "PV_PHI_KAR": round(self.phi_kar, 3) if self.phi_kar is not None else None,
+            "PV_COH_SD_DSTAB": (
+                round(self.st_dev_c, 3)
+                if (self.c_gem is not None and self.c_kar is not None and self.c_gem >= 0 and self.c_kar >= 0)
+                else "[-]" if self.c_gem is None or self.c_kar is None else "[-] (c < 0)"
+            ),
+            "PV_PHI_SD_DSTAB": round(self.st_dev_phi, 3) if self.st_dev_phi is not None else None,
+            "PV_PARTPHI": self.material_tan_phi,
+            "PV_PARTCOH": self.material_cohesie,
+            "PV_VGWNAT_GEM": round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
+            "PV_VGWNAT_SD": round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
+            "PV_WATERGEHALTE_GEM": (
+                round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None
+            ),
+            "PV_WATERGEHALTE_SD": (
+                round(self.calc_watergehalte_sd, 3) if self.calc_watergehalte_sd is not None else None
+            ),
+            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+
+        if file_path.exists():
+            wb = load_workbook(file_path)
+        else:
+            with importlib.resources.path(
+                "pv_tool_logic",
+                "Template_PVtool5_0.xlsx",
+            ) as template_path:
+                wb = load_workbook(template_path)
+
+        if sheet_name in wb.sheetnames:
+            ws = wb[sheet_name]
+            first_empty_row = (
+                ws.max_row + 1
+                if any(ws.iter_rows(min_row=ws.max_row, max_row=ws.max_row, values_only=True))
+                else ws.max_row
+            )
+        else:
+            ws = wb.create_sheet(sheet_name)
+            for col_idx, col_name in enumerate(expected_columns, start=1):
+                ws.cell(row=1, column=col_idx, value=col_name)
+            first_empty_row = 2
+
+        for col_idx, col_name in enumerate(expected_columns, start=1):
+            ws.cell(row=first_empty_row, column=col_idx, value=new_row.get(col_name, ""))
+
+        wb.save(file_path)
+        print(f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'.")
+
 
     @property
     def save_total_to_excel(self):
