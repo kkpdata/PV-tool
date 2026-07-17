@@ -1,8 +1,14 @@
+import platform
 from typing import Optional, List, Literal
+import importlib.resources
 from pathlib import Path
 from datetime import datetime
-from pv_tool_logic.utilities.utils import get_repo_root
-from pandas import DataFrame, concat, read_excel, isna
+import shutil, tempfile
+
+import pandas as pd
+import xlwings as xw
+from pandas import DataFrame, concat, read_excel, isna, Series
+
 from pv_tool_logic.cphi_analysis.globals import (
     TEXTUAL_NAMES,
     ALL_TEXTUAL_NAMES,
@@ -226,6 +232,11 @@ class CPhiAnalyse:
 
             print(f"Data na filtering: {len(self.cphi_analyses_data_df)} rijen gevonden")
 
+        # Minimaal 3 proeven nodig voor het uitvoeren van de analyses.
+        if len(self.cphi_analyses_data_df) < 3:
+            raise ValueError(f"Minimaal 3 proeven nodig voor het uitvoeren van de analyse."
+                             f"Gevonden: {len(self.cphi_analyses_data_df)} ")
+
         self.cphi_analyses_data_df.columns = NEW_COLUMN_NAMES
 
     def apply_settings(
@@ -342,6 +353,8 @@ class CPhiAnalyse:
             for stress, df in all_data.items():
                 if sample_name in df.index:
                     sample_data = df.loc[sample_name]
+                    if isinstance(sample_data, pd.DataFrame):
+                        sample_data = sample_data.iloc[0]
                     if not (isna(sample_data["S'"]) or isna(sample_data["T"])):
                         stress_data["S'"].append(sample_data["S'"])
                         stress_data["T"].append(sample_data["T"])
@@ -352,7 +365,11 @@ class CPhiAnalyse:
 
                 if self.analysis_type in ["TXT_CPhi", "TXT_SH"]:
                     rek_bij_t_piek = self.total_cphi_analyses_data_df.loc[sample_name, "TXT_SS_REK_BIJ_T_PIEK"]
+                    if isinstance(rek_bij_t_piek, Series):
+                        rek_bij_t_piek = rek_bij_t_piek.iloc[0]
                     rek_bij_t_eind = self.total_cphi_analyses_data_df.loc[sample_name, "TXT_SS_REK_BIJ_T_EIND"]
+                    if isinstance(rek_bij_t_eind, Series):
+                        rek_bij_t_eind = rek_bij_t_eind.iloc[0]
                     if not isna(rek_bij_t_piek) and "pieksterkte" in stress_df["stress_state"].values:
                         # Verplaats de rij met 'pieksterkte' naar de juiste positie
                         piek_row = stress_df[stress_df["stress_state"] == "pieksterkte"]
@@ -372,7 +389,11 @@ class CPhiAnalyse:
                         ).reset_index(drop=True)
                 elif self.analysis_type in ["DSS_CPhi", "DSS_SH"]:
                     rek_bij_t_max = self.total_cphi_analyses_data_df.loc[sample_name, "DSS_REK_BIJ_T_MAX"]
+                    if isinstance(rek_bij_t_max, Series):
+                        rek_bij_t_max = rek_bij_t_max.iloc[0]
                     rek_bij_t_eind = self.total_cphi_analyses_data_df.loc[sample_name, "DSS_REK_BIJ_T_EIND"]
+                    if isinstance(rek_bij_t_eind, Series):
+                        rek_bij_t_eind = rek_bij_t_eind.iloc[0]
                     if not isna(rek_bij_t_max) and "pieksterkte" in stress_df["stress_state"].values:
                         # Verplaats de rij met 'pieksterkte' naar de juiste positie
                         piek_row = stress_df[stress_df["stress_state"] == "pieksterkte"]
@@ -424,17 +445,16 @@ class CPhiAnalyse:
 
         file_path = f"{path}/{file_name}"
 
-        try:
-            with open(file_path, "r"):
-                pass
-        except FileNotFoundError:
+        if not Path(file_path).exists():
             raise FileNotFoundError("Er is geen dbase aanwezig onder de naam Template_PVtool5_0.xlsx")
 
+        tmp = tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False)
+        shutil.copy2(file_path, tmp.name)
+        tmp.close()
         try:
-            results_df = read_excel(file_path, sheet_name="Resultaten c-phi", skiprows=6)
-        except ValueError:
-            print("Er is geen tabblad 'Resultaten c-phi' aanwezig in het Excel-bestand.")
-            return None
+            results_df = read_excel(tmp.name, sheet_name="Resultaten c-phi", skiprows=6)
+        finally:
+            Path(tmp.name).unlink(missing_ok=True)
 
         filtered_df = results_df[
             (results_df["PV_RESULTAAT_ID"].str.contains(self.investigation_groups[0]))
@@ -449,8 +469,6 @@ class CPhiAnalyse:
         latest_entry = filtered_df.sort_values(by="Timestamp", ascending=False).iloc[0]
 
         return latest_entry
-
-    # ========= Analyse Methodes ==========
 
     def expand_analysis_df(self):
         """
@@ -558,6 +576,12 @@ class CPhiAnalyse:
 
         self.st_dev_phi = calc_st_dev_phi(self)
 
+    def check_min_needed_tests(self):
+        """Check of minimaal 3 proeven in de verzameling zitten."""
+        investigation_groups = self.investigation_groups
+
+        ...
+
     def _run(self):
         """
         Voert de volledige c-phi analyse uit in de juiste volgorde:
@@ -565,12 +589,14 @@ class CPhiAnalyse:
         """
         if self._is_run:
             return
+
         self.get_cphi_data()
         self.expand_analysis_df()
         self.eerste_benadering()
         self.expand_analysis_df_corrected()
         self.eerste_benadering_deel2()
         self.result_values()
+
         self._is_run = True
 
     def _run_sh(self):
@@ -690,7 +716,171 @@ class CPhiAnalyse:
         """
         Voegt een nieuwe resultatenrij toe aan tabblad 'Resultaten c-phi' in het Excel-template.
         Als het tabblad niet bestaat, wordt het aangemaakt en worden de kolomnamen weggeschreven.
+
+        Gebruikt xlwings zodat dropdowns, data-validaties en andere Excel-specifieke objecten behouden blijven.
         """
+        if platform.system() == "Windows":
+            return self._add_results_xlwings(path, export_name)
+        else:
+            return self._add_results_openpyxl(path, export_name)
+
+
+    def _add_results_xlwings(self, path, export_name=None):
+        """Add results to template with xlwings if platform is Windows"""
+        if export_name is None:
+            export_name = "Template_PVtool5_0.xlsx"
+
+        file_path = (Path(path) / export_name).resolve()
+        sheet_name = "Resultaten c-phi"
+
+        expected_columns = [
+            "PV_RESULTAAT_ID",
+            "PV_NAAM",
+            "PV_REK",
+            "PV_TYPE_PROEF",
+            "PV_ANALYSE",
+            "PV_A1_COH_GEM",
+            "PV_A2_TAN_PHI_GEM",
+            "PV_A1_COH_KAR",
+            "PV_A2_TAN_PHI_KAR",
+            "PV_PARTPHI",
+            "PV_PARTCOH",
+            "PV_TYPEVERZAMELING",
+            "PV_COH_GEM",
+            "PV_PHI_GEM",
+            "PV_COH_KAR",
+            "PV_PHI_KAR",
+            "PV_COH_SD_DSTAB",
+            "PV_PHI_SD_DSTAB",
+            "PV_VGWNAT_GEM",
+            "PV_VGWNAT_SD",
+            "PV_WATERGEHALTE_GEM",
+            "PV_WATERGEHALTE_SD",
+            "Timestamp",
+        ]
+
+        new_row = {
+            "PV_NAAM": self.investigation_groups[0],
+            "PV_REK": self.effective_stress,
+            "PV_TYPE_PROEF": self.analysis_type.split("_")[0],
+            "PV_ANALYSE": self.analysis_type.split("_")[1],
+            "PV_RESULTAAT_ID": (
+                f"{self.investigation_groups[0]}_{self.effective_stress}_"
+                f"{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}"
+            ),
+            "PV_TYPEVERZAMELING": self.alpha,
+            "PV_A1_COH_GEM": round(self.gem_a1, 3) if self.gem_a1 is not None else None,
+            "PV_A2_TAN_PHI_GEM": round(self.gem_a2, 3) if self.gem_a2 is not None else None,
+            "PV_A1_COH_KAR": round(self.kar_a1, 3) if self.kar_a1 is not None else None,
+            "PV_A2_TAN_PHI_KAR": round(self.kar_a2, 3) if self.kar_a2 is not None else None,
+            "PV_COH_GEM": (
+                round(self.c_gem, 3)
+                if self.c_gem is not None and self.c_gem >= 0
+                else "[-]" if self.c_gem is None else f"{round(self.c_gem, 3)} (kan niet - aanpassen!)"
+            ),
+            "PV_PHI_GEM": round(self.phi_gem, 3) if self.phi_gem is not None else None,
+            "PV_COH_KAR": (
+                round(self.c_kar, 3)
+                if self.c_kar is not None and self.c_kar >= 0
+                else "[-]" if self.c_kar is None else f"{round(self.c_kar, 3)} (kan niet - aanpassen!)"
+            ),
+            "PV_PHI_KAR": round(self.phi_kar, 3) if self.phi_kar is not None else None,
+            "PV_COH_SD_DSTAB": (
+                round(self.st_dev_c, 3)
+                if (
+                        self.c_gem is not None
+                        and self.c_kar is not None
+                        and self.c_gem >= 0
+                        and self.c_kar >= 0
+                )
+                else "[-]" if self.c_gem is None or self.c_kar is None else "[-] (c < 0)"
+            ),
+            "PV_PHI_SD_DSTAB": round(self.st_dev_phi, 3) if self.st_dev_phi is not None else None,
+            "PV_PARTPHI": self.material_tan_phi,
+            "PV_PARTCOH": self.material_cohesie,
+            "PV_VGWNAT_GEM": round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
+            "PV_VGWNAT_SD": round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
+            "PV_WATERGEHALTE_GEM": (
+                round(self.calc_watergehalte_gem, 3)
+                if self.calc_watergehalte_gem is not None
+                else None
+            ),
+            "PV_WATERGEHALTE_SD": (
+                round(self.calc_watergehalte_sd, 3)
+                if self.calc_watergehalte_sd is not None
+                else None
+            ),
+            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+
+        row_values = [[new_row.get(col, "") for col in expected_columns]]
+
+        app = None
+        wb = None
+        opened_by_function = False
+
+        try:
+            for app_instance in xw.apps:
+                for wb_instance in app_instance.books:
+                    try:
+                        if Path(wb_instance.fullname).resolve() == file_path:
+                            wb = wb_instance
+                            break
+                    except Exception:
+                        pass
+
+                if wb is not None:
+                    break
+
+            if wb is None:
+                app = xw.App(visible=False)
+                app.display_alerts = False
+                app.screen_updating = False
+
+                if file_path.exists():
+                    wb = app.books.open(str(file_path))
+                else:
+                    with importlib.resources.path(
+                            "pv_tool_logic.templates",
+                            "Template_PVtool5_0.xlsx",
+                    ) as template_path:
+                        wb = app.books.open(str(template_path))
+                        wb.save(str(file_path))
+
+                opened_by_function = True
+
+            sheet_names = [sheet.name for sheet in wb.sheets]
+
+            if sheet_name in sheet_names:
+                ws = wb.sheets[sheet_name]
+            else:
+                ws = wb.sheets.add(sheet_name, after=wb.sheets[-1])
+                ws.range((1, 1)).value = [expected_columns]
+
+            if ws.range((1, 1)).value in [None, ""]:
+                ws.range((1, 1)).value = [expected_columns]
+                first_empty_row = 2
+            else:
+                # Eerste lege rij bepalen op basis van kolom A
+                last_row = ws.range("A" + str(ws.cells.last_cell.row)).end("up").row
+                first_empty_row = max(last_row + 1, 2)
+
+            ws.range((first_empty_row, 1)).value = row_values
+
+            wb.save()
+
+            print(f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'.")
+
+        finally:
+            # Alleen sluiten als deze functie het workbook zelf heeft geopend
+            if opened_by_function and wb is not None:
+                wb.close()
+
+            if opened_by_function and app is not None:
+                app.quit()
+
+    def _add_results_openpyxl(self, path, export_name=None):
+        """Add results to template with openpyxl if platform is not Windows"""
         if export_name is None:
             export_name = "Template_PVtool5_0.xlsx"
         file_path = Path(path) / export_name
@@ -729,16 +919,12 @@ class CPhiAnalyse:
             "PV_TYPE_PROEF": self.analysis_type.split("_")[0],
             "PV_ANALYSE": self.analysis_type.split("_")[1],
             "PV_RESULTAAT_ID": f"{self.investigation_groups[0]}_{self.effective_stress}_"
-            f"{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
+                               f"{self.analysis_type.split('_')[0]}_{self.analysis_type.split('_')[1]}",
             "PV_TYPEVERZAMELING": self.alpha,
             "PV_A1_COH_GEM": round(self.gem_a1, 3) if self.gem_a1 is not None else None,
-            # TODO: gaat deze dan wel goed?
             "PV_A2_TAN_PHI_GEM": round(self.gem_a2, 3) if self.gem_a2 is not None else None,
-            # TODO: welke waarde? gem_a2 of tan_phi_gem
             "PV_A1_COH_KAR": round(self.kar_a1, 3) if self.kar_a1 is not None else None,
-            # TODO: gaat deze dan wel goed?
             "PV_A2_TAN_PHI_KAR": round(self.kar_a2, 3) if self.kar_a2 is not None else None,
-            # TODO: zelfde geld hier met kar_a2 of tan_phi_kar
             "PV_COH_GEM": (
                 round(self.c_gem, 3)
                 if self.c_gem is not None and self.c_gem >= 0
@@ -773,8 +959,11 @@ class CPhiAnalyse:
         if file_path.exists():
             wb = load_workbook(file_path)
         else:
-            template_path = Path(get_repo_root()) / "pv_tool" / "templates" / "Template_PVtool5_0.xlsx"
-            wb = load_workbook(template_path)
+            with importlib.resources.path(
+                "pv_tool_logic",
+                "Template_PVtool5_0.xlsx",
+            ) as template_path:
+                wb = load_workbook(template_path)
 
         if sheet_name in wb.sheetnames:
             ws = wb[sheet_name]
@@ -794,6 +983,7 @@ class CPhiAnalyse:
 
         wb.save(file_path)
         print(f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'.")
+
 
     @property
     def save_total_to_excel(self):

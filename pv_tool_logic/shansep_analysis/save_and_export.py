@@ -1,8 +1,5 @@
 from typing import TYPE_CHECKING, List
-from pandas import ExcelWriter, concat, DataFrame, read_excel
-from datetime import datetime
-from pv_tool_logic.utilities.utils import get_repo_root
-from openpyxl import load_workbook
+from pandas import ExcelWriter, DataFrame
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -11,7 +8,6 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from pv_tool_logic.imports.excel_utils import format_excel_sheet
 import plotly.graph_objects as go
 import numpy as np
-from pathlib import Path
 from reportlab.platypus import PageBreak, Image as RLImage
 
 try:
@@ -27,131 +23,30 @@ if TYPE_CHECKING:
     from pv_tool_logic.shansep_analysis.shansep_analysis import SHANSEP
 
 
-# def add_results_to_dbase(self: "SHANSEP", path: str,
-#                          file_name: str = 'Template_PVtool5_0.xlsx'):  # TODO deze wordt vervangen door add_results_to_template
-#     """
-#     Voegt de SHANSEP analyseresultaten toe aan de database Excel-bestand.
-#
-#     Parameters
-#     ----------
-#     self : SHANSEP
-#         Instantie van de SHANSEP analyse klasse
-#     path : str
-#         Pad naar de map waar het Excel-bestand staat
-#     file_name : str
-#         Naam van het Excel-bestand
-#
-#     Returns
-#     -------
-#     DataFrame
-#         Bijgewerkte DataFrame met alle resultaten
-#     """
-#     file_path = f"{path}/{file_name}"
-#
-#     # Run analysis to get results
-#     df_gem, df_kar = self.get_result_values_shansep()
-#
-#     # Expected columns structure voor SHANSEP resultaten
-#     expected_columns = [
-#         'PVNAAM', 'PV_REK', 'PV_TYPE_PROEF', 'PV_ANALYSE', 'PV_RESULTAAT_ID', 'PV_TYPEVERZAMELING',
-#         'PV_A1_SNIJPUNT_YAS_GEM [-]', 'PV_A2_S_GEM [-]', 'PV_m_GEM [-]', 'PV_POP_GEM [kPa]',
-#         'PV_A1_SNIJPUNT_YAS_KAR [-]', 'PV_A2_S_KAR [-]', 'PV_m_KAR [-]', 'PV_POP_KAR [kPa]',
-#         'PV_S_SD_DSTAB [-]', 'PV_m_SD_DSTAB [-]', 'PV_POP_SD_DSTAB [-]',
-#         'PV_VGWNAT_GEM [kN/m3]', 'PV_VGWNAT_SD [kN/m3]', 'PV_WATERGEHALTE_GEM', 'PV_WATERGEHALTE_SD',
-#         'Timestamp'
-#     ]
-#
-#     new_row = {
-#         'PVNAAM': self.investigation_groups[0],
-#         'PV_REK': self.effective_stress,
-#         'PV_TYPE_PROEF': self.analysis_type.split('_')[0],
-#         'PV_ANALYSE': '_'.join(self.analysis_type.split('_')[1:]),
-#         'PV_RESULTAAT_ID': f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type}",
-#         'PV_TYPEVERZAMELING': self.alpha,
-#         'PV_A1_SNIJPUNT_YAS_GEM [-]': round(self.snijpunt_gem_handmatig,
-#                                             3) if self.snijpunt_gem_handmatig is not None else None,
-#         'PV_A2_S_GEM [-]': round(self.s_gem_handmatig, 3) if self.s_gem_handmatig is not None else None,
-#         'PV_m_GEM [-]': round(self.m_gem_handmatig, 3) if self.m_gem_handmatig is not None else None,
-#         'PV_POP_GEM [kPa]': round(self.pop_gem_handmatig, 3) if self.pop_gem_handmatig is not None else None,
-#         'PV_A1_SNIJPUNT_YAS_KAR [-]': round(self.snijpunt_kar_handmatig,
-#                                             3) if self.snijpunt_kar_handmatig is not None else None,
-#         'PV_A2_S_KAR [-]': round(self.s_kar_handmatig, 3) if self.s_kar_handmatig is not None else None,
-#         'PV_m_KAR [-]': round(self.m_kar_handmatig, 3) if self.m_kar_handmatig is not None else None,
-#         'PV_POP_KAR [kPa]': round(self.pop_kar_handmatig, 3) if self.pop_kar_handmatig is not None else None,
-#         'PV_S_SD_DSTAB [-]': round(self.st_dev_s_handmatig, 3) if self.st_dev_s_handmatig is not None else None,
-#         'PV_m_SD_DSTAB [-]': round(self.st_dev_m_handmatig, 3) if self.st_dev_s_handmatig is not None else None,
-#         'PV_POP_SD_DSTAB [-]': round(self.st_dev_pop_handmatig, 3) if self.st_dev_pop_handmatig is not None else None,
-#         'PV_VGWNAT_GEM [kN/m3]': round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
-#         'PV_VGWNAT_SD [kN/m3]': round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
-#         'PV_WATERGEHALTE_GEM': round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None,
-#         'PV_WATERGEHALTE_SD': round(self.calc_watergehalte_sd, 3) if self.calc_watergehalte_sd is not None else None,
-#         'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-#     }
-#
-#     workbook = load_workbook(file_path)
-#
-#     if 'Resultaten SHANSEP' in workbook.sheetnames:
-#         print('Tabblad resultaten SHANSEP in dbase excel bestaat al en wordt aangevuld')
-#         df_existing = read_excel(file_path, sheet_name='Resultaten SHANSEP')
-#         # Filter out empty rows and ensure consistent types before concatenation
-#         df_existing = df_existing.dropna(how='all')
-#         # Ensure column headers are strings
-#         df_existing.columns = df_existing.columns.astype(str)
-#         new_row_df = DataFrame([new_row], columns=df_existing.columns)
-#         df_updated = concat([df_existing, new_row_df], ignore_index=True)
-#     else:
-#         print('Tabblad resultaten SHANSEP in dbase excel bestaat nog niet en wordt aangemaakt')
-#         df_updated = DataFrame([new_row], columns=expected_columns)
-#
-#     # Ensure all column headers are strings
-#     df_updated.columns = df_updated.columns.astype(str)
-#
-#     # Write data to Excel
-#     with ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
-#         df_updated.to_excel(writer, sheet_name='Resultaten SHANSEP', index=False)
-#
-#     # Formatting
-#     num_columns = df_updated.shape[1]
-#     num_rows = df_updated.shape[0]
-#     format_excel_sheet(
-#         file_path=file_path,
-#         sheet_name='Resultaten SHANSEP',
-#         num_columns=num_columns,
-#         num_rows=num_rows,
-#         table_name='ResultatenSHANSEPTable',
-#         index=False
-#     )
-#
-#     return df_updated
-
-
 def add_results_to_template(self: "SHANSEP", path, export_name=None):
     """
-    Voegt de SHANSEP analyseresultaten toe aan de database Excel-bestand.
+    Voegt de SHANSEP analyseresultaten toe aan de database Excel-bestand met xlwings.
 
-    Parameters
-    ----------
-    self: SHANSEP
-        Instantie van de SHANSEP analyse klasse
-    path
-        Pad naar de map waar het Excel-bestand staat
-    export_name
-        Naam van het Excel-bestand
-
-    Returns
-    -------
-    DataFrame
-        Bijgewerkte DataFrame met alle resultaten
+    Hiermee blijven dropdowns, data-validaties en andere Excel-specifieke objecten behouden.
     """
+
+    import importlib.resources
+    from pathlib import Path
+    from datetime import datetime
+
+    import xlwings as xw
+
     if export_name is None:
         export_name = "Template_PVtool5_0.xlsx"
+
     file_path = Path(path) / export_name
+    file_path = file_path.resolve()
+
     sheet_name = "Resultaten SHANSEP"
 
     # Run analysis to get results
     _, _ = self.get_result_values_shansep()
 
-    # Expected columns structure voor SHANSEP resultaten
     expected_columns = [
         "PV_NAAM",
         "PV_REK",
@@ -185,68 +80,157 @@ def add_results_to_template(self: "SHANSEP", path, export_name=None):
         "PV_RESULTAAT_ID": f"{self.investigation_groups[0]}_{self.effective_stress}_{self.analysis_type}",
         "PV_TYPEVERZAMELING": self.alpha,
         "PV_A1_SNIJPUNT_YAS_GEM": (
-            round(self.snijpunt_gem_handmatig, 3) if self.snijpunt_gem_handmatig is not None else None
+            round(self.snijpunt_gem_handmatig, 3)
+            if self.snijpunt_gem_handmatig is not None
+            else None
         ),
-        "PV_A2_S_GEM": round(self.s_gem_handmatig, 3) if self.s_gem_handmatig is not None else None,
-        "PV_m_GEM": round(self.m_gem_handmatig, 3) if self.m_gem_handmatig is not None else None,
-        "PV_POP_GEM": round(self.pop_gem_handmatig, 3) if self.pop_gem_handmatig is not None else None,
+        "PV_A2_S_GEM": (
+            round(self.s_gem_handmatig, 3)
+            if self.s_gem_handmatig is not None
+            else None
+        ),
+        "PV_m_GEM": (
+            round(self.m_gem_handmatig, 3)
+            if self.m_gem_handmatig is not None
+            else None
+        ),
+        "PV_POP_GEM": (
+            round(self.pop_gem_handmatig, 3)
+            if self.pop_gem_handmatig is not None
+            else None
+        ),
         "PV_A1_SNIJPUNT_YAS_KAR": (
-            round(self.snijpunt_kar_handmatig, 3) if self.snijpunt_kar_handmatig is not None else None
+            round(self.snijpunt_kar_handmatig, 3)
+            if self.snijpunt_kar_handmatig is not None
+            else None
         ),
-        "PV_A2_S_KAR": round(self.s_kar_handmatig, 3) if self.s_kar_handmatig is not None else None,
-        "PV_m_KAR": round(self.m_kar_handmatig, 3) if self.m_kar_handmatig is not None else None,
-        "PV_POP_KAR": round(self.pop_kar_handmatig, 3) if self.pop_kar_handmatig is not None else None,
-        "PV_S_SD_DSTAB": round(self.st_dev_s_handmatig, 3) if self.st_dev_s_handmatig is not None else None,
-        "PV_m_SD_DSTAB": round(self.st_dev_m_handmatig, 3) if self.st_dev_s_handmatig is not None else None,
-        "PV_POP_SD_DSTAB": round(self.st_dev_pop_handmatig, 3) if self.st_dev_pop_handmatig is not None else None,
-        "PV_VGWNAT_GEM": round(self.calc_vgwnat_gem, 3) if self.calc_vgwnat_gem is not None else None,
-        "PV_VGWNAT_SD": round(self.calc_vgwnat_sd, 3) if self.calc_vgwnat_sd is not None else None,
-        "PV_WATERGEHALTE_GEM": round(self.calc_watergehalte_gem, 3) if self.calc_watergehalte_gem is not None else None,
-        "PV_WATERGEHALTE_SD": round(self.calc_watergehalte_sd, 3) if self.calc_watergehalte_sd is not None else None,
+        "PV_A2_S_KAR": (
+            round(self.s_kar_handmatig, 3)
+            if self.s_kar_handmatig is not None
+            else None
+        ),
+        "PV_m_KAR": (
+            round(self.m_kar_handmatig, 3)
+            if self.m_kar_handmatig is not None
+            else None
+        ),
+        "PV_POP_KAR": (
+            round(self.pop_kar_handmatig, 3)
+            if self.pop_kar_handmatig is not None
+            else None
+        ),
+        "PV_S_SD_DSTAB": (
+            round(self.st_dev_s_handmatig, 3)
+            if self.st_dev_s_handmatig is not None
+            else None
+        ),
+        "PV_m_SD_DSTAB": (
+            round(self.st_dev_m_handmatig, 3)
+            if self.st_dev_m_handmatig is not None
+            else None
+        ),
+        "PV_POP_SD_DSTAB": (
+            round(self.st_dev_pop_handmatig, 3)
+            if self.st_dev_pop_handmatig is not None
+            else None
+        ),
+        "PV_VGWNAT_GEM": (
+            round(self.calc_vgwnat_gem, 3)
+            if self.calc_vgwnat_gem is not None
+            else None
+        ),
+        "PV_VGWNAT_SD": (
+            round(self.calc_vgwnat_sd, 3)
+            if self.calc_vgwnat_sd is not None
+            else None
+        ),
+        "PV_WATERGEHALTE_GEM": (
+            round(self.calc_watergehalte_gem, 3)
+            if self.calc_watergehalte_gem is not None
+            else None
+        ),
+        "PV_WATERGEHALTE_SD": (
+            round(self.calc_watergehalte_sd, 3)
+            if self.calc_watergehalte_sd is not None
+            else None
+        ),
         "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
-    workbook = load_workbook(file_path)
+    row_values = [[new_row.get(col, "") for col in expected_columns]]
 
-    if "Resultaten SHANSEP" in workbook.sheetnames:
-        df_existing = read_excel(file_path, sheet_name="Resultaten SHANSEP")
-        # Filter out empty rows and ensure consistent types before concatenation
-        df_existing = df_existing.dropna(how="all")
-        # Ensure column headers are strings
-        df_existing.columns = df_existing.columns.astype(str)
-        new_row_df = DataFrame([new_row], columns=df_existing.columns)
-        df_updated = concat([df_existing, new_row_df], ignore_index=True)
-    else:
-        df_updated = DataFrame([new_row], columns=expected_columns)
+    app = None
+    wb = None
+    opened_by_function = False
 
-    # Ensure all column headers are strings
-    df_updated.columns = df_updated.columns.astype(str)
+    try:
+        # Probeer eerst een reeds geopend workbook te vinden
+        for app_instance in xw.apps:
+            for wb_instance in app_instance.books:
+                try:
+                    if Path(wb_instance.fullname).resolve() == file_path:
+                        wb = wb_instance
+                        break
+                except Exception:
+                    pass
 
-    if file_path.exists():
-        wb = load_workbook(file_path)
-    else:
-        template_path = Path(get_repo_root()) / "pv_tool" / "templates" / "Template_PVtool5_0.xlsx"
-        wb = load_workbook(template_path)
+            if wb is not None:
+                break
 
-    if sheet_name in wb.sheetnames:
-        ws = wb[sheet_name]
-        first_empty_row = (
-            ws.max_row + 1
-            if any(ws.iter_rows(min_row=ws.max_row, max_row=ws.max_row, values_only=True))
-            else ws.max_row
-        )
-    else:
-        ws = wb.create_sheet(sheet_name)
-        for col_idx, col_name in enumerate(expected_columns, start=1):
-            ws.cell(row=1, column=col_idx, value=col_name)
-        first_empty_row = 2
+        # Als het workbook niet open staat, open het onzichtbaar
+        if wb is None:
+            app = xw.App(visible=False)
+            app.display_alerts = False
+            app.screen_updating = False
 
-    for col_idx, col_name in enumerate(expected_columns, start=1):
-        ws.cell(row=first_empty_row, column=col_idx, value=new_row.get(col_name, ""))
+            if file_path.exists():
+                wb = app.books.open(str(file_path))
+            else:
+                with importlib.resources.path(
+                    "pv_tool_logic.templates",
+                    "Template_PVtool5_0.xlsx",
+                ) as template_path:
+                    wb = app.books.open(str(template_path))
+                    wb.save(str(file_path))
 
-    wb.save(file_path)
-    print(f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'.")
+            opened_by_function = True
 
+        # Sheet ophalen of aanmaken
+        sheet_names = [sheet.name for sheet in wb.sheets]
+
+        if sheet_name in sheet_names:
+            ws = wb.sheets[sheet_name]
+        else:
+            ws = wb.sheets.add(sheet_name, after=wb.sheets[-1])
+            ws.range((1, 1)).value = [expected_columns]
+
+        # Headers schrijven als sheet leeg is
+        if ws.range((1, 1)).value in [None, ""]:
+            ws.range((1, 1)).value = [expected_columns]
+
+        # Eerste lege rij bepalen op basis van kolom A
+        last_row = ws.range("A" + str(ws.cells.last_cell.row)).end("up").row
+
+        if last_row == 1 and ws.range((1, 1)).value in [None, ""]:
+            ws.range((1, 1)).value = [expected_columns]
+            first_empty_row = 2
+        else:
+            first_empty_row = max(last_row + 1, 2)
+
+        # Nieuwe resultatenrij schrijven
+        ws.range((first_empty_row, 1)).value = row_values
+
+        wb.save()
+
+        print(f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'.")
+
+    finally:
+        # Alleen sluiten als deze functie het workbook zelf heeft geopend
+        if opened_by_function and wb is not None:
+            wb.close()
+
+        if opened_by_function and app is not None:
+            app.quit()
 
 def save_total_to_excel(self: "SHANSEP", path: str):
     """

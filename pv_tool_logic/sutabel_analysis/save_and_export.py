@@ -8,7 +8,8 @@ naar Excel en PDF-formaat.
 from typing import TYPE_CHECKING, List
 from pandas import ExcelWriter, concat, DataFrame, read_excel
 from datetime import datetime
-from pv_tool_logic.utilities.utils import get_repo_root
+import xlwings as xw
+import importlib.resources
 from openpyxl import load_workbook
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
@@ -164,7 +165,7 @@ def add_results_to_template(self: "SUTABEL", path, export_name=None):
     """
     if export_name is None:
         export_name = "Template_PVtool5_0.xlsx"
-    file_path = Path(path) / export_name
+    file_path = (Path(path) / export_name).resolve()
     sheet_name = "Resultaten SU-tabel-m"
 
     if self.sutabel_grafiek is None or self.e_a1_sutabel is None:
@@ -293,31 +294,97 @@ def add_results_to_template(self: "SUTABEL", path, export_name=None):
             round(self.sutabel_grafiek["su_kar"].iloc[6], 3) if self.sutabel_grafiek is not None else None
         ),
     }
-    header_row = 7  # consistent met skiprows=6 in get_previous_results
 
-    wb = load_workbook(file_path)
+    header_row = 7
 
-    if sheet_name in wb.sheetnames:
-        ws = wb[sheet_name]
+    app = None
+    wb = None
+    opened_by_function = False
+
+    try:
+        # Zoek eerst naar reeds geopend workbook
+        for app_instance in xw.apps:
+            for wb_instance in app_instance.books:
+                try:
+                    if Path(wb_instance.fullname).resolve() == file_path:
+                        wb = wb_instance
+                        break
+                except Exception:
+                    pass
+
+            if wb is not None:
+                break
+
+        # Niet open -> onzichtbaar openen
+        if wb is None:
+            app = xw.App(visible=False)
+            app.display_alerts = False
+            app.screen_updating = False
+
+            if file_path.exists():
+                wb = app.books.open(str(file_path))
+            else:
+                with importlib.resources.path(
+                        "pv_tool_logic.templates",
+                        "Template_PVtool5_0.xlsx"
+                ) as template_path:
+
+                    wb = app.books.open(str(template_path))
+                    wb.save(str(file_path))
+
+            opened_by_function = True
+
+        # Sheet ophalen of aanmaken
+        sheet_names = [sheet.name for sheet in wb.sheets]
+
+        if sheet_name in sheet_names:
+            ws = wb.sheets[sheet_name]
+        else:
+            ws = wb.sheets.add(sheet_name, after=wb.sheets[-1])
+
+            # headers wegschrijven op rij 7
+            ws.range((header_row, 1)).value = [expected_columns]
+
+        # Headers controleren
+        if ws.range((header_row, 1)).value in [None, ""]:
+            ws.range((header_row, 1)).value = [expected_columns]
+
+        # Bestaande kolommen uitlezen
+        last_col = ws.range((header_row, ws.cells.last_cell.column)).end("left").column
+
         col_name_to_idx = {
-            ws.cell(row=header_row, column=col).value: col
-            for col in range(1, ws.max_column + 1)
-            if ws.cell(row=header_row, column=col).value is not None
+            ws.range((header_row, col)).value: col
+            for col in range(1, last_col + 1)
+            if ws.range((header_row, col)).value is not None
         }
-        first_empty_row = ws.max_row + 1
-    else:
-        ws = wb.create_sheet(sheet_name)
-        col_name_to_idx = {}
-        for col_idx, col_name in enumerate(expected_columns, start=1):
-            ws.cell(row=header_row, column=col_idx, value=col_name)
-            col_name_to_idx[col_name] = col_idx
-        first_empty_row = header_row + 1
 
-    for col_name, col_idx in col_name_to_idx.items():
-        ws.cell(row=first_empty_row, column=col_idx, value=new_row.get(col_name, ""))
+        # Eerste lege rij bepalen
+        last_row = ws.range(
+            "A" + str(ws.cells.last_cell.row)
+        ).end("up").row
 
-    wb.save(file_path)
-    print(f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'.")
+        first_empty_row = max(last_row + 1, header_row + 1)
+
+        # Resultaatregel schrijven
+        for col_name, col_idx in col_name_to_idx.items():
+            ws.range((first_empty_row, col_idx)).value = new_row.get(
+                col_name,
+                ""
+            )
+
+        wb.save()
+
+        print(
+            f"Resultaat toegevoegd aan template in tabblad '{sheet_name}'."
+        )
+
+    finally:
+
+        if opened_by_function and wb is not None:
+            wb.close()
+
+        if opened_by_function and app is not None:
+            app.quit()
 
 
 def _create_sutabel_input_table(self: "SUTABEL") -> Table:

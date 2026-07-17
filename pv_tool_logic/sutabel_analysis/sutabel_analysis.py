@@ -1,4 +1,6 @@
 import math
+import shutil, tempfile
+
 from pv_tool_logic.imports.import_data import Dbase
 from typing import Optional, List, Literal
 from pv_tool_logic.shansep_analysis.globals import TEXTUAL_NAMES, NEW_COLUMN_NAMES, TEXTUAL_NAMES_DSS
@@ -188,6 +190,18 @@ class SUTABEL:
             self.total_sutabel_data_df = self.sutabel_data_df.copy()
             self.sutabel_data_df = self.sutabel_data_df[TEXTUAL_NAMES_DSS.get(self.effective_stress, [])].copy()
 
+            # Controleer of er data is gevonden
+            if self.sutabel_data_df.empty:
+                raise ValueError(
+                    f"Geen data gevonden na filtering op investigation_groups {self.investigation_groups} "
+                    f"en effective_stress '{self.effective_stress}' "
+                    f"voor analyse type '{self.analysis_type}'"
+                )
+            # Check of minimaal 3 proeven in verzameling
+            if len(self.sutabel_data_df) < 3:
+                raise ValueError(f"Minimaal 3 proeven nodig voor het uitvoeren van de analyse."
+                                 f"Gevonden: {len(self.sutabel_data_df)}")
+
         self.sutabel_data_df.columns = NEW_COLUMN_NAMES
 
     def get_previous_results(self, path: str, file_name: str):
@@ -209,17 +223,16 @@ class SUTABEL:
 
         file_path = f"{path}/{file_name}"
 
-        try:
-            with open(file_path, "r"):
-                pass
-        except FileNotFoundError:
+        if not Path(file_path).exists():
             raise FileNotFoundError(f"Er is geen dbase aanwezig op de locatie {file_path}.")
 
+        tmp = tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False)
+        shutil.copy2(file_path, tmp.name)
+        tmp.close()
         try:
-            results_df = read_excel(file_path, sheet_name="Resultaten SU-tabel-m", skiprows=6)
-        except ValueError:
-            print("Er is geen tabblad 'Resultaten' aanwezig in het Excel-bestand.")
-            return None
+            results_df = read_excel(tmp.name, sheet_name="Resultaten SU-tabel-m", skiprows=6)
+        finally:
+            Path(tmp.name).unlink(missing_ok=True)
 
         filtered_df = results_df[
             (results_df["PV_RESULTAAT_ID"].str.contains(self.investigation_groups[0]))

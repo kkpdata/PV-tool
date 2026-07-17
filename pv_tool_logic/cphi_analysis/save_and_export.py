@@ -94,7 +94,9 @@ def _create_input_table(self: "CPhiAnalyse") -> Table:
         "Watergehalte voor",
     ]
     table1_df = concat([table1_df, columns_data], axis=1)
-    table1_df = table1_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
+
+    # table1_df = table1_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
+    table1_df = table1_df.applymap(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
 
     t1_data = _df_to_table_with_index(table1_df, index_name="alg_boring_monsternummer_id")
     t1 = LongTable(t1_data, repeatRows=1, hAlign="LEFT")
@@ -179,7 +181,8 @@ def _create_results_table(self: "CPhiAnalyse") -> Table:
     """
     output_table_df = self.get_short_results().copy()
     output_table_df.index.name = "Parameter"
-    output_table_df = output_table_df.map(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
+    output_table_df = output_table_df.applymap(lambda x: f"{x:.2f}" if isinstance(x, (float, int)) else x)
+
     output_table_data = _df_to_table_with_index(output_table_df)
     output_table = Table(output_table_data, repeatRows=1, hAlign="LEFT")
     output_table.setStyle(

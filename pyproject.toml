@@ -10,7 +10,7 @@ show_missing = true
 
 [tool.poetry]
 name = "pv_tool_logic"
-version = "1.0.0"
+version = "1.1.0"
 description = "Proevenverzamelingtool voor het opstellen van lokale of regionale proevenverzamelingen voor het bepalen van geotechnische parameters."
 authors = [
     "Tjalda Deenekamp <tjalda.deenekamp@arcadis.nl>",
@@ -38,6 +38,7 @@ scipy = "^1.17.1"
 matplotlib = "^3.10.8"
 plotly = "^6.6.0"
 openpyxl = "^3.1.5"
+xlwings = "0.33.16"
 gitpython = "^3.1.46"
 pandas-schema = "^0.3.6"
 xlsxwriter = "^3.2.9"

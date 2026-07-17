@@ -1,6 +1,11 @@
+![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-blue)
+![Poetry](https://img.shields.io/badge/Poetry-managed-blueviolet)
 ![Coverage](./readme_images/coverage.svg)
 
 # STOWA Proevenverzameling tool v5.0
+
+> Dit project gebruikt Poetry voor dependency management.
+> Installatie via requirements.txt wordt niet ondersteund.
 
 De PV-tool (Proevenverzameling tool) is een Python-gebaseerde tooling voor het opstellen van lokale of regionale proevenverzamelingen voor het bepalen van geotechnische parameters. De methode is ontwikkeld voor het uitvoeren van analyses in relatie tot de geotechnische stabiliteit van dijken, maar kan ook breder worden toegepast.
 
@@ -11,7 +16,8 @@ bepaald.
 De functies zijn opgesteld conform de werkwijze beschreven in *Statistische methoden t.b.v. proevenverzamelingen, 
 DIV, v1.0*. 
 
-Zie tevens: https://publicwiki.deltares.nl/spaces/HWBPMacro/pages/217120830/Sterkte+van+grond#Sterktevangrond-150
+Zie tevens:
+[Deltares Wiki - Sterkte van grond](https://publicwiki.deltares.nl/spaces/HWBPMacro/pages/217120830/Sterkte+van+grond#Sterktevangrond-150)
 
 De tool bevat tevens hulpmiddelen voor het onderscheiden of samenvoegen van groepen in een verzameling op basis van 
 verschillende kenmerken.
@@ -25,36 +31,62 @@ van proefresultaten.
 
 ## Inhoudsopgave
 [Installatie](#installatie)<br>
-[Gebruik](#gebruik)<br>
+[Gebruik in Jupyter Notebook](#gebruik-in-jupyter-notebook)<br>
+[Gebruik met Python code](#gebruik-met-python-code)<br>
 [Functionaliteiten](#functionaliteiten)<br>
 [Referenties](#referenties)<br>
 
 ## Installatie
-Indien je de tool niet via Jupiter Notebook wil gebruiken, dien je volgende stappen te volgen voor de installatie 
+Indien je de tool niet via Jupyter Notebook wilt gebruiken, dien je volgende stappen te volgen voor de installatie 
 van de tool.
 
-1. Clone the repository
+### Vereisten
+- Python 3.11 of 3.12
+- Poetry
+
+> Getest met Python 3.11 en 3.12
+
+### Clone the repository
 
 ```bash
 git clone https://github.com/PVorganization/PV-tool.git
+cd PV-tool
 ```
 
-2. Install requirements for package management
+### Dependencies installeren
 
 ```bash
-pip install -r requirements.txt
+poetry install
 ```
 
-## Gebruik
+### Virtuele omgeving activeren (optioneel)
+
+```bash
+poetry shell
+```
+
+Of voer commando's direct uit met:
+
+```bash
+poetry run python script.py
+```
+
+## Gebruik in Jupyter Notebook
 In Jupyter Notebook is een werkomgeving ontwikkeld, waardoor het mogelijk is om de PV-tool te gebruiken zonder kennis 
 van Python. 
 
-De Notebook is te vinden onder:
+Start Jupyter vanuit de Poetry omgeving:
 
 ```bash
-jupyter notebook PV_tool1.0.ipynb
+poetry run jupyter notebook
 ```
 
+Open vervolgens:
+```text
+PV_tool1.1.0.ipynb
+```
+
+## Gebruik met Python code
 Daarnaast is het ook mogelijk om de tool direct te gebruiken met de ontwikkelde python code. Hieronder worden in 
 verschillende stappen het gebruik van de code beschreven.
 
@@ -75,7 +107,7 @@ De validatie bestaat uit:
 - Export van validatieresultaten naar Excel-bestanden
 
 ```python
-from pv_tool.imports.import_data import Dbase
+from pv_tool_logic.imports.import_data import Dbase
 
 dbase = Dbase()
 dbase.import_data(source="Dbase", source_dir="pad/naar/bestand.xlsx")
@@ -94,7 +126,7 @@ tussen een analyse bij 2%, 5%, 15%, pieksterkte en eindsterkte. Voor de DSS-anal
 De C-phi analyse bepaalt cohesie en hoek van inwendige wrijving uit triaxiaal- of DSS-proeven.
 
 ```python
-from pv_tool.cphi_analysis.c_phi_analysis import CPhiAnalyse
+from pv_tool_logic.cphi_analysis.c_phi_analysis import CPhiAnalyse
 
 # Stel de onderzoeksgroep(en) in (PV_NAAM)
 investigation_groups = ['TXT_SAFE_klei_licht_16_175']
@@ -136,7 +168,7 @@ tussen een analyse bij 2%, 5%, 15%, pieksterkte en eindsterkte. Voor de DSS-anal
 20%, eindsterkte of pieksterkte.
 
 ```python
-from pv_tool.shansep_analysis.shansep_analysis import SHANSEP
+from pv_tool_logic.shansep_analysis.shansep_analysis import SHANSEP
 
 # Stel de onderzoeksgroep(en) in
 investigation_groups = ['TXT_SAFE_klei_licht_16_175']
@@ -178,7 +210,7 @@ analyse.save_to_pdf(path='path/to/export_location')
 De Su-tabel analyse stelt tabellen op voor ongedraineerde schuifsterkte als functie van de diepte.
 
 ```python
-from pv_tool.sutabel_analysis.sutabel_analysis import SUTABEL
+from pv_tool_logic.sutabel_analysis.sutabel_analysis import SUTABEL
 
 # Stel de onderzoeksgroep(en) in
 investigation_groups = ['TXT_SAFE_klei_licht_16_175']
@@ -318,5 +350,5 @@ De tool genereert verschillende output-bestanden:
 ## Referenties
 
 - STOWA Proevenverzameling methodiek
-- Deltares wiki: https://publicwiki.deltares.nl/spaces/HWBPMacro/pages/217120830/Sterkte+van+grond
-- GitHub repository: https://github.com/kkpdata/Proevenverzamelingentool/
+- [Deltares Wiki - Sterkte van grond](https://publicwiki.deltares.nl/spaces/HWBPMacro/pages/217120830/Sterkte+van+grond)
+- [GitHub PV-tool repository](https://github.com/kkpdata/Proevenverzamelingentool/)

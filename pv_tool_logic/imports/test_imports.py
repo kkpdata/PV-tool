@@ -11,7 +11,7 @@ FILE_PATH = os.path.join(get_repo_root(), "test_files")
 def test_import_dbase_data():
     """Test implemented. Do not change input."""
     dbase = Dbase()
-    source_dir = Path(os.path.join(FILE_PATH, "Dbase.xlsx"))
+    source_dir = Path(os.path.join(FILE_PATH, "Template_PVtool5_0.xlsx"))
     dbase.import_data(source="Dbase", source_dir=source_dir)
     assert True
 
@@ -19,7 +19,7 @@ def test_import_dbase_data():
 def test_import_stowa_data():
     """Test implemented. Do not change input."""
     dbase = Dbase()
-    source_dir = Path(os.path.join(FILE_PATH, "STOWA.xlsx"))
+    source_dir = Path(os.path.join(FILE_PATH, "STOWA_uitwisselformat.xlsx"))
     dbase.import_data(source="Stowa", source_dir=source_dir)
     assert True
 
@@ -27,14 +27,14 @@ def test_import_stowa_data():
 def test_import_pv_data():
     """Test implemented. Do not change input."""
     dbase = Dbase()
-    source_dir = Path(os.path.join(FILE_PATH, "PV-tool.xlsm"))
+    source_dir = Path(os.path.join(FILE_PATH, "PV-tool_4.2n.xlsm"))
     dbase.import_data(source="PV-tool", source_dir=source_dir)
     assert True
 
 
 def test_validate():
     dbase = Dbase()
-    source_dir = Path(os.path.join(FILE_PATH, "Dbase.xlsx"))
+    source_dir = Path(os.path.join(FILE_PATH, "Template_PVtool5_0.xlsx"))
     dbase.import_data(source="Dbase", source_dir=source_dir)
 
     repo_root = get_repo_root()

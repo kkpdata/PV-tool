@@ -18,7 +18,7 @@ def test_sutabel_analyse():
     Test geïmplementeerd. Verander de invoer niet.
     """
     dbase = Dbase()
-    source_dir = Path(os.path.join(FILE_PATH, "Dbase.xlsx"))
+    source_dir = Path(os.path.join(FILE_PATH, "Template_PVtool5_0.xlsx"))
     dbase.import_data(source="Dbase", source_dir=source_dir)
     export_name = "Template_PVtool5_0.xlsx"
     dbase.export_dbase_to_template(export_dir=export_dir)
@@ -28,10 +28,10 @@ def test_sutabel_analyse():
 
     for analysis_type in analysis_types:
         if analysis_type == "DSS_su_tabel":
-            ig = ["DSS_SAFE_veen"]
+            ig = ["DSS_voorbeeld"]
             es = "20% rek"
         else:
-            ig = ["TXT_SAFE_klei_licht_16_175"]
+            ig = ["TXT_voorbeeld"]
             es = "15% rek"
 
         analyse = SUTABEL(dbase=dbase, investigation_groups=ig, effective_stress=es, analysis_type=analysis_type)

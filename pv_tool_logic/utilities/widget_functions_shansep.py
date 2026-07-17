@@ -204,6 +204,18 @@ def run_shansep_analysis(
     analyse.get_shansep_data()
     df_gem, df_kar = analyse.get_result_values_shansep()
 
+    if analyse.e_a2_nc_oc > 1:
+        print(
+            "Waarschuwing: De inschatting van de gemiddelde waarde van m is groter dan 1. "
+            "Dit is fysisch niet mogelijk. Overweeg om deze waarde aan te passen."
+        )
+
+    if analyse.a2_kar_nc_oc > 1:
+        print(
+            "Waarschuwing: De inschatting van de karakteristieke waarde van m is groter dan 1. "
+            "Dit is fysisch niet mogelijk. Overweeg om deze waarde aan te passen."
+        )
+
     # Ophalen laatste resultaten
     handmatig = get_laatste_resultaten_shansep(
         analyse, import_dropdown, import_filechooser, export_dir_widget, export_name_widget
@@ -238,9 +250,11 @@ def get_laatste_resultaten_shansep(
         export_dir = (
             export_dir_widget.selected_path if hasattr(export_dir_widget, "selected_path") else export_dir_widget
         )
+
         export_name = export_name_widget.value if hasattr(export_name_widget, "value") else export_name_widget
-        if not export_name.lower().endswith(".xlsx"):
-            export_name += ".xlsx"
+        print(f"Export name: {export_name}")
+
+
     laatste_resultaten = analyse.get_previous_results(path=export_dir, file_name=export_name)
     if (
         laatste_resultaten is not None

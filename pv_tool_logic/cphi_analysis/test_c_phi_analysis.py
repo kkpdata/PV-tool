@@ -1,6 +1,5 @@
 import os.path
 import unittest
-from typing import Literal
 
 from pv_tool_logic.imports.import_data import Dbase
 from pv_tool_logic.utilities.utils import get_repo_root, make_temp_folder
@@ -16,22 +15,23 @@ export_dir = Path(export_dir)
 def test_cphi_analyse():
     """Test implemented. Do not change input."""
     dbase = Dbase()
-    source_dir = Path(os.path.join(FILE_PATH, "Dbase.xlsx"))
+    source_dir = Path(os.path.join(FILE_PATH, "Template_PVtool5_0.xlsx"))
     dbase.import_data(source="Dbase", source_dir=source_dir)
     export_name = "Template_PVtool5_0.xlsx"
     dbase.export_dbase_to_template(export_dir=export_dir)
 
     # Initialize analysis
-    analysis_types: list[Literal["TXT_CPhi", "TXT_SH", "DSS_CPhi", "DSS_SH"]] = [
-        "TXT_CPhi",
-        "TXT_SH",
-        "DSS_CPhi",
-        "DSS_SH",
+    analysis_configs = [
+        ("TXT_CPhi", ['TXT_voorbeeld']),
+        ("TXT_SH", ['TXT_voorbeeld']),
+        ("DSS_CPhi", ['DSS_voorbeeld']),
+        ("DSS_SH", ['DSS_voorbeeld']),
     ]
-    for analysis_type in analysis_types:
+
+    for analysis_type, investigation_groups in analysis_configs:
         analyse = CPhiAnalyse(
             dbase=dbase,
-            investigation_groups=["TXT_SAFE_klei_licht_16_175"],
+            investigation_groups=investigation_groups,
             effective_stress="15% rek",
             analysis_type=analysis_type,
         )
@@ -59,12 +59,12 @@ class TestImportAndValidate(unittest.TestCase):
     def test_creating_figures(self):
         """Test het aanmaken van figuren en save_fig_html functionaliteit voor CPhiAnalyse."""
         dbase = Dbase()
-        source_dir = Path(os.path.join(FILE_PATH, "Dbase.xlsx"))
+        source_dir = Path(os.path.join(FILE_PATH, "Template_PVtool5_0.xlsx"))
         dbase.import_data(source="Dbase", source_dir=source_dir)
 
         analyse = CPhiAnalyse(
             dbase=dbase,
-            investigation_groups=["TXT_SAFE_klei_licht_16_175"],
+            investigation_groups=["TXT_voorbeeld"],
             effective_stress="15% rek",
             analysis_type="TXT_CPhi",
         )
