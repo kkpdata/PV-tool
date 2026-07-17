@@ -48,3 +48,9 @@ ipywidgets = "^8.1.8"
 ipyfilechooser = "^0.6.0"
 ipython = "^9.12.0"
 pillow = "^12.1.1"
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.1.1,<10.0.0)",
+    "coverage (>=7.15.2,<8.0.0)"
+]
