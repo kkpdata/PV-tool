@@ -141,8 +141,11 @@ class Dbase:
         try:
             export_path = Path(export_to).resolve()
 
+            print("Zoek open workbooks")
             for app_instance in xw.apps:
+                print("App gevonden")
                 for wb_instance in app_instance.books:
+                    print(wb_instance.name)
                     try:
                         if Path(wb_instance.fullname).resolve() == export_path:
                             wb = wb_instance
@@ -179,6 +182,9 @@ class Dbase:
                 )
 
             ws = wb.sheets[sheet_name]
+
+            if ws.api.FilterMode:
+                ws.api.ShowAllData()
 
             last_row = ws.used_range.last_cell.row
             last_col = ws.used_range.last_cell.column

@@ -106,20 +106,24 @@ def add_extra_proefresultaten_sv_su(self: SHANSEP, extra_groepen: Optional[List]
     boring_monsternummer = df.index
 
     n = 0
+    kleur_mapping = {
+        groep: EXTRA_GROEPEN_KLEUREN[i % len(EXTRA_GROEPEN_KLEUREN)]
+        for i, groep in enumerate(extra_groepen)
+    }
     for naam in df["PV_NAAM"].unique():
         sub_df = df[df["PV_NAAM"] == naam]
         x_extra_proefresultaten = sub_df["S'v"]
         y_extra_proefresultaten = sub_df["Su"]
-        kleur = EXTRA_GROEPEN_KLEUREN[n % len(EXTRA_GROEPEN_KLEUREN)]
+        kleur = kleur_mapping.get(naam, "black")
 
         self.figure_sv_su.add_trace(
             go.Scatter(
                 x=x_extra_proefresultaten,
                 y=y_extra_proefresultaten,
                 mode="markers",
-                marker=dict(color=kleur),
-                name=f"Extra: {extra_groepen[n]}",
-                text=boring_monsternummer,
+                marker=dict(color=kleur_mapping.get(naam, "black")),
+                name=f"Extra: {naam}",
+                text=sub_df.index,
                 hoverinfo="text",
             )
         )
