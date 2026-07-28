@@ -34,9 +34,8 @@ def make_grens_df(
         "BORING_POSITIE",
         "ANA_GRENSSPANNING_PROEF",
         "ANA_GRENSSPANNING_VOORSTEL",
-        "ANA_GRENSSPANNING_REKEN",
-        "ANA_POP_VELD",
-        "ANA_POP_VELD_GEMIDDELD",
+        "ANA_GRENSSPANNING_HANDMATIG",
+        "ANA_TERREINSPANNING",
         "OCR_TXT",
         "OCR_DSS",
     ]
@@ -82,10 +81,9 @@ def make_grens_df(
 
         grensspanning_proef = row["ANA_GRENSSPANNING_PROEF"]
         grensspanning_voorstel = row["ANA_GRENSSPANNING_VOORSTEL"]
-        grensspanning_reken = row["ANA_GRENSSPANNING_REKEN"]
+        grensspanning_handmatig = row["ANA_GRENSSPANNING_HANDMATIG"]
 
-        pop_veld = row["ANA_POP_VELD"]
-        pop_veld_gem = row["ANA_POP_VELD_GEMIDDELD"]
+        terreinspanning = row["ANA_TERREINSPANNING"]
 
         ocr_txt_val = row.get("OCR_TXT")
         ocr_dss_val = row.get("OCR_DSS")
@@ -101,7 +99,6 @@ def make_grens_df(
             volumegewicht = row[volw_col]
 
             if pd.notna(diepte) and diepte != "":
-                # Deze check volgt je originele logica:
                 # NaN volumegewicht wordt overgeslagen, lege string blijft staan.
                 if pd.isna(volumegewicht) and volumegewicht != "":
                     continue
@@ -115,11 +112,12 @@ def make_grens_df(
                     "diepte": diepte,
                     "volumegewicht": volumegewicht,
                     "grensspanning": None,
-                    "grensspanning_reken": None,
+                    "grensspanning_aangenomen": None,
+                    "terreinspanning": terreinspanning,
                     "ocr": None,
                     "ocr_aangenomen": None,
                     "pop": None,
-                    "pop_gem": None,
+                    "pop_aangenomen": None,
                 }
 
                 # OCR
@@ -136,26 +134,46 @@ def make_grens_df(
                 # Grensspanning / POP
                 if proef == "CLAS":
                     record["grensspanning"] = None
-                    record["grensspanning_reken"] = None
+                    record["grensspanning_aangenomen"] = None
                     record["pop"] = None
-                    record["pop_gem"] = None
-
-                elif proef in ["CRS", "SD"]:
-                    record["grensspanning"] = grensspanning_proef
-                    record["grensspanning_reken"] = None
-                    record["pop"] = pop_veld
-                    record["pop_gem"] = None
+                    record["pop_aangenomen"] = None
 
                 else:
-                    # TXT, DSS
-                    record["grensspanning"] = (
-                        grensspanning_reken if pd.notna(grensspanning_proef) else None
-                    )
-                    record["grensspanning_reken"] = (
-                        grensspanning_voorstel if pd.isna(grensspanning_proef) else None
-                    )
-                    record["pop"] = pop_veld if pd.notna(grensspanning_proef) else None
-                    record["pop_gem"] = pop_veld_gem if pd.isna(grensspanning_proef) else None
+                    # 1. Grensspanning uit proef
+                    if pd.notna(grensspanning_proef) and grensspanning_proef != "":
+                        record["grensspanning"] = grensspanning_proef
+                        record["grensspanning_aangenomen"] = None
+
+                        if pd.notna(terreinspanning) and terreinspanning != "":
+                            record["pop"] = grensspanning_proef - terreinspanning
+                        else:
+                            record["pop"] = None
+
+                        record["pop_aangenomen"] = None
+
+                    # 2. Geen grensspanning uit proef, dus aangenomen grensspanning bepalen
+                    else:
+                        record["grensspanning"] = None
+
+                        if pd.notna(grensspanning_handmatig) and grensspanning_handmatig != "":
+                            grensspanning_aangenomen = grensspanning_handmatig
+                        elif pd.notna(grensspanning_voorstel) and grensspanning_voorstel != "":
+                            grensspanning_aangenomen = grensspanning_voorstel
+                        else:
+                            grensspanning_aangenomen = None
+
+                        record["grensspanning_aangenomen"] = grensspanning_aangenomen
+                        record["pop"] = None
+
+                        if (
+                                pd.notna(terreinspanning)
+                                and terreinspanning != ""
+                                and pd.notna(grensspanning_aangenomen)
+                                and grensspanning_aangenomen != ""
+                        ):
+                            record["pop_aangenomen"] = grensspanning_aangenomen - terreinspanning
+                        else:
+                            record["pop_aangenomen"] = None
 
                 records.append(record)
 
@@ -176,11 +194,12 @@ def make_grens_df(
         "diepte",
         "volumegewicht",
         "grensspanning",
-        "grensspanning_reken",
+        "grensspanning_aangenomen",
+        "terreinspanning",
         "ocr",
         "ocr_aangenomen",
         "pop",
-        "pop_gem",
+        "pop_aangenomen",
     ]
 
     grens_df = grens_df[ordered_columns]
@@ -228,11 +247,35 @@ def generate_grens_figures(
 
     figures = {}
 
-    max_grensspanning = grens_df["grensspanning"].max()
-    min_ocr = grens_df["ocr"].min()
-    max_ocr = grens_df["ocr"].max()
-    min_pop = grens_df["pop"].min()
-    max_pop = grens_df["pop"].max()
+    grens_values = pd.concat(
+        [
+            grens_df["grensspanning"],
+            grens_df["grensspanning_aangenomen"],
+        ],
+        ignore_index=True,
+    )
+
+    pop_values = pd.concat(
+        [
+            grens_df["pop"],
+            grens_df["pop_aangenomen"],
+        ],
+        ignore_index=True,
+    )
+
+    ocr_values = pd.concat(
+        [
+            grens_df["ocr"],
+            grens_df["ocr_aangenomen"],
+         ],
+        ignore_index=True,
+    )
+
+    max_grensspanning = grens_values.max()
+    min_pop = pop_values.min()
+    max_pop = pop_values.max()
+    min_ocr = ocr_values.min()
+    max_ocr = ocr_values.max()
 
     marker_dict = {
         "CLAS": {"color": "black", "symbol": "circle"},
@@ -318,17 +361,17 @@ def generate_grens_figures(
             & (grens_data["grensspanning"] != "")
         ]
 
-        # Grensspanning_reken, aangenomen indien geen grensspanning
+        # grensspanning_aangenomen, aangenomen indien geen grensspanning
         reken_grens_data = subset_vg[
             (subset_vg["monster"].isin(["TXT", "DSS"]))
             & (
                 (subset_vg["grensspanning"].isna())
                 | (subset_vg["grensspanning"] == "")
             )
-            & (subset_vg["grensspanning_reken"].notna())
-            & (subset_vg["grensspanning_reken"] != "")
+            & (subset_vg["grensspanning_aangenomen"].notna())
+            & (subset_vg["grensspanning_aangenomen"] != "")
         ][
-            ["diepte", "grensspanning_reken", "monster", "ALG__BORING_MONSTERNR_ID"]
+            ["diepte", "grensspanning_aangenomen", "monster", "ALG__BORING_MONSTERNR_ID"]
         ]
 
         # Data voor OCR
@@ -367,17 +410,17 @@ def generate_grens_figures(
             & (pop_data["pop"] != "")
         ]
 
-        # POP_gem, aangenomen indien geen POP
-        pop_gem_data = subset_vg[
+        # POP_aangenomen, aangenomen indien geen POP
+        pop_aangenomen_data = subset_vg[
             (subset_vg["monster"].isin(["SD", "CRS", "TXT", "DSS"]))
             & (
                 (subset_vg["pop"].isna())
                 | (subset_vg["pop"] == "")
             )
-            & (subset_vg["pop_gem"].notna())
-            & (subset_vg["pop_gem"] != "")
+            & (subset_vg["pop_aangenomen"].notna())
+            & (subset_vg["pop_aangenomen"] != "")
         ][
-            ["diepte", "pop_gem", "monster", "ALG__BORING_MONSTERNR_ID"]
+            ["diepte", "pop_aangenomen", "monster", "ALG__BORING_MONSTERNR_ID"]
         ]
 
         fig = make_subplots(
@@ -544,7 +587,7 @@ def generate_grens_figures(
 
                 fig.add_trace(
                     go.Scatter(
-                        x=data["grensspanning_reken"],
+                        x=data["grensspanning_aangenomen"],
                         y=data["diepte"],
                         mode="markers",
                         name=f"{proef} (aangenomen)",
@@ -676,15 +719,15 @@ def generate_grens_figures(
                     legend_shown[proef] = True
 
         # POP aangenomen
-        for proef in pop_gem_data["monster"].unique():
-            data = pop_gem_data[pop_gem_data["monster"] == proef].copy()
+        for proef in pop_aangenomen_data["monster"].unique():
+            data = pop_aangenomen_data[pop_aangenomen_data["monster"] == proef].copy()
 
             if not data.empty:
                 showlegend = not legend_shown.get(f"{proef}_open", False)
 
                 fig.add_trace(
                     go.Scatter(
-                        x=data["pop_gem"],
+                        x=data["pop_aangenomen"],
                         y=data["diepte"],
                         mode="markers",
                         name=f"{proef} (aangenomen)",
