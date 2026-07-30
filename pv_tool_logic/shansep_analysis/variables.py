@@ -148,15 +148,36 @@ def exp_kar_ln_su_svc_nc_boven(self: SHANSEP):
 
 
 def gem_pop_oc(self: SHANSEP):
-    return self.shansep_data_df_oc["POP"].mean()
+    """Gemiddelde pop van alle pop waarden die voortkomen uit een proef."""
+    pop_values = self.shansep_data_df_oc.loc[
+        self.shansep_data_df_oc['grensspanning_proef'].notna(),
+        "POP"
+    ]
+    return pop_values.mean()
 
+
+def count_pop_oc(self: SHANSEP):
+    return self.shansep_data_df_oc.loc[
+        self.shansep_data_df_oc['grensspanning_proef'].notna(),
+        "POP"
+    ].count()
+
+def t_n_2_pop_oc(self: SHANSEP):
+    significantieniveau = 0.1
+    degrees_of_freedom = count_pop_oc(self) - 2
+    return t.ppf(1- significantieniveau / 2, degrees_of_freedom)
 
 def std_pop_oc(self: SHANSEP):
-    return self.shansep_data_df_oc["POP"].std(ddof=1)
+    pop_values = self.shansep_data_df_oc.loc[
+        self.shansep_data_df_oc['grensspanning_proef'].notna(),
+        "POP"
+    ]
+    return pop_values.std(ddof=1)
 
 
 def kar_pop_oc(self: SHANSEP):
-    return gem_pop_oc(self) - std_pop_oc(self) * t_n_2_oc(self) * ((1 - self.alpha) + 1 / count_sv_oc(self)) ** 0.5
+    """Karakeristieke pop van alle pop waarden die voortkomen uit een proef."""
+    return gem_pop_oc(self) - std_pop_oc(self) * t_n_2_pop_oc(self) * ((1 - self.alpha) + 1 / count_pop_oc(self)) ** 0.5
 
 
 def count_ln_ocr_nc_oc(self: SHANSEP):
