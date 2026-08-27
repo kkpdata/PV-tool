@@ -75,16 +75,20 @@ poetry run python script.py
 In Jupyter Notebook is een werkomgeving ontwikkeld, waardoor het mogelijk is om de PV-tool te gebruiken zonder kennis 
 van Python. 
 
-Start Jupyter vanuit de Poetry omgeving:
+Voor je kan starten volg je de volgende stappen:
 
-```bash
-poetry run jupyter notebook
-```
-
-Open vervolgens:
 ```text
-PV_tool1.1.0.ipynb
+1. Download en installeer Jupyter Notebook
+2. Download de notebook (PV_tool1.1.0.ipynb) en het wheel (pv_tool_logic-1.1.0-py3-none-any.whl) van de GitHub repository
+3. Installeer het wheel in de Jupyter Notebook omgeving
 ```
+
+Daarna is het mogelijk om de tool te gebruiken in de Jupyter Notebook omgeving. 
+
+In de notebook zijn verschillende cellen aanwezig met uitleg over de werking van de tool. De cellen kunnen worden 
+uitgevoerd door op de 'Run' knop te klikken of door de toetsencombinatie Shift + Enter te gebruiken. De cellen bevatten 
+code die de verschillende stappen van de analyse uitvoeren, zoals het importeren van data, het uitvoeren van analyses 
+en het genereren van grafieken en tabellen.
 
 ## Gebruik met Python code
 Daarnaast is het ook mogelijk om de tool direct te gebruiken met de ontwikkelde python code. Hieronder worden in 
