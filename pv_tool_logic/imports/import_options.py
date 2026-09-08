@@ -7,6 +7,16 @@ from datetime import time
 if TYPE_CHECKING:
     from pv_tool_logic.imports.import_data import Dbase
 
+def _normaliseer_bool_kolommen(df: pd.DataFrame, kolommen: list[str]) -> pd.DataFrame:
+    """Normaliseert opgegeven kolommen naar booleans.
+
+    Waarden zoals 1, 1.0 en True worden als True geïnterpreteerd.
+    Waarden zoals 0, 0.0, lege cellen en NaN worden False.
+    """
+    for kolom in kolommen:
+        if kolom in df.columns:
+            df[kolom] = df[kolom].fillna(0).astype(bool)
+    return df
 
 def import_dbase(self: Dbase, dbase_dir: Path):
     """Importeert de Dbase-df (template)."""
@@ -17,7 +27,6 @@ def import_dbase(self: Dbase, dbase_dir: Path):
     header_row: int | None = None
     for idx, row in temp_df.iterrows():
         if "ALG__BORING_MONSTERNR_ID" in row.values:
-            # Cast pandas index to int - pandas ensures this is numeric for default RangeIndex
             header_row = int(str(idx))
             break
 
@@ -35,6 +44,16 @@ def import_dbase(self: Dbase, dbase_dir: Path):
                 dbase[col],
                 errors="coerce"
             )
+
+    # Normaliseer True/False kolommen
+    dbase = _normaliseer_bool_kolommen(
+        dbase,
+        [
+            "ALG__CLASSIFICATIE",
+            "ALG__CRS",
+            "ALG__SAMENDRUKKING",
+            "ALG__DSS",
+            "ALG__TRIAXIAAL"])
 
     dbase = dbase.set_index("ALG__BORING_MONSTERNR_ID", drop=False)
     self.dbase_df = dbase
